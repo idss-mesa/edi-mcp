@@ -13,8 +13,8 @@ observed behaviour.
   and `/package/metadata/eml/...` return **403 text/plain**:
   `User 'EDI-… (Public Access)' is not authorized to execute service method '…'`.
   Staging `pasta-s.lternet.edu` behaves the same.
-- Credential forms PASTA recognises (with bogus values; valid-key behaviour is
-  **pending the Step 1 probe**, `scripts/probe_auth.py`):
+- Credential forms PASTA recognises (bogus-value responses below; valid-key results in
+  "Step 1 probe results"):
   - `?key=<API key>` → bogus key gives `401 API key resolution failed` (EDIutils
     `add_api_key()` uses this form);
   - `Cookie: edi-token=<JWT>` → bogus gives `401 EDI token validation failed`;
@@ -24,9 +24,37 @@ observed behaviour.
   `{"edi-token": JWT}`; refresh `POST /auth/v1/token/refresh` `{"edi-token": …}`. The
   public-access JWT has a lifetime of 28 800 s (8 h).
 
-### Step 1 probe results
+### Step 1 probe results (verified 2026-10-17 with a real profile-principal key)
 
-_TBD — run `scripts/probe_auth.py` with a real key and record the table here._
+`scripts/probe_auth.py` against `knb-lter-hbr.14.22` (newest revision of `knb-lter-hbr.14`):
+
+- **Key → token exchange works:** `POST /auth/v1/key` → 200 with `edi-token`; JWT
+  lifetime exactly 28 800 s (8 h). **Refresh works:** `POST /auth/v1/token/refresh` → 200
+  with a new token. The token's `principals` claim lists the profile plus the system
+  principals Public Access, Human Access and Authenticated Access.
+- **Both credential forms are accepted on every read method tested:**
+
+| Service method | Path | Anonymous | `Cookie: edi-token` | `?key=` | Content-Type |
+|---|---|---|---|---|---|
+| listDataPackageScopes | `/package/eml` | 403 | 200 | 200 | text/plain |
+| listDataPackageIdentifiers | `/package/eml/{s}` | 403 | 200 | 200 | text/plain |
+| listDataPackageRevisions | `/package/eml/{s}/{i}?filter=newest` | 403 | 200 | 200 | text/plain |
+| readDataPackage | `/package/eml/{s}/{i}/{r}` | 403 | 200 | 200 | text/plain (entity URLs) |
+| readMetadata | `/package/metadata/eml/{s}/{i}/{r}` | 403 | 200 | 200 | application/xml |
+| readDataEntityNames | `/package/name/eml/{s}/{i}/{r}` | 403 | 200 | 200 | **text/csv** (`id,name`) |
+| readDataEntitySizes | `/package/data/size/eml/{s}/{i}/{r}` | 403 | 200 | 200 | **text/csv** (`id,bytes`) |
+| readDataEntityChecksum | `/package/data/checksum/eml/…/{entity}` | 403 | 200 | 200 | text/plain (SHA-1) |
+| readDataPackageDoi | `/package/doi/eml/{s}/{i}/{r}` | 403 | 200 | 200 | text/plain |
+| readDataPackageReport | `/package/report/eml/{s}/{i}/{r}` | 403 | 200 | 200 | application/xml (`qr:qualityReport`) |
+| readDataSources | `/package/sources/eml/{s}/{i}/{r}` | 403 | 200 | 200 | application/xml (`dataSources`) |
+| searchDataPackages | `/package/search/eml?defType=edismax&q=streamflow…` | 403 | 200 | 200 | application/xml (`resultset numFound='291'`) |
+| listDataChanges | `/package/changes/eml?fromDate=…&scope=…` | 403 | 200 | 200 | application/xml (`dataPackageChanges`) |
+| listRecentUploads | `/package/uploads/eml?type=insert&limit=2` | 403 | 200 | 200 | application/xml (`dataPackageUploads`) |
+| getReadCounts | `/audit/reads/{s}/{i}` | **401** | 200 | 200 | application/xml (`resourceReads`) |
+
+- Anonymous audit calls return **401** "not authorized to retrieve entries from the audit
+  manager", not the 403 the package service returns; map both to `auth_required`.
+- `/package/eml` lists `cos-spu`, `ecotrends`, `edi`, `icarus`, `knb-lter-*`, … scopes.
 
 ## 2. Anonymous DataONE route (verified 2026-10-17)
 

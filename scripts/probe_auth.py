@@ -24,6 +24,7 @@ import argparse
 import base64
 import json
 import os
+import re
 import sys
 import urllib.error
 import urllib.parse
@@ -60,6 +61,9 @@ CALLS: list[tuple[str, str]] = [
 ]
 
 
+_JWT = re.compile(r"eyJ[A-Za-z0-9_-]*(?:\.[A-Za-z0-9_-]*){0,2}")
+
+
 class Secrets:
     """Holds the values that must never reach output, and scrubs them from text."""
 
@@ -74,7 +78,8 @@ class Secrets:
     def scrub(self, text: str) -> str:
         for v in self.values:
             text = text.replace(v, "<redacted>")
-        return text
+        # Any JWT-shaped string, including one cut short, is redacted too.
+        return _JWT.sub("<redacted-jwt>", text)
 
 
 SECRETS = Secrets()
@@ -102,7 +107,7 @@ def request(
     except (urllib.error.URLError, TimeoutError) as e:
         return {"status": None, "error": SECRETS.scrub(str(e))}
     text = raw.decode("utf-8", errors="replace")
-    return {"status": status, "contentType": ctype, "bodyHead": SECRETS.scrub(text[:200]), "_raw": text}
+    return {"status": status, "contentType": ctype, "bodyHead": SECRETS.scrub(text)[:200], "_raw": text}
 
 
 def jwt_lifetime(token: str) -> int | None:
@@ -130,7 +135,7 @@ def exchange_key(key: str) -> tuple[str | None, dict[str, Any]]:
         except ValueError:
             pass
     SECRETS.add(token)
-    r["bodyHead"] = SECRETS.scrub(r.get("bodyHead", ""))
+    r["bodyHead"] = SECRETS.scrub(r.get("_raw", ""))[:200]
     r["gotToken"] = bool(token)
     r["tokenLifetimeSeconds"] = jwt_lifetime(token) if token else None
     return token, r
@@ -151,7 +156,7 @@ def refresh(token: str) -> dict[str, Any]:
         except ValueError:
             pass
     SECRETS.add(new)
-    r["bodyHead"] = SECRETS.scrub(r.get("bodyHead", ""))
+    r["bodyHead"] = SECRETS.scrub(r.get("_raw", ""))[:200]
     r["gotToken"] = bool(new)
     return r
 
@@ -208,7 +213,7 @@ def main() -> int:
               f"{row['queryKey'].get('status')!s:>6}")
 
     out = json.dumps(clean, indent=2)
-    if any(v in out for v in SECRETS.values):  # belt and braces
+    if any(v in out for v in SECRETS.values) or "eyJ" in out:  # belt and braces
         print("refusing to write results: a secret survived scrubbing", file=sys.stderr)
         return 1
     if args.json:
