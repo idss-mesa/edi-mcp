@@ -10,10 +10,11 @@ facts; read them before changing behaviour.
 
 ## Status
 
-Scaffold. Build order (one PR each): 1 scaffold + auth probe → 2 core port from neon-mcp
-→ 3 client/auth/PID resolver/backends + fixtures → 4 discovery tools → 5 package,
-metadata and entity tools → 6 preview/download/citation/PASTA-only tools → 7 resources,
-prompts, docs, server.json, Docker, v0.1.0.
+Build order (one PR each): 1 scaffold + auth probe ✅ → 2 core port from neon-mcp ✅
+(registry, adapter, config, errors, key resolution, transports, `edi_ping`, conformance
+tests, CI) → 3 client/token exchange/PID resolver/backends + fixtures → 4 discovery tools
+→ 5 package, metadata and entity tools → 6 preview/download/citation/PASTA-only tools →
+7 resources, prompts, docs, server.json, Docker, v0.1.0.
 
 ## Commands
 
@@ -36,6 +37,24 @@ set -a; . ./.env; set +a; python3 scripts/probe_auth.py --json probe.json   # St
 - Config: `EDI_MCP_<SECTION>__<FIELD>`; precedence flag > env > YAML > defaults; key from
   `EDI_API_KEY` only; no key flag; `.env` is not auto-loaded.
 - MIT, Copyright (c) 2026 The Regents of the University of New Mexico.
+
+## Code map
+
+`server.py` is the only SDK-coupled module (adapter); `registry.py` validates tools,
+fails fast with `auth_required` for `requires_key` tools and enforces the result budget;
+tools in `tools/<family>.py` are `async (args, ctx) -> OutputModel`; `context.py`
+resolves the call's key and backend (`ctx.backend` is `pasta` or `dataone`);
+`edi/auth.py` holds `ApiKey` and the HTTP TLS gate; transports in `transport/`;
+static guides in `resources_static/`. Upstream access (`edi/client.py`, backends, PID
+resolver, EML projection) lands in step 3.
+
+## Adding a tool
+
+Models (`EdiInput` / `ToolResultBase`, every input field described) → `@register_tool`
+(name `^edi_[a-z_]+$`, description ≤ 600 chars ending in a `Next:` sentence, honest
+annotations, every upstream endpoint listed, `requires_key=True` for PASTA-only tools)
+→ import in `tools/__init__.py` → tests via `tests.helpers.call_ok` (validates
+`outputSchema`) → update the `KEY_TOOLS` / `WRITE_TOOLS` sets in the conformance test.
 
 ## EDI facts that drive the code (details and dates in RESEARCH.md)
 

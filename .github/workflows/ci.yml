@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: test (py${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: uv sync --all-extras
+      - run: uv run ruff check src tests scripts
+      - run: uv run ruff format --check src tests
+      - run: uv run mypy --strict src
+      - run: uv run pytest -q --cov=edi_mcp --cov-report=term --cov-report=xml
+
+  macos:
+    name: test (macOS, py3.12)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.12"
+      - run: uv sync --all-extras
+      - run: uv run pytest -q tests/test_smoke.py tests/transport/test_stdio_dual_era.py
+
+  spec-conformance:
+    # Separate so a spec regression is legible in the PR checks list.
+    name: MCP 2026-07-28 conformance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.13"
+      - run: uv sync --all-extras
+      - name: Assert the SDK is on the spec-aligned major
+        run: |
+          uv run python - <<'PY'
+          from importlib.metadata import version
+          resolved = version("mcp")
+          assert int(resolved.split(".")[0]) == 2, f"expected mcp 2.x (2026-07-28 spec), got {resolved}"
+          print("mcp", resolved)
+          PY
+      - run: uv run pytest -q tests/test_spec_conformance_2026_07_28.py tests/transport/
+      - name: Fail on deprecated MCP features
+        run: |
+          uv run python - <<'PY'
+          import pathlib, re, sys
+          patterns = {
+              "sampling/createMessage": r"\bcreate_message\b|sampling/createMessage",
+              "roots/list": r"\blist_roots\b|roots/list",
+              "logging/setLevel": r"logging/setLevel|\bset_level\b|on_set_logging_level",
+              "legacy SSE transport": r"SseServerTransport|connect_sse|/messages/",
+              "session ids": r"Mcp-Session-Id",
+          }
+          hits = []
+          for path in sorted(pathlib.Path("src").rglob("*.py")):
+              text = path.read_text(encoding="utf-8")
+              for label, pattern in patterns.items():
+                  for m in re.finditer(pattern, text):
+                      hits.append(f"{path}:{text[:m.start()].count(chr(10)) + 1}: {label}")
+          if hits:
+              print("\n".join(hits))
+              sys.exit("deprecated MCP features are in use")
+          print("no deprecated MCP feature use")
+          PY
+      - name: Surface DeprecationWarnings (advisory)
+        continue-on-error: true
+        run: uv run pytest -q -W error::DeprecationWarning tests/test_spec_conformance_2026_07_28.py

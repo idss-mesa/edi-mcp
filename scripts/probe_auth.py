@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import contextlib
 import json
 import os
 import re
@@ -54,7 +55,10 @@ CALLS: list[tuple[str, str]] = [
     ("readDataPackageDoi", f"/package/doi/eml/{SCOPE}/{IDENT}/{REV}"),
     ("readDataPackageReport", f"/package/report/eml/{SCOPE}/{IDENT}/{REV}"),
     ("readDataSources", f"/package/sources/eml/{SCOPE}/{IDENT}/{REV}"),
-    ("searchDataPackages", "/package/search/eml?defType=edismax&q=streamflow&fl=packageid,title,doi&rows=2"),
+    (
+        "searchDataPackages",
+        "/package/search/eml?defType=edismax&q=streamflow&fl=packageid,title,doi&rows=2",
+    ),
     ("listDataChanges", f"/package/changes/eml?fromDate={_week_ago}&scope={SCOPE}"),
     ("listRecentUploads", "/package/uploads/eml?type=insert&limit=2"),
     ("getReadCounts", f"/audit/reads/{SCOPE}/{IDENT}"),
@@ -107,7 +111,12 @@ def request(
     except (urllib.error.URLError, TimeoutError) as e:
         return {"status": None, "error": SECRETS.scrub(str(e))}
     text = raw.decode("utf-8", errors="replace")
-    return {"status": status, "contentType": ctype, "bodyHead": SECRETS.scrub(text)[:200], "_raw": text}
+    return {
+        "status": status,
+        "contentType": ctype,
+        "bodyHead": SECRETS.scrub(text)[:200],
+        "_raw": text,
+    }
 
 
 def jwt_lifetime(token: str) -> int | None:
@@ -130,10 +139,8 @@ def exchange_key(key: str) -> tuple[str | None, dict[str, Any]]:
     )
     token = None
     if r.get("status") == 200:
-        try:
+        with contextlib.suppress(ValueError):
             token = json.loads(r["_raw"]).get("edi-token")
-        except ValueError:
-            pass
     SECRETS.add(token)
     r["bodyHead"] = SECRETS.scrub(r.get("_raw", ""))[:200]
     r["gotToken"] = bool(token)
@@ -151,10 +158,8 @@ def refresh(token: str) -> dict[str, Any]:
     )
     new = None
     if r.get("status") == 200:
-        try:
+        with contextlib.suppress(ValueError):
             new = json.loads(r["_raw"]).get("edi-token")
-        except ValueError:
-            pass
     SECRETS.add(new)
     r["bodyHead"] = SECRETS.scrub(r.get("_raw", ""))[:200]
     r["gotToken"] = bool(new)
@@ -166,13 +171,17 @@ def with_key(path: str, key: str) -> str:
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     ap.add_argument("--json", help="write results to this JSON file")
     args = ap.parse_args()
 
     key = os.environ.get("EDI_API_KEY", "").strip()
     if not key:
-        print("EDI_API_KEY is not set; create one at https://auth.edirepository.org (Profile -> API keys).")
+        print(
+            "EDI_API_KEY is not set; create one at https://auth.edirepository.org (Profile -> API keys)."
+        )
         return 2
     SECRETS.add(key)
 
@@ -203,14 +212,20 @@ def main() -> int:
         return o
 
     clean = strip(results)
-    print(f"key->token exchange: HTTP {exch.get('status')}  token={exch['gotToken']}  "
-          f"lifetime={exch.get('tokenLifetimeSeconds')}s")
+    print(
+        f"key->token exchange: HTTP {exch.get('status')}  token={exch['gotToken']}  "
+        f"lifetime={exch.get('tokenLifetimeSeconds')}s"
+    )
     if "refresh" in clean:
-        print(f"token refresh:       HTTP {clean['refresh'].get('status')}  token={clean['refresh']['gotToken']}")
+        print(
+            f"token refresh:       HTTP {clean['refresh'].get('status')}  token={clean['refresh']['gotToken']}"
+        )
     print(f"\n{'service method':30} {'anon':>5} {'cookie':>7} {'?key=':>6}")
     for name, row in clean["calls"].items():
-        print(f"{name:30} {row['anonymous'].get('status')!s:>5} {row['cookie'].get('status')!s:>7} "
-              f"{row['queryKey'].get('status')!s:>6}")
+        print(
+            f"{name:30} {row['anonymous'].get('status')!s:>5} {row['cookie'].get('status')!s:>7} "
+            f"{row['queryKey'].get('status')!s:>6}"
+        )
 
     out = json.dumps(clean, indent=2)
     if any(v in out for v in SECRETS.values) or "eyJ" in out:  # belt and braces
