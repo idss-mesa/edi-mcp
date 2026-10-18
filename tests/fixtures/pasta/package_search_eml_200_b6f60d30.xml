@@ -1,0 +1,198 @@
+<resultset numFound='460' start='0' rows='5'>
+    <document>
+        <packageid>knb-lter-bnz.688.5</packageid>
+        <title>Assessment of the Vulnerability of Permafrost Carbon to Climate Change: A Sensitivity Analysis among Models</title>
+        <pubdate>2018</pubdate>
+        <doi>doi:10.6073/pasta/4edb926a2ecbfc90633d7a9927488a39</doi>
+        <begindate>2010-01-01</begindate>
+        <enddate>2299-12-31</enddate>
+        <scope>knb-lter-bnz</scope>
+        <keywords>
+            <keyword>carbon</keyword>
+            <keyword>climate</keyword>
+            <keyword>climate change</keyword>
+            <keyword>disturbance</keyword>
+            <keyword>modeling</keyword>
+            <keyword>permafrost</keyword>
+            <keyword>soil carbon</keyword>
+            <keyword>soil moisture</keyword>
+            <keyword>soil temperature</keyword>
+            <keyword>fluxes</keyword>
+            <keyword>dynamics</keyword>
+        </keywords>
+        <authors>
+            <author>McGuire, A. David</author>
+            <author>Lawrence, David M</author>
+            <author>Koven, Charles D.</author>
+            <author>Clein, Joy S.</author>
+            <author>Burke, E.</author>
+            <author>Chen, G.</author>
+            <author>Jafarov, E. E.</author>
+            <author>MacDougall, A.</author>
+            <author>Marchenko, Sergei</author>
+            <author>Nicolsky, Dmitry J</author>
+            <author>Peng, S.</author>
+            <author>Rinke, A.</author>
+            <author>Ciais, Philippe</author>
+            <author>Gouttevin, I.</author>
+            <author>Hayes, D J</author>
+            <author>Ji, D.</author>
+            <author>Krinner, Gerhard</author>
+            <author>Moore, J. C.</author>
+            <author>Romanovsky, Vladimir E.</author>
+            <author>Schadel, C.</author>
+            <author>Schaefer, K.</author>
+            <author>Schuur, Edward A.G.</author>
+            <author>Zhuang, Qianlai Q</author>
+        </authors>
+    </document>
+    <document>
+        <packageid>knb-lter-jrn.210011005.105</packageid>
+        <title>Annual ground-based photographs taken at 15 net primary production (NPP) study sites at Jornada Basin LTER, 1996-ongoing</title>
+        <pubdate>2019</pubdate>
+        <doi>doi:10.6073/pasta/69ca7ac7254a2b236d3f44b21fa8f719</doi>
+        <begindate>2003-10-14</begindate>
+        <enddate>2018-09-18</enddate>
+        <scope>knb-lter-jrn</scope>
+        <keywords>
+            <keyword>net primary production</keyword>
+            <keyword>aboveground production</keyword>
+            <keyword>vegetation</keyword>
+            <keyword>deserts</keyword>
+            <keyword>imagery</keyword>
+            <keyword>photo point imagery</keyword>
+            <keyword>Vegetation Dynamics</keyword>
+            <keyword>NPP locations</keyword>
+            <keyword>C-CALI</keyword>
+            <keyword>C-GRAV</keyword>
+            <keyword>C-SAND</keyword>
+            <keyword>G-BASN</keyword>
+            <keyword>G-SAND</keyword>
+            <keyword>G-SUMM</keyword>
+            <keyword>M-NORT</keyword>
+            <keyword>M-RABB</keyword>
+            <keyword>M-WELL</keyword>
+            <keyword>P-COLL</keyword>
+            <keyword>P-SMAL</keyword>
+            <keyword>P-TOBO</keyword>
+            <keyword>T-EAST</keyword>
+            <keyword>T-TAYL</keyword>
+            <keyword>T-WEST</keyword>
+            <keyword>study 011</keyword>
+            <keyword>NPP</keyword>
+            <keyword>Primary Production</keyword>
+            <keyword>Populations</keyword>
+            <keyword>repeat photography</keyword>
+            <keyword>ground-based photography</keyword>
+        </keywords>
+        <authors>
+            <author>Anderson, John</author>
+        </authors>
+    </document>
+    <document>
+        <packageid>knb-lter-jrn.210012001.139</packageid>
+        <title>Raw neutron counts from a soil water content hydroprobe along the LTER-I transects (control and fertilized) at the Jornada Basin LTER, 1986-ongoing</title>
+        <pubdate>2019</pubdate>
+        <doi>doi:10.6073/pasta/963587e508b2b01b1bb7f8941f546e9a</doi>
+        <begindate>1985-11-22</begindate>
+        <enddate>2019-04-30</enddate>
+        <scope>knb-lter-jrn</scope>
+        <keywords>
+            <keyword>Hydrology</keyword>
+            <keyword>Climate, Soils, and Atmosphere</keyword>
+            <keyword>long-term</keyword>
+            <keyword>LTER I</keyword>
+            <keyword>LTER-I Transect</keyword>
+            <keyword>CDRRC</keyword>
+            <keyword>study 012</keyword>
+            <keyword>LTER-I Transect</keyword>
+            <keyword>Inorganic Nutrients</keyword>
+            <keyword>soil</keyword>
+            <keyword>soil water content</keyword>
+            <keyword>soil moisture</keyword>
+            <keyword>soil water</keyword>
+            <keyword>neutron probe</keyword>
+        </keywords>
+        <authors>
+            <author>Wierenga, Peter</author>
+            <author>Virginia, Ross</author>
+            <author>Duniway, Michael</author>
+            <author>Vivoni, Enrique</author>
+        </authors>
+    </document>
+    <document>
+        <packageid>knb-lter-jrn.210012002.127</packageid>
+        <title>Soil volumetric water content calculated from neutron hydroprobe data along the LTER-I transects (control and fertilized) at the Jornada Basin LTER, 1986-ongoing</title>
+        <pubdate>2019</pubdate>
+        <doi>doi:10.6073/pasta/2e37c18c14eea1d1e4fccb35ed944e65</doi>
+        <begindate>1982-04-30</begindate>
+        <enddate>2019-04-30</enddate>
+        <scope>knb-lter-jrn</scope>
+        <keywords>
+            <keyword>Hydrology</keyword>
+            <keyword>Climate, Soils, and Atmosphere</keyword>
+            <keyword>long-term</keyword>
+            <keyword>LTER I</keyword>
+            <keyword>LTER-I Transect</keyword>
+            <keyword>CDRRC</keyword>
+            <keyword>study 012</keyword>
+            <keyword>LTER-I Transect</keyword>
+            <keyword>Inorganic Nutrients</keyword>
+            <keyword>soil</keyword>
+            <keyword>soil water content</keyword>
+            <keyword>soil moisture</keyword>
+            <keyword>soil water</keyword>
+            <keyword>neutron probe</keyword>
+        </keywords>
+        <authors>
+            <author>Wierenga, Peter</author>
+            <author>Virginia, Ross</author>
+            <author>Duniway, Michael</author>
+            <author>Vivoni, Enrique</author>
+        </authors>
+    </document>
+    <document>
+        <packageid>knb-lter-jrn.210013002.71</packageid>
+        <title>Soil volumetric water content calculated from neutron hydroprobe data at 15 NPP study sites at the Jornada Basin LTER, 1989-2011 (Deprecated)</title>
+        <pubdate>2019</pubdate>
+        <doi>doi:10.6073/pasta/ff4c98f7ac615cddf83d4538385f2130</doi>
+        <begindate>1989-07-05</begindate>
+        <enddate>2011-07-01</enddate>
+        <scope>knb-lter-jrn</scope>
+        <keywords>
+            <keyword>Hydrology</keyword>
+            <keyword>Climate, Soils, and Atmosphere</keyword>
+            <keyword>long-term</keyword>
+            <keyword>C-CALI</keyword>
+            <keyword>C-GRAV</keyword>
+            <keyword>C-SAND</keyword>
+            <keyword>G-BASN</keyword>
+            <keyword>G-SAND</keyword>
+            <keyword>G-SUMM</keyword>
+            <keyword>M-NORT</keyword>
+            <keyword>M-RABB</keyword>
+            <keyword>M-WELL</keyword>
+            <keyword>P-COLL</keyword>
+            <keyword>P-SMAL</keyword>
+            <keyword>P-TOBO</keyword>
+            <keyword>T-EAST</keyword>
+            <keyword>T-TAYL</keyword>
+            <keyword>T-WEST</keyword>
+            <keyword>NPP locations</keyword>
+            <keyword>NPP</keyword>
+            <keyword>study 013</keyword>
+            <keyword>Inorganic Nutrients</keyword>
+            <keyword>Primary Production</keyword>
+            <keyword>soil</keyword>
+            <keyword>soil water content</keyword>
+            <keyword>soil moisture</keyword>
+            <keyword>soil water</keyword>
+            <keyword>net primary production</keyword>
+            <keyword>neutron probe</keyword>
+        </keywords>
+        <authors>
+            <author>Virginia, Ross</author>
+            <author>Duniway, Mike</author>
+        </authors>
+    </document>
+</resultset>

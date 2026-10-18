@@ -1,0 +1,156 @@
+<resultset numFound='11' start='0' rows='5'>
+    <document>
+        <packageid>knb-lter-hbr.292.1</packageid>
+        <title>Lepidoptera species recorded within the Hubbard Brook Experimental Forest and vicinity</title>
+        <pubdate>2021</pubdate>
+        <doi>doi:10.6073/pasta/c3548c8dc618c670bf248cabbd94c00a</doi>
+        <begindate>1963-01-01</begindate>
+        <enddate>2013-12-31</enddate>
+        <scope>knb-lter-hbr</scope>
+        <keywords>
+            <keyword>ecosystems</keyword>
+            <keyword>forests</keyword>
+            <keyword>insects</keyword>
+            <keyword>HBR</keyword>
+            <keyword>Hubbard Brook LTER</keyword>
+            <keyword>Hubbard Brook Experimental Forest</keyword>
+            <keyword>Hubbard Brook Ecosystem Study</keyword>
+            <keyword>HBES</keyword>
+            <keyword>HBEF</keyword>
+            <keyword>New Hampshire</keyword>
+            <keyword>NH</keyword>
+            <keyword>White Mountain National Forest</keyword>
+            <keyword>lepidoptera</keyword>
+            <keyword>biota</keyword>
+            <keyword>Ecology, Ecosystems, &amp; Environment</keyword>
+        </keywords>
+        <authors>
+            <author>Lany, Nina</author>
+            <author>Stange, Erik</author>
+            <author>Holmes, Richard</author>
+            <author>Likens, Gene</author>
+        </authors>
+    </document>
+    <document>
+        <packageid>knb-lter-hbr.286.1</packageid>
+        <title>Fish species recorded within the Hubbard Brook Experimental Forest and vicinity (1963-2020; updated January 2021).</title>
+        <pubdate>2021</pubdate>
+        <doi>doi:10.6073/pasta/782759b2916c317430dbfd9b764a9c9a</doi>
+        <begindate>1963-01-01</begindate>
+        <enddate>2020-12-31</enddate>
+        <scope>knb-lter-hbr</scope>
+        <keywords>
+            <keyword>ecosystems</keyword>
+            <keyword>forests</keyword>
+            <keyword>fishes</keyword>
+            <keyword>HBR</keyword>
+            <keyword>Hubbard Brook LTER</keyword>
+            <keyword>Hubbard Brook Experimental Forest</keyword>
+            <keyword>Hubbard Brook Ecosystem Study</keyword>
+            <keyword>HBES</keyword>
+            <keyword>HBEF</keyword>
+            <keyword>New Hampshire</keyword>
+            <keyword>NH</keyword>
+            <keyword>White Mountain National Forest</keyword>
+            <keyword>biota</keyword>
+            <keyword>Ecology, Ecosystems, &amp; Environment</keyword>
+        </keywords>
+        <authors>
+            <author>Likens, Gene</author>
+            <author>Buso, Don</author>
+            <author>Winant, Gabriel</author>
+        </authors>
+    </document>
+    <document>
+        <packageid>knb-lter-hbr.290.1</packageid>
+        <title>Reptile species recorded within the Hubbard Brook Experimental Forest and vicinity (1963-2020; updated January 2021).</title>
+        <pubdate>2021</pubdate>
+        <doi>doi:10.6073/pasta/32df8f7c7fb9084521e18b1b0974304d</doi>
+        <begindate>1963-01-01</begindate>
+        <enddate>2020-12-31</enddate>
+        <scope>knb-lter-hbr</scope>
+        <keywords>
+            <keyword>ecosystems</keyword>
+            <keyword>forests</keyword>
+            <keyword>reptiles</keyword>
+            <keyword>HBR</keyword>
+            <keyword>Hubbard Brook LTER</keyword>
+            <keyword>Hubbard Brook Experimental Forest</keyword>
+            <keyword>Hubbard Brook Ecosystem Study</keyword>
+            <keyword>HBES</keyword>
+            <keyword>HBEF</keyword>
+            <keyword>New Hampshire</keyword>
+            <keyword>NH</keyword>
+            <keyword>White Mountain National Forest</keyword>
+            <keyword>biota</keyword>
+            <keyword>Ecology, Ecosystems, &amp; Environment</keyword>
+        </keywords>
+        <authors>
+            <author>Buso, Don</author>
+            <author>Likens, Gene</author>
+            <author>Holmes, Richard</author>
+        </authors>
+    </document>
+    <document>
+        <packageid>knb-lter-hbr.284.3</packageid>
+        <title>Mammal species recorded within the Hubbard Brook Experimental Forest and vicinity (1963-2020; updated January 2021).</title>
+        <pubdate>2021</pubdate>
+        <doi>doi:10.6073/pasta/731f654ef4cec29f20a48961c16b84b3</doi>
+        <begindate>1963-01-01</begindate>
+        <enddate>2020-12-31</enddate>
+        <scope>knb-lter-hbr</scope>
+        <keywords>
+            <keyword>ecosystems</keyword>
+            <keyword>forests</keyword>
+            <keyword>mammals</keyword>
+            <keyword>HBR</keyword>
+            <keyword>Hubbard Brook LTER</keyword>
+            <keyword>Hubbard Brook Experimental Forest</keyword>
+            <keyword>Hubbard Brook Ecosystem Study</keyword>
+            <keyword>HBES</keyword>
+            <keyword>HBEF</keyword>
+            <keyword>New Hampshire</keyword>
+            <keyword>NH</keyword>
+            <keyword>White Mountain National Forest</keyword>
+            <keyword>biota</keyword>
+            <keyword>Ecology, Ecosystems, &amp; Environment</keyword>
+        </keywords>
+        <authors>
+            <author>Holmes, Richard</author>
+            <author>ter Hofstede, Hannah</author>
+            <author>Christenson, Lynn</author>
+            <author>Likens, Gene</author>
+        </authors>
+    </document>
+    <document>
+        <packageid>knb-lter-hbr.285.1</packageid>
+        <title>Amphibian species recorded within the Hubbard Brook Experimental Forest and vicinity (1963-2020; updated January 2021).</title>
+        <pubdate>2021</pubdate>
+        <doi>doi:10.6073/pasta/0ddea32e0354352e4b590131ca1ce8cd</doi>
+        <begindate>1963-01-01</begindate>
+        <enddate>2020-12-31</enddate>
+        <scope>knb-lter-hbr</scope>
+        <keywords>
+            <keyword>ecosystems</keyword>
+            <keyword>forests</keyword>
+            <keyword>amphibians</keyword>
+            <keyword>HBR</keyword>
+            <keyword>Hubbard Brook LTER</keyword>
+            <keyword>Hubbard Brook Experimental Forest</keyword>
+            <keyword>Hubbard Brook Ecosystem Study</keyword>
+            <keyword>HBES</keyword>
+            <keyword>HBEF</keyword>
+            <keyword>New Hampshire</keyword>
+            <keyword>NH</keyword>
+            <keyword>White Mountain National Forest</keyword>
+            <keyword>biota</keyword>
+            <keyword>Ecology, Ecosystems, &amp; Environment</keyword>
+        </keywords>
+        <authors>
+            <author>Likens, Gene</author>
+            <author>Lowe, Winsor</author>
+            <author>Buso, Don</author>
+            <author>Holmes, Richard</author>
+        </authors>
+    </document>
+</resultset>

@@ -240,3 +240,59 @@ async def test_backend_for_follows_the_key(key_server: EdiServer, server: EdiSer
     assert isinstance(pasta, PastaBackend) and key_ctx.stats.backend == "pasta"
     assert isinstance(backend_for(anon_ctx), DataOneBackend)
     assert anon_ctx.stats.backend == "dataone"
+
+
+# ---------------------------------------------------------------------- search filters
+
+
+def test_pasta_search_filter() -> None:
+    from edi_mcp.edi.backends import BoundingBox
+    from edi_mcp.edi.backends.pasta import search_filter
+
+    assert search_filter(SearchQuery()) == "-scope:(ecotrends lter-landsat lter-landsat-ledaps)"
+    assert search_filter(SearchQuery(exclude_bulk=False)) is None
+    assert search_filter(SearchQuery(scope="ecotrends")) == "scope:ecotrends"
+    full = search_filter(
+        SearchQuery(
+            scope="knb-lter-jrn",
+            author="Peters",
+            start_year=1990,
+            end_year=2000,
+            bbox=BoundingBox(-107, 32.4, -106.5, 32.8),
+        )
+    )
+    assert full == (
+        'scope:knb-lter-jrn AND author:"Peters" AND begindate:[* TO 2000-12-31T23:59:59Z] '
+        "AND enddate:[1990-01-01T00:00:00Z TO *] AND "
+        'coordinates:"Intersects(ENVELOPE(-107, -106.5, 32.8, 32.4))"'
+    )
+
+
+def test_dataone_search_filter(dataone: DataOneBackend) -> None:
+    from edi_mcp.edi.backends import BoundingBox
+
+    fq = dataone.search_filter(
+        SearchQuery(author="likens", start_year=1960, bbox=BoundingBox(-107, 32.4, -106.5, 32.8))
+    )
+    assert 'investigatorText:"likens"' in fq and "endDate:[1960-01-01T00:00:00Z TO *]" in fq
+    assert "beginDate" not in fq
+    assert "northBoundCoord:[32.4 TO *] AND southBoundCoord:[* TO 32.8]" in fq
+    assert "eastBoundCoord:[-107 TO *] AND westBoundCoord:[* TO -106.5]" in fq
+    assert fq.count("-id:") == 3
+    assert "-id:" not in dataone.search_filter(SearchQuery(scope="ecotrends"))
+
+
+@pytest.mark.parametrize(
+    "hostile",
+    ['Likens" OR *:*', "a\\", 'x") OR scope:(edi', "O'Neil:(x)"],
+)
+def test_author_cannot_break_out_of_its_phrase(hostile: str, dataone: DataOneBackend) -> None:
+    from edi_mcp.edi.backends.base import solr_phrase
+    from edi_mcp.edi.backends.pasta import search_filter
+
+    phrase = solr_phrase(hostile)
+    inner = phrase[1:-1]
+    assert phrase.startswith('"') and phrase.endswith('"')
+    assert '"' not in inner and "\\" not in inner
+    assert search_filter(SearchQuery(author=hostile)).count('"') == 2
+    assert dataone.search_filter(SearchQuery(author=hostile)).count('"') == 6  # + source filter

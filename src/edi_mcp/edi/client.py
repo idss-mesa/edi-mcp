@@ -49,6 +49,8 @@ MAX_REDIRECTS = 3
 _REDIRECTS = frozenset({301, 302, 303, 307, 308})
 #: EDI user principals (``EDI-<40 hex>``) are removed from upstream error text.
 _PRINCIPAL_RE = re.compile(r"EDI-[0-9a-f]{40}")
+#: PASTA's 403 text names the caller: ``User 'EDI-<hex> (Display Name)' is not authorized``.
+_USER_RE = re.compile(r"User '[^']*'")
 
 CredentialKind = Literal["none", "token", "key"]
 
@@ -190,6 +192,7 @@ class EdiClient:
         **kw: Any,
     ) -> EdiApiError:
         clean = _PRINCIPAL_RE.sub("EDI-…", redact(detail, registered_secrets()))
+        clean = _USER_RE.sub("User '…'", clean)
         return EdiApiError(
             status,
             clean[:300] or "no detail",

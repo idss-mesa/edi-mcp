@@ -11,9 +11,11 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Literal, Protocol
 
-from edi_mcp.edi.pid import Doi, PackageId, RevisionSpec, parse_reference
+from edi_mcp.edi.pid import Doi, PackageId, RevisionSpec
+from edi_mcp.edi.scopes import resolve_reference
 from edi_mcp.errors import EdiApiError, ToolError, map_api_error
 from edi_mcp.logging import registered_secrets
+from edi_mcp.models.common import Resolved
 
 if TYPE_CHECKING:
     from edi_mcp.config import Config
@@ -24,8 +26,20 @@ BackendName = Literal["pasta", "dataone"]
 
 #: DataONE identifiers of PASTA content always use the production host.
 PASTA_PID_BASE = "https://pasta.lternet.edu/package"
-#: Bulk scopes that swamp keyword search (~26k records); excluded unless asked for.
-BULK_SCOPES = ("ecotrends", "lter-landsat")
+#: Bulk scopes that swamp search (~36k generated records); excluded unless asked for.
+BULK_SCOPES = ("ecotrends", "lter-landsat", "lter-landsat-ledaps")
+
+SearchSort = Literal["relevance", "newest", "oldest"]
+
+
+@dataclass(frozen=True)
+class BoundingBox:
+    """West, south, east, north in decimal degrees (``west <= east``: no antimeridian)."""
+
+    west: float
+    south: float
+    east: float
+    north: float
 
 
 @dataclass(frozen=True)
@@ -35,6 +49,31 @@ class SearchQuery:
     offset: int = 0
     limit: int = 10
     exclude_bulk: bool = True
+    #: A creator's last name (case-insensitive on both backends).
+    author: str | None = None
+    #: Temporal coverage overlapping [start_year, end_year] (either end optional).
+    start_year: int | None = None
+    end_year: int | None = None
+    bbox: BoundingBox | None = None
+    sort: SearchSort = "relevance"
+
+    @property
+    def query_text(self) -> str:
+        return self.text.strip() if self.text and self.text.strip() else "*:*"
+
+
+def solr_phrase(value: str) -> str:
+    """``value`` as a quoted Solr phrase: only backslash and quote are special inside."""
+    cleaned = " ".join(value.replace("\\", " ").replace('"', " ").split())
+    return f'"{cleaned}"'
+
+
+def year_start(year: int) -> str:
+    return f"{year:04d}-01-01T00:00:00Z"
+
+
+def year_end(year: int) -> str:
+    return f"{year:04d}-12-31T23:59:59Z"
 
 
 @dataclass
@@ -79,6 +118,8 @@ class ResolvedPackage:
     entity_id: str | None
     #: How the revision was chosen: given, newest, oldest, or via the DOI.
     revision_from: Literal["given", "newest", "oldest", "doi"]
+    #: Scope names or site codes resolved to a scope (D9), for the result's ``resolved``.
+    resolved: list[Resolved] = field(default_factory=list)
 
 
 class Backend(Protocol):
@@ -138,7 +179,7 @@ async def resolve_package(
     backend: Backend, value: str, revision: RevisionSpec = None
 ) -> ResolvedPackage:
     """Parse ``value`` and fill in a concrete revision (DOI lookup or revision listing)."""
-    ref = parse_reference(value, revision)
+    ref, resolved = resolve_reference(value, revision)
     if ref.doi is not None:
         package = await backend.resolve_doi(ref.doi)
         if isinstance(revision, int) and package.revision != revision:
@@ -148,11 +189,11 @@ async def resolve_package(
                 details={"doi": ref.doi.pid, "packageId": str(package)},
                 hint="A DOI names exactly one revision; omit revision.",
             )
-        return ResolvedPackage(package, ref.raw, ref.form, ref.entity_id, "doi")
+        return ResolvedPackage(package, ref.raw, ref.form, ref.entity_id, "doi", resolved)
     if ref.package is None:  # pragma: no cover - parse_reference returns a package or a DOI
         raise ToolError("invalid_argument", f"{value!r} names no package.")
     if isinstance(ref.revision, int):
-        return ResolvedPackage(ref.package, ref.raw, ref.form, ref.entity_id, "given")
+        return ResolvedPackage(ref.package, ref.raw, ref.form, ref.entity_id, "given", resolved)
     which: Literal["newest", "oldest"] = "oldest" if ref.revision == "oldest" else "newest"
     revisions = await backend.list_revisions(ref.package.scope, ref.package.identifier)
     chosen = pick_revision(revisions, which)
@@ -168,7 +209,7 @@ async def resolve_package(
             ),
         )
     return ResolvedPackage(
-        ref.package.with_revision(chosen), ref.raw, ref.form, ref.entity_id, which
+        ref.package.with_revision(chosen), ref.raw, ref.form, ref.entity_id, which, resolved
     )
 
 
@@ -178,11 +219,16 @@ __all__ = [
     "Backend",
     "BackendBase",
     "BackendName",
+    "BoundingBox",
     "EntityInfo",
     "ResolvedPackage",
     "SearchHit",
     "SearchPage",
     "SearchQuery",
+    "SearchSort",
     "pick_revision",
     "resolve_package",
+    "solr_phrase",
+    "year_end",
+    "year_start",
 ]

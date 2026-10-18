@@ -139,3 +139,42 @@ From https://pasta.lternet.edu/package/docs/api. `{r}` may be `newest`/`oldest` 
   roots/sampling/logging deprecated, Server Cards as an extension.
 - Python `mcp` 2.3.0 (2026-10-02) supports 2026-07-28 and still serves 2025-era clients;
   `FastMCP` was renamed `MCPServer` in 2.x (we use the low-level `Server`, as neon-mcp does).
+
+## 5. Search filters, scopes and access control (verified 2026-10-18)
+
+Probed live with a profile key (PASTA) and anonymously (DataONE CN Solr).
+
+- **Sort.** PASTA takes `sort=pubdate,desc` / `sort=pubdate,asc`; `sort=pubdate desc`
+  (Solr's usual form) is accepted with HTTP 200 and **silently ignored**. DataONE takes
+  `sort=pubDate desc|asc`. On both, ascending order lists packages without a publication
+  date first.
+- **Bounding box.** PASTA: `fq=coordinates:"Intersects(ENVELOPE(minX, maxX, maxY, minY))"`
+  (west, east, north, south). A malformed shape is a **500** from PASTA's Solr ("Unable to
+  parse shape"), so edi-mcp validates the box before sending it. DataONE:
+  `northBoundCoord:[south TO *] AND southBoundCoord:[* TO north] AND
+  eastBoundCoord:[west TO *] AND westBoundCoord:[* TO east]` (cannot cross the
+  antimeridian). A Jornada box (-107, 32.4, -106.5, 32.8) returns mostly `knb-lter-jrn`
+  on both once the bulk scopes are excluded.
+- **Author.** PASTA `author:"likens"` is case-insensitive. DataONE `origin` is an exact,
+  case-sensitive full name (`origin:"Gene E. Likens"`; `origin:Likens`, `origin:*Likens*`
+  find nothing) and `authorLastName` is case-sensitive; `investigatorText:likens`
+  (tokenized last names) is case-insensitive and is what edi-mcp uses.
+- **Temporal.** PASTA `begindate`/`enddate` and DataONE `beginDate`/`endDate` take Solr
+  date ranges; overlap with [start, end] is `begin <= end AND end >= start`.
+- **Bulk scopes.** `lter-landsat-ledaps` (10 471 packages) is a third generated scope
+  next to `ecotrends` (15 403) and `lter-landsat` (10 492); unexcluded, it floods
+  spatial queries.
+- **Scopes.** `/package/eml` lists 41 scopes; `resources_static/scopes.json` records
+  them with package counts. DataONE does not replicate `cos-spu` or `icarus`. DataONE's
+  per-scope counts exceed PASTA's (e.g. `knb-lter-jrn` 481 vs 224) because superseded
+  revisions often lack `obsoletedBy` (D12). Scope names come from package titles and
+  organizations: `knb-lter-nwk` is the LTER Network Office, `cos-spu` the City of Seattle,
+  Seattle Public Utilities, `msb-paleon` PalEON (43 of 47 packages mention it). No name
+  is verified for `icarus` (its one package is from the Mountain Ecology Research
+  Institute), `msb-cap` or `msb-tempbiodev`.
+- **Revision 0 exists** (`msb-paleon.31.0`).
+- **Access-restricted packages.** PASTA search lists `icarus.13.1`, but reading its
+  metadata with a valid key returns **403** "User 'EDI-… (Display Name)' is not
+  authorized to read '…'". A bad key or token gets 401, so a credentialed 403 means the
+  package is restricted, not that the key is wrong. The 403 text carries the caller's
+  display name; the client removes the whole `User '…'` quote from upstream error text.

@@ -299,11 +299,16 @@ async def test_upstream_error_text_drops_principals(
     principal = "EDI-" + "a" * 40
     router.add(
         "GET pasta.lternet.edu/package/eml/knb-lter-hbr/14",
-        Reply(403, f"User '{principal}' is not authorized".encode(), "text/plain"),
+        Reply(
+            403,
+            f"User '{principal} (Ada Lovelace)' is not authorized to read 'x'".encode(),
+            "text/plain",
+        ),
     )
     with pytest.raises(EdiApiError) as exc:
         await make_client().get(REVISIONS, key=key)
-    assert principal not in exc.value.detail
+    assert principal not in exc.value.detail and "Lovelace" not in exc.value.detail
+    assert exc.value.detail.startswith("User '…' is not authorized")
 
 
 async def test_callers_cannot_send_credential_params(make_client: Callable[..., EdiClient]) -> None:
