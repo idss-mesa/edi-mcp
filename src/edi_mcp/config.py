@@ -104,6 +104,21 @@ class EdiConfig(_Section):
     max_concurrency: int = Field(
         4, ge=1, le=32, description="Maximum simultaneous upstream requests."
     )
+    token_refresh_margin_s: float = Field(
+        3600.0,
+        ge=0,
+        description="Refresh the 8-hour edi-token once fewer than this many seconds remain.",
+    )
+    auth_fallback_s: float = Field(
+        300.0,
+        ge=0,
+        description="After the EDI auth service fails, send ?key= for this long before retrying it.",
+    )
+    max_response_bytes: int = Field(
+        20 * 1024 * 1024,
+        ge=1024,
+        description="Largest upstream response body read into memory.",
+    )
     retries: RetryConfig = Field(default_factory=RetryConfig)
 
 

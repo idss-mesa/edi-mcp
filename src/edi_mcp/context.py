@@ -23,6 +23,7 @@ import structlog
 if TYPE_CHECKING:
     from edi_mcp.config import Config
     from edi_mcp.edi.auth import ApiKey
+    from edi_mcp.edi.client import EdiClient
 
 TransportName = Literal["stdio", "http"]
 BackendName = Literal["pasta", "dataone"]
@@ -77,6 +78,8 @@ class ToolContext:
     request_id: str | None
     stats: UpstreamStats
     log: Any
+    #: The process-wide upstream client (``None`` only in bare unit tests).
+    client: EdiClient | None = None
 
     @property
     def key_source(self) -> Literal["config", "request", "none"]:
@@ -98,6 +101,7 @@ def build_tool_context(
     request_id: str | None = None,
     request_headers: Mapping[str, str] | None = None,
     stats: UpstreamStats | None = None,
+    client: EdiClient | None = None,
 ) -> ToolContext:
     """Resolve the call's API key and assemble a :class:`ToolContext`."""
     from edi_mcp.edi.auth import resolve_key
@@ -115,4 +119,5 @@ def build_tool_context(
         request_id=request_id,
         stats=stats if stats is not None else UpstreamStats(),
         log=structlog.get_logger("edi_mcp.tool").bind(tool=tool_name, request_id=request_id),
+        client=client,
     )

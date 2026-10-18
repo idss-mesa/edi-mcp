@@ -1,0 +1,149 @@
+<resultset numFound='44' start='0' rows='3'>
+    <document>
+        <packageid>knb-lter-hbr.449.1</packageid>
+        <title>Hubbard Brook Experimental Forest: Chemistry of Precipitation – Monthly Fluxes, 1963 – ongoing</title>
+        <pubdate>2026</pubdate>
+        <doi>doi:10.6073/pasta/1410954a2fdaa41f86fe75707ad8d9a9</doi>
+        <begindate>1963-08-01</begindate>
+        <enddate>2024-05-31</enddate>
+        <scope>knb-lter-hbr</scope>
+        <keywords>
+            <keyword>HBR</keyword>
+            <keyword>Hubbard Brook LTER</keyword>
+            <keyword>Hubbard Brook Experimental Forest</keyword>
+            <keyword>Hubbard Brook Ecosystem Study</keyword>
+            <keyword>HBES</keyword>
+            <keyword>HBEF</keyword>
+            <keyword>New Hampshire</keyword>
+            <keyword>NH</keyword>
+            <keyword>White Mountain National Forest</keyword>
+            <keyword>environment</keyword>
+            <keyword>streams</keyword>
+            <keyword>flux</keyword>
+            <keyword>ecosystems</keyword>
+            <keyword>forests</keyword>
+            <keyword>watersheds</keyword>
+            <keyword>acid neutralizing capacity</keyword>
+            <keyword>aluminum</keyword>
+            <keyword>ammonium</keyword>
+            <keyword>calcium</keyword>
+            <keyword>chemistry</keyword>
+            <keyword>chloride</keyword>
+            <keyword>dissolved inorganic carbon</keyword>
+            <keyword>dissolved organic carbon</keyword>
+            <keyword>dissolved organic nitrogen</keyword>
+            <keyword>magnesium</keyword>
+            <keyword>nitrate</keyword>
+            <keyword>pH</keyword>
+            <keyword>phosphate</keyword>
+            <keyword>potassium</keyword>
+            <keyword>silica</keyword>
+            <keyword>sodium</keyword>
+            <keyword>streamflow</keyword>
+            <keyword>sulfate</keyword>
+            <keyword>total dissolved nitrogen</keyword>
+            <keyword>disturbance</keyword>
+            <keyword>fluorine</keyword>
+            <keyword>iron</keyword>
+            <keyword>hydrogen</keyword>
+            <keyword>manganese</keyword>
+            <keyword>specific conductivity</keyword>
+            <keyword>disturbance</keyword>
+            <keyword>inorganic nutrients</keyword>
+            <keyword>Ecology, Ecosystems, &amp; Environment</keyword>
+        </keywords>
+        <authors>
+        </authors>
+    </document>
+    <document>
+        <packageid>knb-lter-hbr.278.8</packageid>
+        <title>Hubbard Brook Experimental Forest: 15-minute Precipitation by Watershed, 2017 - present</title>
+        <pubdate>2026</pubdate>
+        <doi>doi:10.6073/pasta/e429326964ad40e72037eedd07836ead</doi>
+        <begindate>2017-05-21</begindate>
+        <enddate>2026-09-30</enddate>
+        <scope>knb-lter-hbr</scope>
+        <keywords>
+            <keyword>ecosystems</keyword>
+            <keyword>forests</keyword>
+            <keyword>watersheds</keyword>
+            <keyword>precipitation</keyword>
+            <keyword>rain</keyword>
+            <keyword>meteorology</keyword>
+            <keyword>weather</keyword>
+            <keyword>disturbance</keyword>
+            <keyword>HBR</keyword>
+            <keyword>Hubbard Brook LTER</keyword>
+            <keyword>Hubbard Brook Experimental Forest</keyword>
+            <keyword>Hubbard Brook Ecosystem Study</keyword>
+            <keyword>HBES</keyword>
+            <keyword>HBEF</keyword>
+            <keyword>New Hampshire</keyword>
+            <keyword>NH</keyword>
+            <keyword>White Mountain National Forest</keyword>
+            <keyword>gage</keyword>
+            <keyword>gauge</keyword>
+            <keyword>climatologyMeteorologyAtmosphere</keyword>
+            <keyword>Ecology, Ecosystems, &amp; Environment</keyword>
+        </keywords>
+        <authors>
+        </authors>
+    </document>
+    <document>
+        <packageid>knb-lter-hbr.450.1</packageid>
+        <title>Hubbard Brook Experimental Forest: Chemistry of Precipitation – Water Year Fluxes, 1963 – ongoing</title>
+        <pubdate>2026</pubdate>
+        <doi>doi:10.6073/pasta/084ed02e3f092e99fe5f005312672cec</doi>
+        <begindate>1963-08-01</begindate>
+        <enddate>2024-05-31</enddate>
+        <scope>knb-lter-hbr</scope>
+        <keywords>
+            <keyword>HBR</keyword>
+            <keyword>Hubbard Brook LTER</keyword>
+            <keyword>Hubbard Brook Experimental Forest</keyword>
+            <keyword>Hubbard Brook Ecosystem Study</keyword>
+            <keyword>HBES</keyword>
+            <keyword>HBEF</keyword>
+            <keyword>New Hampshire</keyword>
+            <keyword>NH</keyword>
+            <keyword>White Mountain National Forest</keyword>
+            <keyword>environment</keyword>
+            <keyword>streams</keyword>
+            <keyword>flux</keyword>
+            <keyword>ecosystems</keyword>
+            <keyword>forests</keyword>
+            <keyword>watersheds</keyword>
+            <keyword>acid neutralizing capacity</keyword>
+            <keyword>aluminum</keyword>
+            <keyword>ammonium</keyword>
+            <keyword>calcium</keyword>
+            <keyword>chemistry</keyword>
+            <keyword>chloride</keyword>
+            <keyword>dissolved inorganic carbon</keyword>
+            <keyword>dissolved organic carbon</keyword>
+            <keyword>dissolved organic nitrogen</keyword>
+            <keyword>magnesium</keyword>
+            <keyword>nitrate</keyword>
+            <keyword>pH</keyword>
+            <keyword>phosphate</keyword>
+            <keyword>potassium</keyword>
+            <keyword>silica</keyword>
+            <keyword>sodium</keyword>
+            <keyword>streamflow</keyword>
+            <keyword>sulfate</keyword>
+            <keyword>total dissolved nitrogen</keyword>
+            <keyword>disturbance</keyword>
+            <keyword>fluorine</keyword>
+            <keyword>iron</keyword>
+            <keyword>hydrogen</keyword>
+            <keyword>manganese</keyword>
+            <keyword>specific conductivity</keyword>
+            <keyword>precipitation</keyword>
+            <keyword>disturbance</keyword>
+            <keyword>inorganic nutrients</keyword>
+            <keyword>Ecology, Ecosystems, &amp; Environment</keyword>
+        </keywords>
+        <authors>
+        </authors>
+    </document>
+</resultset>

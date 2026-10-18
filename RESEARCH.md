@@ -78,6 +78,21 @@ observed behaviour.
 - CN Solr lags: `knb-lter-hbr.14.22` (uploaded 2026-10-16) is served by GMN but was not
   yet in CN Solr. `knb-lter-hbr/2/20` is **404** in DataONE (newest there is 2/15); do
   not use it as a fixture.
+- Solr includes superseded revisions, but `obsoletedBy` is missing on some of them
+  (`knb-lter-hbr/14/9`, `/14/20`, `knb-lter-jrn/210548103/2`) and some `obsoletes` values
+  are malformed (`https://pasta/lternet/edu/package/eml/...`). Parse revisions from `id`.
+- Solr `documents`/`resourceMap` are present for `edi.*` and `knb-lter-jrn` records but
+  absent for `knb-lter-hbr.14.21`, whose data objects are not indexed either. The
+  citation service's JSON (`Accept: application/json`) carries the DOI
+  (`"doi": "https://doi.org/10.6073/pasta/<md5>."`, note the trailing period).
+- `https://cn.dataone.org/cn/v2/object/doi:10.6073%2Fpasta%2F<md5>` returns the ORE
+  resource map (`application/rdf+xml`); it names the EML through URL-encoded CN
+  `/resolve/` links. CN `/resolve/doi:…` answers 303 to the member node.
+- Scopes `cos-spu` and `icarus` are not in DataONE at all; `ecotrends` is (urn:node:LTER).
+- PASTA data entity ids are the MD5 of the EML `entityName` (checked on three
+  `knb-lter-hbr.14.22` entities; e.g. `md5("thiessen_weights")` =
+  `c4f72fa0cb155f1b61f1333bb67e3d00`).
+- CN Solr accepts `defType=edismax` with `qf`.
 - Useful CN Solr fields: id, title, abstract, keywords, site, beginDate, endDate,
   pubDate, bounding coordinates, attributeName/Unit, `sem_annotation`, `documents`,
   `resourceMap`, `obsoletes`/`obsoletedBy`, size, checksum, formatId, `isPublic`.
@@ -103,6 +118,13 @@ From https://pasta.lternet.edu/package/docs/api. `{r}` may be `newest`/`oldest` 
   organization, projectTitle, relatedProjectTitle, timescale.
 - Feeds: `/changes/eml?fromDate=&toDate=&scope=`, `/uploads/eml?type=insert|update&limit=`.
 - Audit: `https://pasta.lternet.edu/audit/reads/{scope}/{id}[/{rev}]`.
+- Formats (verified 2026-10-17 with a key): search returns
+  `<resultset numFound='…'><document><packageid/><title/><pubdate/><doi/><begindate/>
+  <enddate/><scope/><keywords><keyword/></keywords><authors><author/></authors>`; the
+  `doi` field matches `q=doi:"doi:10.6073/pasta/<md5>"` (quoted, with the `doi:` prefix)
+  and covers newest revisions only. A missing package is 404 text/plain
+  `Unable to access metadata for 'scope.id.rev'.`
+- PASTA sets `Set-Cookie: edi-token=…` on responses, anonymous 403s included.
 - Hosts: production `pasta.lternet.edu`, staging `pasta-s`, development `pasta-d`;
   portal `portal.edirepository.org/nis/mapbrowse?scope=&identifier=&revision=`.
 - No published rate limits.

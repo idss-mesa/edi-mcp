@@ -1,0 +1,582 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<eml:eml packageId="knb-lter-hbr.14.22"
+  system="https://pasta.edirepository.org"
+  xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0"
+  xmlns:stmml="http://www.xml-cml.org/schema/stmml-1.2"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0/eml.xsd https://eml.ecoinformatics.org/eml-2.2.0/eml.xsd">
+   <access
+    authSystem="https://pasta.edirepository.org/authentication"
+    order="allowFirst" scope="document"
+      system="https://pasta.edirepository.org">
+      <allow>
+         <principal>uid=HBR,o=EDI,dc=edirepository,dc=org</principal>
+         <permission>all</permission>
+      </allow>
+      <allow>
+         <principal>public</principal>
+         <permission>read</permission>
+      </allow>
+   </access>
+   <dataset>
+      <alternateIdentifier
+        system="https://doi.org">doi:10.6073/pasta/2017345f0977c0f7c46e1ad90ce1b062</alternateIdentifier><title>Hubbard Brook Experimental Forest: Total Daily Precipitation by Watershed, 1956 - ongoing</title>
+      <creator>
+         <organizationName>USDA Forest Service, Northern Research Station</organizationName>
+      </creator>
+      <associatedParty>
+         <individualName>
+            <givenName>Amey</givenName>
+            <surName>Bailey</surName>
+         </individualName>
+         <organizationName>USDA Forest Service, Northern Research Station</organizationName>
+         <electronicMailAddress>amey.bailey@usda.gov</electronicMailAddress>
+         <userId
+        directory="https://orcid.org">https://orcid.org/0000-0003-3848-8550</userId>
+         <role>Associated Party</role>
+      </associatedParty>
+      <associatedParty>
+         <individualName>
+            <givenName>Nina</givenName>
+            <surName>Lany</surName>
+         </individualName>
+         <organizationName>USDA Forest Service, Northern Research Station</organizationName>
+         <electronicMailAddress>nina.lany@usda.gov</electronicMailAddress>
+         <userId
+        directory="https://orcid.org">https://orcid.org/0000-0003-0868-266X</userId>
+         <role>Associated Party</role>
+      </associatedParty>
+      <associatedParty>
+         <individualName>
+            <givenName>Mark</givenName>
+            <surName>Green</surName>
+         </individualName>
+         <organizationName>USDA Forest Service, Northern Research Station</organizationName>
+         <electronicMailAddress>mbg78@case.edu</electronicMailAddress>
+         <userId
+      directory="https://orcid.org">https://orcid.org/0000-0002-7415-7209</userId>
+         <role>Associated party</role>
+      </associatedParty>
+      <associatedParty>
+         <individualName>
+            <givenName>Ian</givenName>
+            <surName>Halm</surName>
+         </individualName>
+         <organizationName>USDA Forest Service, Northern Research Station</organizationName>
+         <electronicMailAddress>ian.halm@usda.gov</electronicMailAddress>
+         <role>Associated party</role>
+      </associatedParty>
+      <pubDate>2026-10-16</pubDate>
+      <abstract>
+         <para>From 1956 to 2014, watershed precipitation was estimated using the Thiessen Means weighting method. Daily watershed precipitation values were a weighted average of daily precipitation from standard gauges in or near the watershed. The weighting factor for each gauge was the fraction of the watershed area nearest that gauge. Beginning in 2015, a similar system was implemented using the 10 remaining rain gauges, however Inverse Distance Weighting was used to estimate the weighting of each gauge instead of the Theissen polygon approach. These data were gathered at the Hubbard Brook Experimental Forest in Woodstock, NH, which is operated and maintained by the USDA Forest Service, Northern Research Station.</para>
+      </abstract>
+      <keywordSet>
+         <keyword>ecosystems</keyword>
+         <keyword>forests</keyword>
+         <keyword>watersheds</keyword>
+         <keyword>precipitation</keyword>
+         <keyword>rain</keyword>
+         <keyword>meteorology</keyword>
+         <keyword>weather</keyword>
+         <keywordThesaurus>LTER Controlled Vocabulary</keywordThesaurus>
+      </keywordSet>
+      <keywordSet>
+         <keyword>disturbance</keyword>
+         <keywordThesaurus>LTER Core Research Area</keywordThesaurus>
+      </keywordSet>
+      <keywordSet>
+         <keyword>HBR</keyword>
+         <keyword>Hubbard Brook LTER</keyword>
+         <keyword>Hubbard Brook Experimental Forest</keyword>
+         <keyword>Hubbard Brook Ecosystem Study</keyword>
+         <keyword>HBES</keyword>
+         <keyword>HBEF</keyword>
+         <keyword>New Hampshire</keyword>
+         <keyword>NH</keyword>
+         <keyword>White Mountain National Forest</keyword>
+         <keyword>gage</keyword>
+         <keyword>gauge</keyword>
+         <keywordThesaurus>HBES Vocabulary</keywordThesaurus>
+      </keywordSet>
+      <keywordSet>
+         <keyword>climatologyMeteorologyAtmosphere</keyword>
+         <keywordThesaurus>ISO 19115 Topic Category</keywordThesaurus>
+      </keywordSet>
+      <keywordSet>
+         <keyword>Ecology, Ecosystems, &amp; Environment</keyword>
+         <keywordThesaurus>National Research &amp; Development Taxonomy</keywordThesaurus>
+      </keywordSet>
+      <intellectualRights>
+         <para>This information is released under the Creative Commons license - Attribution - CC BY (https://creativecommons.org/licenses/by/4.0/). The consumer of these data ("Data User" herein) is required to cite it appropriately in any publication that results from its use. The Data User should realize that these data may be actively used by others for ongoing research and that coordination may be necessary to prevent duplicate publication. The Data User is urged to contact the authors of these data if any questions about methodology or results occur. Where appropriate, the Data User is encouraged to consider collaboration or co-authorship with the authors. The Data User should realize that misinterpretation of data may occur if used out of context of the original study. While substantial efforts are made to ensure the accuracy of data and associated documentation, complete accuracy of data sets cannot be guaranteed. All data are made available "as is." The Data User should be aware, however, that data are updated periodically and it is the responsibility of the Data User to check for new versions of the data. The data authors and the repository where these data were obtained shall not be liable for damages resulting from any use or misinterpretation of the data. Thank you.
+</para>
+      </intellectualRights>
+      <distribution
+      id="10.6073/pasta/2017345f0977c0f7c46e1ad90ce1b062" scope="system"
+          system="https://pasta.edirepository.org"><online><url
+        function="information">https://doi.org/10.6073/pasta/2017345f0977c0f7c46e1ad90ce1b062</url></online></distribution><coverage>
+         <geographicCoverage>
+            <geographicDescription>Hubbard Brook Experimental Forest</geographicDescription>
+            <boundingCoordinates>
+               <westBoundingCoordinate>-71.8062</westBoundingCoordinate>
+               <eastBoundingCoordinate>-71.7022</eastBoundingCoordinate>
+               <northBoundingCoordinate>43.959</northBoundingCoordinate>
+               <southBoundingCoordinate>43.914</southBoundingCoordinate>
+            </boundingCoordinates>
+         </geographicCoverage>
+         <temporalCoverage>
+            <rangeOfDates>
+               <beginDate>
+                  <calendarDate>1956-01-02</calendarDate>
+               </beginDate>
+               <endDate>
+                  <calendarDate>2026-09-30</calendarDate>
+               </endDate>
+            </rangeOfDates>
+         </temporalCoverage>
+      </coverage>
+      <maintenance>
+         <description>ongoing</description>
+      </maintenance>
+      <contact>
+         <organizationName>Hubbard Brook Ecosystem Study</organizationName>
+         <electronicMailAddress>hbr-im@lternet.edu</electronicMailAddress>
+      </contact>
+      <publisher>
+         <organizationName>Environmental Data Initiative</organizationName>
+         <electronicMailAddress>info@edirepository.org</electronicMailAddress>
+         <onlineUrl>https://edirepository.org</onlineUrl>
+         <userId
+                directory="https://ror.org">0330j0z60</userId>
+      </publisher>
+      <pubPlace>Environmental Data Initiative</pubPlace>
+      <methods>
+         <methodStep>
+            <description>
+               <para>SAMPLING DESIGN</para>
+               <para>Between 1956 and 2014, precipitation was measured at Hubbard Brook by a network of 7 Belfort Universal Precipitation model 5-780 weighing recording rain gauges and 24 Standard U.S. Weather Bureau 8-inch rain gauges (Bailey et al. 2003, Campbell et al. 2007). Beginning in 2011, electronic NOAH IV Total Precipitation Gauges (ETI Instrument Systems, Inc.) were phased into operations, and the electronic gauges were the only instruments used from 2015 onwards. See provenance dataset hbr.13 for collection details.</para>
+               <para>From 1956 to 2014, the analog charts on the recording rain gauges were changed approximately weekly, at which time the accumulation in the standard rain gauges was measured. The daily recording rain gauge data and weekly standard rain gauge data were entered into the computer. Missing data were filled by estimation from other nearby gauges. A computer program used the recording gauge data to prorate the standard gauge data into daily amounts, and calculated daily precipitation on each gaged watershed by the Thiessen Mean weighting method (Linsley et al., 1958). A table of weighting values is included in the file thiessen_weights.csv.</para>
+               <para>Beginning in 2015, the daily weighted precipitation for each watershed was estimated with the electronic gauges deployed at only 10 sites. The weighted contribution of each gauge to each watershed was estimated with an Inverse Distance Weighting approach (Green et al. 2018), and the weights for the south- and north-facing watersheds are included in the files idw_weights_new_sfw.csv and idw_weights_nfw.csv.</para>
+               <para>&#xd;
+Bailey, Amey S, J. W Hornbeck, John L Campbell, and C. Eagar. 2003. Hydrometeorological Database For Hubbard Brook Experimental Forest: 1955-2000. USDA Forest Service, Northeastern Research Station.</para>
+               <para>Campbell, J.L., Driscoll, C.T., Eagar, C., Likens, G.E., Siccama, T.G., Johnson, C.E., Fahey, T.J., Hamburg, S.P., Holmes, R.T., Bailey, A.S., and Buso, D.C. 2007. Long-term trends from ecosystem research at the Hubbard Brook Experimental Forest. Gen. Tech. Rep. NRS-17. 41 pp.Newtown Square, PA., U.S., USDA Forest Service Northeastern Research Station.</para>
+               <para>Linsley, Jr., R.K., Kohler, M.A., and Paulhus, J.L.H. 1958. Hydrology for Engineers. McGraw-Hill Book Co., Inc.</para>
+               <para>Green, M.B., Campbell, J.L., Yanai, R.D., Bailey, S.W., Bailey, A.S., Grant, N., Halm, I., Kelsey, E.P. and Rustad, L.E., 2018. Downsizing a long-term precipitation network: Using a quantitative approach to inform difficult decisions. PLoS one, 13(5), p.e0195966.</para>
+            </description>
+         </methodStep>
+         <methodStep>
+            <description>
+               <para>This method step describes provenance-based metadata as specified in the LTER EML Best Practices.</para>
+               <para>This provenance metadata does not contain entity specific information.</para>
+            </description>
+            <dataSource>
+               <title>Hubbard Brook Experimental Forest: 15-minute Precipitation by Watershed, 2017 - present</title>
+               <creator>
+                  <organizationName>USDA Forest Service, Northern Research Station</organizationName>
+               </creator>
+               <distribution>
+                  <online>
+                     <onlineDescription>This online link references an EML document that describes data used in the creation of this derivative data package.</onlineDescription>
+                     <url
+            function="information">https://pasta.lternet.edu/package/metadata/eml/knb-lter-hbr/278/8</url>
+                  </online>
+               </distribution>
+               <contact>
+                  <organizationName>Hubbard Brook Ecosystem Study</organizationName>
+                  <electronicMailAddress>hbr-im@lternet.edu</electronicMailAddress>
+               </contact>
+            </dataSource>
+         </methodStep>
+      </methods>
+      <project>
+         <title>Hubbard Brook Experimental Forest Long-Term Data Collection</title>
+         <personnel>
+            <organizationName>USDA Forest Service, Northern Research Station</organizationName>
+            <role>Principal Investigator</role>
+         </personnel>
+         <funding>USDA Forest Service Northern Research Station</funding>
+         <relatedProject>
+            <title>Long-Term Ecological Research (LTER) at the Hubbard Brook Experimental Forest (1988)</title>
+            <personnel>
+               <individualName>
+                  <givenName>Timothy</givenName>
+                  <givenName>J</givenName>
+                  <surName>Fahey</surName>
+               </individualName>
+               <organizationName>Cornell University</organizationName>
+               <electronicMailAddress>tjf5@cornell.edu</electronicMailAddress>
+               <userId
+            directory="https://orcid.org">https://orcid.org/0000-0003-1283-1162</userId>
+               <role>Principal Investigator</role>
+            </personnel>
+            <funding>National Science Foundation (NSF) 8702331</funding>
+         </relatedProject>
+         <relatedProject>
+            <title>Long-Term Ecological Research (LTER) at the Hubbard Brook Experimental Forest (1992)</title>
+            <personnel>
+               <individualName>
+                  <givenName>Timothy</givenName>
+                  <givenName>J</givenName>
+                  <surName>Fahey</surName>
+               </individualName>
+               <organizationName>Cornell University</organizationName>
+               <electronicMailAddress>tjf5@cornell.edu</electronicMailAddress>
+               <userId
+            directory="https://orcid.org">https://orcid.org/0000-0003-1283-1162</userId>
+               <role>Principal Investigator</role>
+            </personnel>
+            <funding>National Science Foundation (NSF) 9211768</funding>
+         </relatedProject>
+         <relatedProject>
+            <title>Long-Term Ecological Research (LTER) at the Hubbard Brook Experimental Forest (1998)</title>
+            <personnel>
+               <individualName>
+                  <givenName>Timothy</givenName>
+                  <givenName>J</givenName>
+                  <surName>Fahey</surName>
+               </individualName>
+               <organizationName>Cornell University</organizationName>
+               <electronicMailAddress>tjf5@cornell.edu</electronicMailAddress>
+               <userId
+            directory="https://orcid.org">https://orcid.org/0000-0003-1283-1162</userId>
+               <role>Principal Investigator</role>
+            </personnel>
+            <funding>National Science Foundation (NSF) 9810221</funding>
+         </relatedProject>
+         <relatedProject>
+            <title>Long-Term Ecological Research (LTER) at the Hubbard Brook Experimental Forest (2005)</title>
+            <personnel>
+               <individualName>
+                  <givenName>Timothy</givenName>
+                  <givenName>J</givenName>
+                  <surName>Fahey</surName>
+               </individualName>
+               <organizationName>Cornell University</organizationName>
+               <electronicMailAddress>tjf5@cornell.edu</electronicMailAddress>
+               <userId
+            directory="https://orcid.org">https://orcid.org/0000-0003-1283-1162</userId>
+               <role>Principal Investigator</role>
+            </personnel>
+            <funding>National Science Foundation (NSF) 0423259</funding>
+         </relatedProject>
+         <relatedProject>
+            <title>Long-Term Ecological Research (LTER) at the Hubbard Brook Experimental Forest (2010)</title>
+            <personnel>
+               <individualName>
+                  <givenName>Timothy</givenName>
+                  <givenName>J</givenName>
+                  <surName>Fahey</surName>
+               </individualName>
+               <organizationName>Cornell University</organizationName>
+               <electronicMailAddress>tjf5@cornell.edu</electronicMailAddress>
+               <userId
+            directory="https://orcid.org">https://orcid.org/0000-0003-1283-1162</userId>
+               <role>Principal Investigator</role>
+            </personnel>
+            <funding>National Science Foundation (NSF) 1114804</funding>
+         </relatedProject>
+         <relatedProject>
+            <title>Long-Term Ecological Research (LTER) at the Hubbard Brook Experimental Forest (2016)</title>
+            <personnel>
+               <individualName>
+                  <givenName>Peter</givenName>
+                  <givenName>M</givenName>
+                  <surName>Groffman</surName>
+               </individualName>
+               <organizationName>Cary Institute of Ecosystem Studies</organizationName>
+               <electronicMailAddress>groffmanp@caryinstitute.org</electronicMailAddress>
+               <userId
+            directory="https://orcid.org">https://orcid.org/0000-0001-8371-6255</userId>
+               <role>Principal Investigator</role>
+            </personnel>
+            <funding>National Science Foundation (NSF) 1637685</funding>
+         </relatedProject>
+         <relatedProject>
+            <title>Long-Term Ecological Research (LTER) at the Hubbard Brook Experimental Forest (2022)</title>
+            <personnel>
+               <individualName>
+                  <givenName>Peter</givenName>
+                  <givenName>M</givenName>
+                  <surName>Groffman</surName>
+               </individualName>
+               <organizationName>Cary Institute of Ecosystem Studies</organizationName>
+               <electronicMailAddress>groffmanp@caryinstitute.org</electronicMailAddress>
+               <userId
+      directory="https://orcid.org">https://orcid.org/0000-0001-8371-6255</userId>
+               <role>Principal Investigator</role>
+            </personnel>
+            <funding>National Science Foundation (NSF) 2224545</funding>
+         </relatedProject>
+      </project>
+      <dataTable
+      id="c606bfe2f2deb3fa3eabf692ae15f02d" scope="document"
+          system="https://pasta.edirepository.org">
+         <entityName>Daily Watershed Precipitation</entityName>
+         <entityDescription>Daily Watershed Precipitation</entityDescription>
+         <physical>
+            <objectName>dailyWatershedPrecip1956-2026.csv</objectName>
+            <size
+          unit="bytes">4045496</size>
+            <authentication
+              method="MD5">527689886a0e4c30dc626c6d62e03d2a</authentication>
+            <dataFormat>
+               <textFormat>
+                  <numHeaderLines>1</numHeaderLines>
+                  <recordDelimiter>\r\n</recordDelimiter>
+                  <attributeOrientation>column</attributeOrientation>
+                  <simpleDelimited>
+                     <fieldDelimiter>,</fieldDelimiter>
+                  </simpleDelimited>
+               </textFormat>
+            </dataFormat>
+            <distribution>
+               <online>
+                  <url
+          function="download">https://pasta.lternet.edu/package/data/eml/knb-lter-hbr/14/22/c606bfe2f2deb3fa3eabf692ae15f02d</url>
+               </online>
+            </distribution>
+         </physical>
+         <attributeList>
+            <attribute
+          id="DATE-1">
+               <attributeName>DATE</attributeName>
+               <attributeDefinition>Date</attributeDefinition>
+               <storageType>date</storageType>
+               <measurementScale>
+                  <dateTime>
+                     <formatString>YYYY-MM-DD</formatString>
+                     <dateTimeDomain/>
+                  </dateTime>
+               </measurementScale>
+            </attribute>
+            <attribute
+          id="watershed-2">
+               <attributeName>watershed</attributeName>
+               <attributeDefinition>Watershed identification number</attributeDefinition>
+               <storageType>string</storageType>
+               <measurementScale>
+                  <nominal>
+                     <nonNumericDomain>
+                        <textDomain>
+                           <definition>Watershed identification number</definition>
+                        </textDomain>
+                     </nonNumericDomain>
+                  </nominal>
+               </measurementScale>
+            </attribute>
+            <attribute
+                    id="Precip-3">
+               <attributeName>Precip</attributeName>
+               <attributeDefinition>Precipitation</attributeDefinition>
+               <storageType>float</storageType>
+               <measurementScale>
+                  <ratio>
+                     <unit>
+                        <standardUnit>millimeter</standardUnit>
+                     </unit>
+                     <numericDomain>
+                        <numberType>real</numberType>
+                        <bounds>
+                           <minimum
+                    exclusive="false">0</minimum>
+                           <maximum
+              exclusive="false">159.8</maximum>
+                        </bounds>
+                     </numericDomain>
+                  </ratio>
+               </measurementScale>
+               <annotation>
+                  <propertyURI
+              label="has unit">http://qudt.org/schema/qudt/hasUnit</propertyURI>
+                  <valueURI
+      label="Millimetre">http://qudt.org/vocab/unit/MilliM</valueURI>
+               </annotation>
+            </attribute>
+         </attributeList>
+         <numberOfRecords>201885</numberOfRecords>
+      </dataTable>
+      <dataTable
+      id="63901b0886444c6376cfa4621643aac7" scope="document"
+          system="https://pasta.edirepository.org">
+         <entityName>Watershed information</entityName>
+         <entityDescription>Watershed information</entityDescription>
+         <physical>
+            <objectName>watershed_info.csv</objectName>
+            <size
+          unit="bytes">376</size>
+            <authentication
+              method="MD5">24063256ccd3af213ef7f047ec70f310</authentication>
+            <dataFormat>
+               <textFormat>
+                  <numHeaderLines>1</numHeaderLines>
+                  <recordDelimiter>\r\n</recordDelimiter>
+                  <attributeOrientation>column</attributeOrientation>
+                  <simpleDelimited>
+                     <fieldDelimiter>,</fieldDelimiter>
+                  </simpleDelimited>
+               </textFormat>
+            </dataFormat>
+            <distribution>
+               <online>
+                  <url
+          function="download">https://pasta.lternet.edu/package/data/eml/knb-lter-hbr/14/22/63901b0886444c6376cfa4621643aac7</url>
+               </online>
+            </distribution>
+         </physical>
+         <attributeList>
+            <attribute
+          id="watershed-4">
+               <attributeName>watershed</attributeName>
+               <attributeDefinition>watershed identifier</attributeDefinition>
+               <storageType>string</storageType>
+               <measurementScale>
+                  <nominal>
+                     <nonNumericDomain>
+                        <textDomain>
+                           <definition>watershed identifier</definition>
+                        </textDomain>
+                     </nonNumericDomain>
+                  </nominal>
+               </measurementScale>
+            </attribute>
+            <attribute
+          id="treatment-5">
+               <attributeName>treatment</attributeName>
+               <attributeDefinition>brief description of treatment applied</attributeDefinition>
+               <storageType>string</storageType>
+               <measurementScale>
+                  <nominal>
+                     <nonNumericDomain>
+                        <textDomain>
+                           <definition>brief description of treatment applied</definition>
+                        </textDomain>
+                     </nonNumericDomain>
+                  </nominal>
+               </measurementScale>
+            </attribute>
+            <attribute
+                    id="area-6">
+               <attributeName>area</attributeName>
+               <attributeDefinition>area of watershed in hectares</attributeDefinition>
+               <storageType>float</storageType>
+               <measurementScale>
+                  <ratio>
+                     <unit>
+                        <standardUnit>hectare</standardUnit>
+                     </unit>
+                     <numericDomain>
+                        <numberType>real</numberType>
+                        <bounds>
+                           <minimum
+                    exclusive="false">11.8</minimum>
+                           <maximum
+              exclusive="false">76.4</maximum>
+                        </bounds>
+                     </numericDomain>
+                  </ratio>
+               </measurementScale>
+               <annotation>
+                  <propertyURI
+              label="has unit">http://qudt.org/schema/qudt/hasUnit</propertyURI>
+                  <valueURI
+          label="Hectare">http://qudt.org/vocab/unit/HA</valueURI>
+               </annotation>
+            </attribute>
+            <attribute
+      id="beginyear-7">
+               <attributeName>begin.year</attributeName>
+               <attributeDefinition>year monitoring was initiated</attributeDefinition>
+               <storageType>date</storageType>
+               <measurementScale>
+                  <dateTime>
+                     <formatString>YYYY</formatString>
+                     <dateTimeDomain/>
+                  </dateTime>
+               </measurementScale>
+            </attribute>
+         </attributeList>
+         <numberOfRecords>9</numberOfRecords>
+      </dataTable>
+      <otherEntity
+      id="b96e0b1c19ffe495c7fe1d36a4477ae6" scope="document"
+          system="https://pasta.edirepository.org">
+         <entityName>idw_weights_new_sfw</entityName>
+         <entityDescription>Inverse distance weighting – south facing watersheds</entityDescription>
+         <physical>
+            <objectName>idw_weights_new_sfw.csv</objectName>
+            <size
+          unit="bytes">406</size>
+            <authentication
+              method="MD5">0df75ae605992ca84fbe4b1d7e5adadb</authentication>
+            <dataFormat>
+               <externallyDefinedFormat>
+                  <formatName>text/csv</formatName>
+               </externallyDefinedFormat>
+            </dataFormat>
+            <distribution>
+               <online>
+                  <url
+      function="download">https://pasta.lternet.edu/package/data/eml/knb-lter-hbr/14/22/b96e0b1c19ffe495c7fe1d36a4477ae6</url>
+               </online>
+            </distribution>
+         </physical>
+         <entityType>unknown</entityType>
+      </otherEntity>
+      <otherEntity
+      id="c2c14077e5720e56188bcabb3b6e5efc" scope="document"
+          system="https://pasta.edirepository.org">
+         <entityName>idw_weights_nfw</entityName>
+         <entityDescription>Inverse distance weighting – north facing watersheds</entityDescription>
+         <physical>
+            <objectName>idw_weights_nfw.csv</objectName>
+            <size
+          unit="bytes">181</size>
+            <authentication
+              method="MD5">eeccfa579b514cbf398de0fa5d20917d</authentication>
+            <dataFormat>
+               <externallyDefinedFormat>
+                  <formatName>text/csv</formatName>
+               </externallyDefinedFormat>
+            </dataFormat>
+            <distribution>
+               <online>
+                  <url
+      function="download">https://pasta.lternet.edu/package/data/eml/knb-lter-hbr/14/22/c2c14077e5720e56188bcabb3b6e5efc</url>
+               </online>
+            </distribution>
+         </physical>
+         <entityType>unknown</entityType>
+      </otherEntity>
+      <otherEntity
+      id="c4f72fa0cb155f1b61f1333bb67e3d00" scope="document"
+          system="https://pasta.edirepository.org">
+         <entityName>thiessen_weights</entityName>
+         <entityDescription>Theissen weighting factors for estimating watershed precipitation from standard rain gage precipitation</entityDescription>
+         <physical>
+            <objectName>thiessen_weights.csv</objectName>
+            <size
+          unit="bytes">734</size>
+            <authentication
+              method="MD5">2479e6b2d636665e913b2ed25b6634bb</authentication>
+            <dataFormat>
+               <externallyDefinedFormat>
+                  <formatName>text/csv</formatName>
+               </externallyDefinedFormat>
+            </dataFormat>
+            <distribution>
+               <online>
+                  <url function="download">https://pasta.lternet.edu/package/data/eml/knb-lter-hbr/14/22/c4f72fa0cb155f1b61f1333bb67e3d00</url>
+               </online>
+            </distribution>
+         </physical>
+         <entityType>unknown</entityType>
+      </otherEntity>
+   </dataset>
+   <additionalMetadata>
+      <metadata>
+         <emlEditor>
+            <app>EMLassemblyline</app>
+            <release>3.5.8</release>
+         </emlEditor>
+      </metadata>
+   </additionalMetadata>
+</eml:eml>

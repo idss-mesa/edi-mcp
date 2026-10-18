@@ -85,7 +85,7 @@ class Source(EdiOutput):
 
     endpoints: list[str] = Field(
         default_factory=list,
-        description="Upstream endpoints called (method and path template, no query or credentials).",
+        description="Upstream endpoints called (method, host and path; never a query or credential).",
     )
     backend: Backend = Field(
         "local",

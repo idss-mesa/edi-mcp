@@ -12,7 +12,7 @@ facts; read them before changing behaviour.
 
 Build order (one PR each): 1 scaffold + auth probe ✅ → 2 core port from neon-mcp ✅
 (registry, adapter, config, errors, key resolution, transports, `edi_ping`, conformance
-tests, CI) → 3 client/token exchange/PID resolver/backends + fixtures → 4 discovery tools
+tests, CI) → 3 client/token exchange/PID resolver/backends + fixtures ✅ → 4 discovery tools
 → 5 package, metadata and entity tools → 6 preview/download/citation/PASTA-only tools →
 7 resources, prompts, docs, server.json, Docker, v0.1.0.
 
@@ -23,7 +23,9 @@ uv sync --all-extras
 uv run pytest                                   # hermetic unit + conformance tests
 uv run ruff check src tests scripts && uv run ruff format --check src tests
 uv run mypy --strict src
-set -a; . ./.env; set +a; python3 scripts/probe_auth.py --json probe.json   # Step 1
+uv run python scripts/record_fixtures.py check  # fixtures carry no secrets (CI runs it)
+set -a; . ./.env; set +a; uv run python scripts/record_fixtures.py record   # re-record live
+set -a; . ./.env; set +a; EDI_MCP_LIVE=1 uv run pytest -m live tests/live   # live smoke
 ```
 
 ## Fixed decisions (do not re-litigate)
@@ -44,9 +46,16 @@ set -a; . ./.env; set +a; python3 scripts/probe_auth.py --json probe.json   # St
 fails fast with `auth_required` for `requires_key` tools and enforces the result budget;
 tools in `tools/<family>.py` are `async (args, ctx) -> OutputModel`; `context.py`
 resolves the call's key and backend (`ctx.backend` is `pasta` or `dataone`);
-`edi/auth.py` holds `ApiKey` and the HTTP TLS gate; transports in `transport/`;
-static guides in `resources_static/`. Upstream access (`edi/client.py`, backends, PID
-resolver, EML projection) lands in step 3.
+`edi/auth.py` holds `ApiKey`, the HTTP TLS gate and `scrub_url`; `edi/tokens.py`
+exchanges/refreshes the key for an `edi-token` (per key identity, `?key=` fallback);
+`edi/client.py` is the one httpx client (credentials to PASTA only, cookie jar that
+stores nothing, retries, allow-listed redirects, byte caps, cache); `edi/backends/`
+holds `PastaBackend` and `DataOneBackend` behind one contract — tools call
+`backend_for(ctx)` and `resolve_package(...)`, never the client directly; `edi/pid.py`
+parses identifiers; `edi/xml.py` (defusedxml) and `edi/eml.py` (entity refs; full
+projection in step 5). Tests replay `tests/fixtures/` through `tests/fixture_router.py`
+(any unrecorded request fails); transports in `transport/`; static guides in
+`resources_static/`.
 
 ## Adding a tool
 
@@ -61,8 +70,12 @@ annotations, every upstream endpoint listed, `requires_key=True` for PASTA-only 
 - Since 2026-07-30 **every** PASTA endpoint needs credentials; anonymous calls get 403
   "Public Access … not authorized". PASTA does not accept `Authorization: Bearer`.
 - DataONE serves EDI content anonymously: CN Solr search, GMN `/object` + `/meta`
-  (`gmn.lternet.edu` for `knb-lter-*`, `gmn.edirepository.org` for `edi.*`). GMN proxies
-  PASTA. CN Solr lags new uploads and indexes non-obsoleted revisions.
+  (`gmn.edirepository.org` for scope `edi`, `gmn.lternet.edu` otherwise; CN `/object`
+  as fallback). GMN proxies PASTA. CN Solr lags new uploads; its `obsoletedBy` /
+  `obsoletes` are unreliable, so revisions come from parsing `id` and results are
+  de-duplicated per `scope.identifier`.
+- PASTA's data entity id is the MD5 of the EML `entityName`.
+- PASTA sets an `edi-token` cookie even on anonymous 403s; it must never be stored.
 - `cite.edirepository.org` works anonymously (ESIP, DRYAD, BIBTEX styles).
 - Package ids are `scope.identifier.revision`; DOIs are `doi:10.6073/pasta/<md5>`.
 
@@ -73,4 +86,6 @@ annotations, every upstream endpoint listed, `requires_key=True` for PASTA-only 
 - Over HTTP, a per-caller `X-EDI-Key` header needs an `https://` `public_base_url`; the
   MCP-level bearer token is never forwarded upstream.
 - EML and Solr XML are parsed with defusedxml only.
-- Never commit `.env`, `probe.json` with secrets, or unscrubbed fixtures.
+- Never commit `.env`, `probe.json` with secrets, or unscrubbed fixtures. Fixtures come
+  only from `scripts/record_fixtures.py record` (scrubs before writing, records no auth
+  traffic or headers, promotes only if `check` passes).

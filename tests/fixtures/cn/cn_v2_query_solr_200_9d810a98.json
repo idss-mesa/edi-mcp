@@ -1,0 +1,1 @@
+{"responseHeader":{"status":0,"QTime":6,"params":{"q":"*:*","fq":"formatType:METADATA AND datasource:(\"urn:node:EDI\" OR \"urn:node:LTER\")","rows":"0","wt":"json"}},"response":{"numFound":85179,"start":0,"docs":[]}}
