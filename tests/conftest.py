@@ -1,7 +1,8 @@
 """Shared fixtures: config, server factory, secret/warning isolation.
 
-Unit tests never touch the network. The hermetic upstream router arrives with
-the HTTP client (build-order step 3).
+Unit tests never touch the network: every server built here talks to a
+:class:`~tests.fixture_router.FixtureRouter`, which replays recorded EDI and
+DataONE responses and fails the test on any request it has no fixture for.
 """
 
 from __future__ import annotations
@@ -17,6 +18,7 @@ from edi_mcp.config import Config
 from edi_mcp.edi.auth import _reset_warning_for_tests
 from edi_mcp.logging import forget_secrets
 from edi_mcp.server import EdiServer, create_server
+from tests.fixture_router import FixtureRouter
 from tests.helpers import TEST_KEY
 
 
@@ -33,7 +35,14 @@ def config(tmp_path: Path) -> Config:
 
 
 @pytest.fixture
-async def make_server(config: Config) -> AsyncIterator[Callable[..., EdiServer]]:
+def router() -> FixtureRouter:
+    return FixtureRouter()
+
+
+@pytest.fixture
+async def make_server(
+    config: Config, router: FixtureRouter
+) -> AsyncIterator[Callable[..., EdiServer]]:
     servers: list[EdiServer] = []
 
     def _make(
@@ -41,14 +50,21 @@ async def make_server(config: Config) -> AsyncIterator[Callable[..., EdiServer]]
         transport: str = "stdio",
         key: str | None = None,
         config: Config | None = None,
+        router: FixtureRouter | None = None,
         **_: Any,
     ) -> EdiServer:
         cfg = (config or _base).model_copy(deep=True)
         if key:
             cfg.edi.api_key = SecretStr(key)
-        server = create_server(cfg, transport=transport)  # type: ignore[arg-type]
+        server = create_server(
+            cfg,
+            transport=transport,  # type: ignore[arg-type]
+            http_transport=(router or _router).transport,
+        )
         servers.append(server)
         return server
+
+    _router = router
 
     _base = config
     yield _make

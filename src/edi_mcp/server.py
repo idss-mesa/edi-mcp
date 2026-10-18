@@ -20,6 +20,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Literal
 
+import httpx
 import structlog
 from mcp import types as t
 
@@ -32,6 +33,7 @@ from edi_mcp.context import (
     current_request_headers,
     current_request_id,
 )
+from edi_mcp.edi.client import EdiClient
 from edi_mcp.errors import InputRequired, ToolError
 from edi_mcp.registry import (
     REQUEST_STATE_VERSION,
@@ -110,9 +112,17 @@ def _plain_responses(responses: Mapping[str, Any] | None) -> dict[str, Any] | No
 class EdiServer:
     """Process-wide server object; one per transport deployment."""
 
-    def __init__(self, config: Config, *, transport: Literal["stdio", "http"]) -> None:
+    def __init__(
+        self,
+        config: Config,
+        *,
+        transport: Literal["stdio", "http"],
+        http_transport: httpx.AsyncBaseTransport | None = None,
+    ) -> None:
         self.config = config
         self.transport: Literal["stdio", "http"] = transport
+        #: The one upstream client; ``http_transport`` lets tests swap in a mock.
+        self.client = EdiClient(config.edi, config.cache, http_transport=http_transport)
         #: Reported by ``/readyz``; ``degraded`` is set when startup checks fail.
         self.readiness: Literal["ready", "warming", "degraded"] = "ready"
 
@@ -192,6 +202,7 @@ class EdiServer:
             request_id=request_id,
             request_headers=request_headers,
             stats=stats,
+            client=self.client,
         )
 
     async def call(
@@ -395,18 +406,21 @@ class EdiServer:
             await serve_http(self)
 
     async def aclose(self) -> None:
-        """Release upstream resources (the HTTP client arrives with the backends)."""
-        return None
+        """Close the upstream HTTP client."""
+        await self.client.aclose()
 
 
 def create_server(
-    config: Config, *, transport: Literal["stdio", "http"] | None = None
+    config: Config,
+    *,
+    transport: Literal["stdio", "http"] | None = None,
+    http_transport: httpx.AsyncBaseTransport | None = None,
 ) -> EdiServer:
     """Build the server for one transport; importing the tools package registers every tool."""
     from edi_mcp import tools as _tools  # noqa: F401  (registration side effect)
 
     mode: Literal["stdio", "http"] = transport or config.server.transport
-    return EdiServer(config, transport=mode)
+    return EdiServer(config, transport=mode, http_transport=http_transport)
 
 
 def run(config: Config, transport: str | None = None) -> None:

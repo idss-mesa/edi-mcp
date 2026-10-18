@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF
+   xmlns:cito="http://purl.org/spar/cito/"
+   xmlns:dcterms="http://purl.org/dc/terms/"
+   xmlns:ore="http://www.openarchives.org/ore/terms/"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v2/resolve/doi:10.6073%2Fpasta%2F2017345f0977c0f7c46e1ad90ce1b062#aggregation">
+    <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/Aggregation"/>
+    <ore:aggregates rdf:resource="https://cn.dataone.org/cn/v2/resolve/https:%2F%2Fpasta.lternet.edu%2Fpackage%2Fmetadata%2Feml%2Fknb-lter-hbr%2F14%2F22"/>
+    <ore:aggregates rdf:resource="https://cn.dataone.org/cn/v2/resolve/https:%2F%2Fpasta.lternet.edu%2Fpackage%2Fdata%2Feml%2Fknb-lter-hbr%2F14%2F22%2Fc606bfe2f2deb3fa3eabf692ae15f02d"/>
+    <ore:aggregates rdf:resource="https://cn.dataone.org/cn/v2/resolve/https:%2F%2Fpasta.lternet.edu%2Fpackage%2Fdata%2Feml%2Fknb-lter-hbr%2F14%2F22%2F63901b0886444c6376cfa4621643aac7"/>
+    <ore:aggregates rdf:resource="https://cn.dataone.org/cn/v2/resolve/https:%2F%2Fpasta.lternet.edu%2Fpackage%2Fdata%2Feml%2Fknb-lter-hbr%2F14%2F22%2Fb96e0b1c19ffe495c7fe1d36a4477ae6"/>
+    <ore:aggregates rdf:resource="https://cn.dataone.org/cn/v2/resolve/https:%2F%2Fpasta.lternet.edu%2Fpackage%2Fdata%2Feml%2Fknb-lter-hbr%2F14%2F22%2Fc2c14077e5720e56188bcabb3b6e5efc"/>
+    <ore:aggregates rdf:resource="https://cn.dataone.org/cn/v2/resolve/https:%2F%2Fpasta.lternet.edu%2Fpackage%2Fdata%2Feml%2Fknb-lter-hbr%2F14%2F22%2Fc4f72fa0cb155f1b61f1333bb67e3d00"/>
+    <ore:aggregates rdf:resource="https://cn.dataone.org/cn/v2/resolve/https:%2F%2Fpasta.lternet.edu%2Fpackage%2Freport%2Feml%2Fknb-lter-hbr%2F14%2F22"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v2/resolve/https:%2F%2Fpasta.lternet.edu%2Fpackage%2Fdata%2Feml%2Fknb-lter-hbr%2F14%2F22%2Fc606bfe2f2deb3fa3eabf692ae15f02d">
+    <ore:isAggregatedBy rdf:resource="https://cn.dataone.org/cn/v2/resolve/doi:10.6073%2Fpasta%2F2017345f0977c0f7c46e1ad90ce1b062#aggregation"/>
+    <dcterms:identifier>https://pasta.lternet.edu/package/data/eml/knb-lter-hbr/14/22/c606bfe2f2deb3fa3eabf692ae15f02d</dcterms:identifier>
+    <cito:isDocumentedBy rdf:resource="https://cn.dataone.org/cn/v2/resolve/https:%2F%2Fpasta.lternet.edu%2Fpackage%2Fmetadata%2Feml%2Fknb-lter-hbr%2F14%2F22"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v2/resolve/https:%2F%2Fpasta.lternet.edu%2Fpackage%2Fdata%2Feml%2Fknb-lter-hbr%2F14%2F22%2Fb96e0b1c19ffe495c7fe1d36a4477ae6">
+    <ore:isAggregatedBy rdf:resource="https://cn.dataone.org/cn/v2/resolve/doi:10.6073%2Fpasta%2F2017345f0977c0f7c46e1ad90ce1b062#aggregation"/>
+    <dcterms:identifier>https://pasta.lternet.edu/package/data/eml/knb-lter-hbr/14/22/b96e0b1c19ffe495c7fe1d36a4477ae6</dcterms:identifier>
+    <cito:isDocumentedBy rdf:resource="https://cn.dataone.org/cn/v2/resolve/https:%2F%2Fpasta.lternet.edu%2Fpackage%2Fmetadata%2Feml%2Fknb-lter-hbr%2F14%2F22"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v2/resolve/https:%2F%2Fpasta.lternet.edu%2Fpackage%2Fdata%2Feml%2Fknb-lter-hbr%2F14%2F22%2Fc4f72fa0cb155f1b61f1333bb67e3d00">
+    <ore:isAggregatedBy rdf:resource="https://cn.dataone.org/cn/v2/resolve/doi:10.6073%2Fpasta%2F2017345f0977c0f7c46e1ad90ce1b062#aggregation"/>
+    <dcterms:identifier>https://pasta.lternet.edu/package/data/eml/knb-lter-hbr/14/22/c4f72fa0cb155f1b61f1333bb67e3d00</dcterms:identifier>
+    <cito:isDocumentedBy rdf:resource="https://cn.dataone.org/cn/v2/resolve/https:%2F%2Fpasta.lternet.edu%2Fpackage%2Fmetadata%2Feml%2Fknb-lter-hbr%2F14%2F22"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v2/resolve/https:%2F%2Fpasta.lternet.edu%2Fpackage%2Fmetadata%2Feml%2Fknb-lter-hbr%2F14%2F22">
+    <ore:isAggregatedBy rdf:resource="https://cn.dataone.org/cn/v2/resolve/doi:10.6073%2Fpasta%2F2017345f0977c0f7c46e1ad90ce1b062#aggregation"/>
+    <dcterms:identifier>https://pasta.lternet.edu/package/metadata/eml/knb-lter-hbr/14/22</dcterms:identifier>
+    <cito:documents rdf:resource="https://cn.dataone.org/cn/v2/resolve/https:%2F%2Fpasta.lternet.edu%2Fpackage%2Fdata%2Feml%2Fknb-lter-hbr%2F14%2F22%2Fc606bfe2f2deb3fa3eabf692ae15f02d"/>
+    <cito:documents rdf:resource="https://cn.dataone.org/cn/v2/resolve/https:%2F%2Fpasta.lternet.edu%2Fpackage%2Fdata%2Feml%2Fknb-lter-hbr%2F14%2F22%2F63901b0886444c6376cfa4621643aac7"/>
+    <cito:documents rdf:resource="https://cn.dataone.org/cn/v2/resolve/https:%2F%2Fpasta.lternet.edu%2Fpackage%2Fdata%2Feml%2Fknb-lter-hbr%2F14%2F22%2Fb96e0b1c19ffe495c7fe1d36a4477ae6"/>
+    <cito:documents rdf:resource="https://cn.dataone.org/cn/v2/resolve/https:%2F%2Fpasta.lternet.edu%2Fpackage%2Fdata%2Feml%2Fknb-lter-hbr%2F14%2F22%2Fc2c14077e5720e56188bcabb3b6e5efc"/>
+    <cito:documents rdf:resource="https://cn.dataone.org/cn/v2/resolve/https:%2F%2Fpasta.lternet.edu%2Fpackage%2Fdata%2Feml%2Fknb-lter-hbr%2F14%2F22%2Fc4f72fa0cb155f1b61f1333bb67e3d00"/>
+    <cito:documents rdf:resource="https://cn.dataone.org/cn/v2/resolve/https:%2F%2Fpasta.lternet.edu%2Fpackage%2Fmetadata%2Feml%2Fknb-lter-hbr%2F14%2F22"/>
+    <cito:documents rdf:resource="https://cn.dataone.org/cn/v2/resolve/https:%2F%2Fpasta.lternet.edu%2Fpackage%2Freport%2Feml%2Fknb-lter-hbr%2F14%2F22"/>
+    <cito:isDocumentedBy rdf:resource="https://cn.dataone.org/cn/v2/resolve/https:%2F%2Fpasta.lternet.edu%2Fpackage%2Fmetadata%2Feml%2Fknb-lter-hbr%2F14%2F22"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v2/resolve/doi:10.6073%2Fpasta%2F2017345f0977c0f7c46e1ad90ce1b062">
+    <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/ResourceMap"/>
+    <dcterms:identifier>doi:10.6073/pasta/2017345f0977c0f7c46e1ad90ce1b062</dcterms:identifier>
+    <dcterms:creator>DataONE.org Python ITK 3.5.2</dcterms:creator>
+    <ore:describes rdf:resource="https://cn.dataone.org/cn/v2/resolve/doi:10.6073%2Fpasta%2F2017345f0977c0f7c46e1ad90ce1b062#aggregation"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v2/resolve/https:%2F%2Fpasta.lternet.edu%2Fpackage%2Freport%2Feml%2Fknb-lter-hbr%2F14%2F22">
+    <ore:isAggregatedBy rdf:resource="https://cn.dataone.org/cn/v2/resolve/doi:10.6073%2Fpasta%2F2017345f0977c0f7c46e1ad90ce1b062#aggregation"/>
+    <dcterms:identifier>https://pasta.lternet.edu/package/report/eml/knb-lter-hbr/14/22</dcterms:identifier>
+    <cito:isDocumentedBy rdf:resource="https://cn.dataone.org/cn/v2/resolve/https:%2F%2Fpasta.lternet.edu%2Fpackage%2Fmetadata%2Feml%2Fknb-lter-hbr%2F14%2F22"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v2/resolve/https:%2F%2Fpasta.lternet.edu%2Fpackage%2Fdata%2Feml%2Fknb-lter-hbr%2F14%2F22%2Fc2c14077e5720e56188bcabb3b6e5efc">
+    <ore:isAggregatedBy rdf:resource="https://cn.dataone.org/cn/v2/resolve/doi:10.6073%2Fpasta%2F2017345f0977c0f7c46e1ad90ce1b062#aggregation"/>
+    <dcterms:identifier>https://pasta.lternet.edu/package/data/eml/knb-lter-hbr/14/22/c2c14077e5720e56188bcabb3b6e5efc</dcterms:identifier>
+    <cito:isDocumentedBy rdf:resource="https://cn.dataone.org/cn/v2/resolve/https:%2F%2Fpasta.lternet.edu%2Fpackage%2Fmetadata%2Feml%2Fknb-lter-hbr%2F14%2F22"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://www.openarchives.org/ore/terms/Aggregation">
+    <rdfs:isDefinedBy rdf:resource="http://www.openarchives.org/ore/terms/"/>
+    <rdfs:label>Aggregation</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v2/resolve/https:%2F%2Fpasta.lternet.edu%2Fpackage%2Fdata%2Feml%2Fknb-lter-hbr%2F14%2F22%2F63901b0886444c6376cfa4621643aac7">
+    <ore:isAggregatedBy rdf:resource="https://cn.dataone.org/cn/v2/resolve/doi:10.6073%2Fpasta%2F2017345f0977c0f7c46e1ad90ce1b062#aggregation"/>
+    <dcterms:identifier>https://pasta.lternet.edu/package/data/eml/knb-lter-hbr/14/22/63901b0886444c6376cfa4621643aac7</dcterms:identifier>
+    <cito:isDocumentedBy rdf:resource="https://cn.dataone.org/cn/v2/resolve/https:%2F%2Fpasta.lternet.edu%2Fpackage%2Fmetadata%2Feml%2Fknb-lter-hbr%2F14%2F22"/>
+  </rdf:Description>
+</rdf:RDF>

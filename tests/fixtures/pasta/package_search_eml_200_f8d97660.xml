@@ -1,0 +1,149 @@
+<resultset numFound='193' start='0' rows='5'>
+    <document>
+        <packageid>edi.1547.3</packageid>
+        <title>Local water years for 4-digit hydrologic unit areas across the conterminous United States</title>
+        <pubdate>2025</pubdate>
+        <doi>doi:10.6073/pasta/c27e57749f856bd24dc7c7559b9b316b</doi>
+        <begindate>1990-01-01</begindate>
+        <enddate>2018-12-31</enddate>
+        <scope>edi</scope>
+        <keywords>
+            <keyword>Water year</keyword>
+            <keyword>Hydrological unit</keyword>
+            <keyword>HU4</keyword>
+            <keyword>Macroscale</keyword>
+            <keyword>Streamflow</keyword>
+            <keyword>Precipitation</keyword>
+            <keyword>Hydrology</keyword>
+            <keyword>national scale</keyword>
+            <keyword>water flow</keyword>
+        </keywords>
+        <authors>
+            <author>Sun, Xinyu</author>
+            <author>Cheruvelil, Kendra Spence</author>
+        </authors>
+    </document>
+    <document>
+        <packageid>knb-lter-hfr.34.19</packageid>
+        <title>Longitudinal Streamflow in Headwater Streams on Prospect Hill Tract at Harvard Forest 2003</title>
+        <pubdate>2023</pubdate>
+        <doi>doi:10.6073/pasta/12597848d65cec63ae6bbd00900b6056</doi>
+        <begindate>2003-01-01</begindate>
+        <enddate>2003-12-31</enddate>
+        <scope>knb-lter-hfr</scope>
+        <keywords>
+            <keyword>hydrology</keyword>
+            <keyword>salamanders</keyword>
+            <keyword>stream ecology</keyword>
+            <keyword>streamflow</keyword>
+            <keyword>water quality</keyword>
+            <keyword>disturbance</keyword>
+            <keyword>Harvard Forest</keyword>
+            <keyword>HFR</keyword>
+            <keyword>LTER</keyword>
+            <keyword>USA</keyword>
+        </keywords>
+        <authors>
+            <author>Colburn, Elizabeth</author>
+        </authors>
+    </document>
+    <document>
+        <packageid>knb-lter-hbr.2.15</packageid>
+        <title>Hubbard Brook Experimental Forest: Daily Streamflow by Watershed, 1956 - present</title>
+        <pubdate>2025</pubdate>
+        <doi>doi:10.6073/pasta/355cda48aaf6764dd146990ab76a1a7b</doi>
+        <begindate>1956-01-01</begindate>
+        <enddate>2024-05-31</enddate>
+        <scope>knb-lter-hbr</scope>
+        <keywords>
+            <keyword>ecosystems</keyword>
+            <keyword>forests</keyword>
+            <keyword>watersheds</keyword>
+            <keyword>stream discharge</keyword>
+            <keyword>hydrology</keyword>
+            <keyword>streamflow</keyword>
+            <keyword>streams</keyword>
+            <keyword>water</keyword>
+            <keyword>disturbance</keyword>
+            <keyword>HBR</keyword>
+            <keyword>Hubbard Brook LTER</keyword>
+            <keyword>Hubbard Brook Experimental Forest</keyword>
+            <keyword>Hubbard Brook Ecosystem Study</keyword>
+            <keyword>HBES</keyword>
+            <keyword>HBEF</keyword>
+            <keyword>New Hampshire</keyword>
+            <keyword>NH</keyword>
+            <keyword>White Mountain National Forest</keyword>
+            <keyword>gage</keyword>
+            <keyword>gauge</keyword>
+            <keyword>weir</keyword>
+            <keyword>biota</keyword>
+            <keyword>climatologyMeteorologyAtmosphere</keyword>
+            <keyword>Ecology, Ecosystems, &amp; Environment</keyword>
+        </keywords>
+        <authors>
+        </authors>
+    </document>
+    <document>
+        <packageid>edi.831.1</packageid>
+        <title>Groundwater dependence of riparian woodlands and the disrupting effect of anthropogenically altered streamflow</title>
+        <pubdate>2021</pubdate>
+        <doi>doi:10.6073/pasta/0a599dd64ae648a2de6c3d57069b0b5c</doi>
+        <begindate>2015-01-01</begindate>
+        <enddate>2020-12-31</enddate>
+        <scope>edi</scope>
+        <keywords>
+            <keyword>riparian vegetation</keyword>
+            <keyword>Normalized Difference Vegetation Index (NDVI)</keyword>
+            <keyword>California</keyword>
+            <keyword>groundwater</keyword>
+            <keyword>streamflow</keyword>
+        </keywords>
+        <authors>
+            <author>Rohde, Melissa M</author>
+            <author>Stella, John C</author>
+            <author>Roberts, Dar</author>
+            <author>Singer, Michael Bliss</author>
+        </authors>
+    </document>
+    <document>
+        <packageid>edi.573.1</packageid>
+        <title>Marcell Experimental Forest breakpoint streamflow, 1962 - ongoing</title>
+        <pubdate>2020</pubdate>
+        <doi>doi:10.6073/pasta/99051a7c663dc381a1f6a843bcdb78e9</doi>
+        <begindate>1962-03-01</begindate>
+        <enddate>2017-02-28</enddate>
+        <scope>edi</scope>
+        <keywords>
+            <keyword>streamflow</keyword>
+            <keyword>peatland</keyword>
+            <keyword>bogs</keyword>
+            <keyword>fens</keyword>
+            <keyword>wetland</keyword>
+            <keyword>discharge</keyword>
+            <keyword>hydrology</keyword>
+            <keyword>stream discharge</keyword>
+            <keyword>stage height</keyword>
+            <keyword>water</keyword>
+            <keyword>watersheds</keyword>
+            <keyword>Ecology, Ecosystems, &amp; Environment</keyword>
+            <keyword>Natural Resource Management &amp; Use</keyword>
+            <keyword>Inventory, Monitoring, &amp; Analysis</keyword>
+            <keyword>inlandWaters</keyword>
+            <keyword>Marcell Experimental Forest</keyword>
+            <keyword>Minnesota</keyword>
+            <keyword>MEF</keyword>
+            <keyword>weir</keyword>
+            <keyword>gage</keyword>
+            <keyword>gauge</keyword>
+        </keywords>
+        <authors>
+            <author>Sebestyen, Stephen D</author>
+            <author>Verry, Elon S</author>
+            <author>Elling, Arthur E</author>
+            <author>Kyllander, Richard L</author>
+            <author>Lany, Nina K</author>
+            <author>Kolka, Randall K</author>
+        </authors>
+    </document>
+</resultset>

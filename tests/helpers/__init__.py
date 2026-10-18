@@ -9,9 +9,9 @@ import jsonschema
 
 from edi_mcp.registry import get_tool
 from edi_mcp.server import EdiServer
+from tests.fixture_router import TEST_KEY
 
-#: A fake EDI API key; tests assert it never reaches results, logs or errors.
-TEST_KEY = "unit-test-edi-key-DO-NOT-LOG"
+__all__ = ["TEST_KEY", "call_err", "call_ok", "output_schema"]
 
 
 def output_schema(name: str) -> dict[str, Any]:

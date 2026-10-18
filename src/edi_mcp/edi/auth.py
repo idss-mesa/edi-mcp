@@ -10,15 +10,19 @@ redactor.
 
 from __future__ import annotations
 
+import base64
+import binascii
 import hashlib
+import json
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Literal
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 import structlog
 
-from edi_mcp.errors import auth_required_error
-from edi_mcp.logging import register_secret
+from edi_mcp.errors import auth_required_error, redact
+from edi_mcp.logging import register_secret, registered_secrets
 
 if TYPE_CHECKING:
     from edi_mcp.config import Config
@@ -98,6 +102,34 @@ def resolve_key(
     return None
 
 
+#: Query parameters that carry credentials and never leave the client in a surfaced URL.
+CREDENTIAL_PARAMS = frozenset({"key"})
+
+
+def scrub_url(url: str) -> str:
+    """Drop credential query parameters and redact any registered secret (DESIGN.md D4)."""
+    parts = urlsplit(url)
+    if parts.query:
+        kept = [
+            (k, v)
+            for k, v in parse_qsl(parts.query, keep_blank_values=True)
+            if k.lower() not in CREDENTIAL_PARAMS
+        ]
+        parts = parts._replace(query=urlencode(kept))
+    return redact(urlunsplit(parts), registered_secrets())
+
+
+def jwt_expiry(token: str) -> float | None:
+    """The ``exp`` claim of a JWT, read without verification (only to schedule refresh)."""
+    try:
+        payload = token.split(".")[1]
+        claims = json.loads(base64.urlsafe_b64decode(payload + "=" * (-len(payload) % 4)))
+    except (IndexError, ValueError, binascii.Error, UnicodeDecodeError):
+        return None
+    exp = claims.get("exp") if isinstance(claims, dict) else None
+    return float(exp) if isinstance(exp, (int, float)) else None
+
+
 def require_key(ctx: ToolContext, *, endpoint: str | None = None) -> ApiKey:
     """Return the call's key or fail with ``auth_required`` before any request."""
     if ctx.api_key is None:
@@ -110,4 +142,11 @@ def _reset_warning_for_tests() -> None:
     _warned_insecure_header = False
 
 
-__all__ = ["ApiKey", "header_key_allowed", "require_key", "resolve_key"]
+__all__ = [
+    "ApiKey",
+    "header_key_allowed",
+    "jwt_expiry",
+    "require_key",
+    "resolve_key",
+    "scrub_url",
+]
