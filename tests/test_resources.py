@@ -31,6 +31,8 @@ async def test_static_reads(server: EdiServer) -> None:
     key_guide = (await read_resource("edi://guide/api-key", ctx)).text
     for phrase in ("2026-07-30", "auth/ui/key", "EDI_API_KEY", "X-EDI-Key", "upstream_forbidden"):
         assert phrase in key_guide
+    for phrase in ("access_restricted",):
+        assert phrase in key_guide
     ids = (await read_resource("edi://guide/package-identifiers", ctx)).text
     assert "knb-lter-hbr.14.22" in ids and "doi:10.6073/pasta/" in ids
     scopes = json.loads((await read_resource("edi://reference/scopes", ctx)).text)

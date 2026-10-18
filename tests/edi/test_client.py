@@ -293,6 +293,25 @@ async def test_cache_hits_skip_the_network(
     assert client.cache_stats().entries == 1
 
 
+@pytest.mark.parametrize("name", ["Pat O'Brien", "D'Arcy O'Neil-Smith", "Ada"])
+async def test_upstream_error_text_drops_display_names_with_apostrophes(
+    make_client: Callable[..., EdiClient], router: FixtureRouter, key: ApiKey, name: str
+) -> None:
+    router.add(
+        "GET pasta.lternet.edu/package/eml/knb-lter-hbr/14",
+        Reply(
+            403,
+            f"User 'EDI-{'b' * 40} ({name})' is not authorized to read 'x'. (2026-10-18)".encode(),
+            "text/plain",
+        ),
+    )
+    with pytest.raises(EdiApiError) as exc:
+        await make_client().get(REVISIONS, key=key)
+    detail = exc.value.detail
+    assert detail == "User '…' is not authorized to read 'x'. (2026-10-18)"
+    assert all(part not in detail for part in name.replace("'", " ").split())
+
+
 async def test_upstream_error_text_drops_principals(
     make_client: Callable[..., EdiClient], router: FixtureRouter, key: ApiKey
 ) -> None:

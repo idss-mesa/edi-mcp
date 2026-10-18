@@ -173,6 +173,10 @@ Probed live with a profile key (PASTA) and anonymously (DataONE CN Solr).
   is verified for `icarus` (its one package is from the Mountain Ecology Research
   Institute), `msb-cap` or `msb-tempbiodev`.
 - **Revision 0 exists** (`msb-paleon.31.0`).
+- **Free text is safe to pass through.** Under `defType=edismax` both Solr instances
+  answer 200 to unbalanced syntax (`"unbalanced`, `title:(foo`, `[1 TO`,
+  `streamflow AND`, `soil)`, a lone backslash); none produced a 500. edi-mcp still drops
+  a leading `{!…}` local-params block from the query text.
 - **Access-restricted packages.** PASTA search lists `icarus.13.1`, but reading its
   metadata with a valid key returns **403** "User 'EDI-… (Display Name)' is not
   authorized to read '…'". A bad key or token gets 401, so a credentialed 403 means the

@@ -6,6 +6,7 @@ DataONE tests run anonymously; PASTA tests also need ``EDI_API_KEY``.
 from __future__ import annotations
 
 import os
+import warnings
 from collections.abc import AsyncIterator
 
 import pytest
@@ -115,4 +116,8 @@ async def test_live_scope_snapshot_is_current(pasta: PastaBackend) -> None:
 
     live = set(await pasta.list_scopes())
     known = {r.scope for r in load_scopes().records}
-    assert live == known, f"refresh scopes.json: new {live - known}, gone {known - live}"
+    # New scopes still work (kind "unknown", passed through); a vanished one would make
+    # the keyless snapshot answer wrong, so only that fails.
+    assert known <= live, f"refresh scopes.json: gone from PASTA {sorted(known - live)}"
+    if live - known:
+        warnings.warn(f"scopes.json lacks new scopes {sorted(live - known)}", stacklevel=1)

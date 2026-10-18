@@ -296,3 +296,19 @@ def test_author_cannot_break_out_of_its_phrase(hostile: str, dataone: DataOneBac
     assert '"' not in inner and "\\" not in inner
     assert search_filter(SearchQuery(author=hostile)).count('"') == 2
     assert dataone.search_filter(SearchQuery(author=hostile)).count('"') == 6  # + source filter
+
+
+@pytest.mark.parametrize(
+    ("text", "q"),
+    [
+        (None, "*:*"),
+        ("  ", "*:*"),
+        ("streamflow", "streamflow"),
+        ("{!lucene}x", "x"),
+        (" {!join from=a to=b}{!frange l=0}soil", "soil"),
+        ("{!lucene}", "*:*"),
+        ("soil {!lucene}x", "soil {!lucene}x"),
+    ],
+)
+def test_query_text_drops_leading_local_params(text: str | None, q: str) -> None:
+    assert SearchQuery(text=text).query_text == q

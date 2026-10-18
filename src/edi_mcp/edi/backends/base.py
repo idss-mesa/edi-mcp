@@ -8,6 +8,7 @@ called in the call's :class:`UpstreamStats` and adds caveats to ``notes``.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Literal, Protocol
 
@@ -30,6 +31,7 @@ PASTA_PID_BASE = "https://pasta.lternet.edu/package"
 BULK_SCOPES = ("ecotrends", "lter-landsat", "lter-landsat-ledaps")
 
 SearchSort = Literal["relevance", "newest", "oldest"]
+_LOCAL_PARAMS = re.compile(r"^\s*(?:\{![^}]*\}\s*)+")
 
 
 @dataclass(frozen=True)
@@ -59,7 +61,10 @@ class SearchQuery:
 
     @property
     def query_text(self) -> str:
-        return self.text.strip() if self.text and self.text.strip() else "*:*"
+        """The free text for ``q``; a leading ``{!...}`` local-params block (which could
+        switch Solr's query parser) is dropped."""
+        text = _LOCAL_PARAMS.sub("", self.text or "").strip()
+        return text or "*:*"
 
 
 def solr_phrase(value: str) -> str:
