@@ -332,3 +332,30 @@ def test_jwt_expiry() -> None:
     assert jwt_expiry(fake_jwt(1234.0, 1)) == 1234.0
     assert jwt_expiry("not-a-jwt") is None
     assert jwt_expiry("a.!!!.c") is None
+
+
+@pytest.mark.parametrize("level", ["info", "debug"])
+async def test_key_param_never_reaches_stderr_logs(
+    level: str,
+    make_client: Callable[..., EdiClient],
+    router: FixtureRouter,
+    key: ApiKey,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """httpx logs full request URLs via stdlib logging; the ?key= fallback must not show."""
+    from edi_mcp.logging import setup_logging
+
+    setup_logging(level, "stdio")
+    try:
+        router.auth_mode = "down"
+        client = make_client()
+        fetched = await client.get(SCOPES, key=key)
+        assert fetched.credential == "key"
+        router.inject(httpx.ConnectError, times=3)
+        with pytest.raises(EdiApiError):
+            await client.get(REVISIONS, key=key)
+        captured = capsys.readouterr()
+        assert "edi.http" in captured.err or level == "info"
+        assert TEST_KEY not in captured.err + captured.out
+    finally:
+        setup_logging("warning", "stdio")

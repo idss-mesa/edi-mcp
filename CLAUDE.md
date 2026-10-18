@@ -15,6 +15,9 @@ Build order (one PR each): 1 scaffold + auth probe ✅ → 2 core port from neon
 tests, CI) → 3 client/token exchange/PID resolver/backends + fixtures ✅ → 4 discovery tools
 → 5 package, metadata and entity tools → 6 preview/download/citation/PASTA-only tools →
 7 resources, prompts, docs, server.json, Docker, v0.1.0.
+Deferred from step 3: D9's fuzzy scope names ("Jornada" → `knb-lter-jrn`) land in step 4
+with the scopes reference; `--check` stays offline (the live check is
+`edi_ping(check_api=true)`).
 
 ## Commands
 

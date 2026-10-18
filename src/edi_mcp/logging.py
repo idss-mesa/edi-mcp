@@ -85,11 +85,22 @@ class _StdlibSecretFilter(logging.Filter):
             record.msg = _mask(str(record.msg))
             if record.args:
                 record.args = (
-                    tuple(_mask(a) for a in record.args)
+                    tuple(_mask_arg(a) for a in record.args)
                     if isinstance(record.args, tuple)
                     else record.args
                 )
         return True
+
+
+def _mask_arg(value: Any) -> Any:
+    """Mask a %-format argument; objects (httpx passes ``httpx.URL``) are checked as text."""
+    if isinstance(value, str):
+        return _mask(value)
+    if isinstance(value, (int, float, bool)) or value is None:
+        return value
+    text = str(value)
+    masked = _mask(text)
+    return masked if masked != text else value
 
 
 class _Stderr:
