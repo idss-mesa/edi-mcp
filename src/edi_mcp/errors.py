@@ -8,9 +8,10 @@ Python tracebacks never reach the wire.
 :class:`EdiApiError` is what the HTTP client raises for a failed upstream
 call; :func:`map_api_error` translates it into a :class:`ToolError`. Since
 2026-07-30 PASTA answers every anonymous request with 403 (401 for the audit
-service), so 401/403 without credentials is ``auth_required`` and 401/403
-*with* credentials is ``upstream_forbidden`` (a bad or expired key; DESIGN.md
-D2: never silently downgraded to DataONE).
+service), so 401/403 without credentials is ``auth_required``. With credentials, 401
+is ``upstream_forbidden`` for a bad or expired key (DESIGN.md D2: never
+silently downgraded to DataONE) and 403 is ``upstream_forbidden`` with
+``reason: access_restricted`` (the key works but the package is restricted).
 """
 
 from __future__ import annotations
@@ -205,6 +206,22 @@ def map_api_error(
     if status in (401, 403):
         if not credential_sent:
             return auth_required_error(endpoint=endpoint)
+        if status == 403:
+            # A bad key or token gets 401; 403 with credentials means the key's user is
+            # authenticated but not on the resource's access list (RESEARCH.md section 5).
+            what = f"{entity} {identifier!r}" if entity and identifier else "this resource"
+            return ToolError(
+                "upstream_forbidden",
+                f"{service} accepted the EDI credentials but does not let this key's user read "
+                f"{what} (HTTP 403): it is restricted to named users or groups.",
+                details={
+                    "reason": "access_restricted",
+                    "endpoint": endpoint,
+                    "status": status,
+                    "upstream": detail,
+                },
+                hint="Ask the package contact for access, or choose another package.",
+            )
         return ToolError(
             "upstream_forbidden",
             f"{service} rejected the EDI credentials (HTTP {status}). The API key is usually "

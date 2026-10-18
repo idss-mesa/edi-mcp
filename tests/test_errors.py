@@ -33,12 +33,28 @@ def test_401_403_without_credentials_is_auth_required(status: int) -> None:
 @pytest.mark.parametrize("status", [401, 403])
 def test_401_403_with_credentials_is_upstream_forbidden(status: int) -> None:
     e = map_api_error(err(status, "EDI token validation failed", credential_sent=True))
-    assert e.code == "upstream_forbidden"
-    assert e.details["status"] == status and e.details["guide"] == "edi://guide/api-key"
+    assert e.code == "upstream_forbidden" and e.details["status"] == status
     assert map_api_error(err(status), credential_sent=True).code == "upstream_forbidden"
     assert map_api_error(err(status, credential_sent=True), credential_sent=False).code == (
         "auth_required"
     )
+
+
+def test_401_with_credentials_blames_the_key() -> None:
+    e = map_api_error(err(401, "EDI token validation failed", credential_sent=True))
+    assert e.details["guide"] == "edi://guide/api-key" and "reason" not in e.details
+    assert "rejected the EDI credentials" in e.message
+
+
+def test_403_with_credentials_is_an_access_restricted_package() -> None:
+    e = map_api_error(
+        err(403, "User '…' is not authorized to read", credential_sent=True),
+        entity="package",
+        identifier="icarus.13.1",
+    )
+    assert e.code == "upstream_forbidden" and e.details["reason"] == "access_restricted"
+    assert "package 'icarus.13.1'" in e.message and "restricted" in e.message
+    assert "mistyped" not in e.message and "guide" not in e.details
 
 
 def test_not_found_names_the_entity() -> None:

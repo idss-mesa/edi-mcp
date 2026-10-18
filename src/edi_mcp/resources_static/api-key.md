@@ -56,6 +56,11 @@ backend answered.
 ## Errors
 
 - `auth_required`: the operation needs a key and none is configured for this call.
-- `upstream_forbidden`: a key was sent and EDI rejected it (mistyped, expired, deleted,
-  or a group key without access). edi-mcp does not silently fall back to DataONE in this
-  case. Fix or replace the key.
+- `upstream_forbidden`: a key was sent and EDI refused the request.
+  - Without a `reason` (HTTP 401): EDI rejected the key (mistyped, expired, deleted, or a
+    group key without access). Fix or replace the key.
+  - With `reason: access_restricted` (HTTP 403): the key works, but this package is
+    restricted to named users or groups. A new key will not help; ask the package's
+    contact for access or pick another package.
+
+  edi-mcp never silently falls back to DataONE in either case.

@@ -243,6 +243,7 @@ async def _scenarios(transport: RecordingTransport, key_value: str) -> None:
     from edi_mcp.edi.client import EdiClient
     from edi_mcp.edi.pid import Doi, PackageId
     from edi_mcp.errors import EdiApiError, ToolError
+    from edi_mcp.server import create_server
 
     config = Config.model_validate({})
     config.edi.api_key = SecretStr(key_value)
@@ -315,6 +316,30 @@ async def _scenarios(transport: RecordingTransport, key_value: str) -> None:
         ("dataone doi edi", lambda: dataone().package_doi(edi_pkg)),
         ("dataone resolve doi", lambda: dataone().resolve_doi(hbr_doi)),
     ]
+    # Tool-level scenarios: the exact requests the tool tests make, on both backends.
+    anon_config = config.model_copy(deep=True)
+    anon_config.edi.api_key = None
+    servers = {
+        "key": create_server(config, transport="stdio", http_transport=transport),
+        "anon": create_server(anon_config, transport="stdio", http_transport=transport),
+    }
+
+    def tool(who: str, name: str, args: dict[str, Any], ok: bool = True) -> Callable[[], Any]:
+        async def run() -> str:
+            outcome = await servers[who].call(name, args)
+            if outcome.is_error == ok:
+                raise RuntimeError(f"{who} {name}({args}) unexpectedly {outcome.payload}")
+            if outcome.is_error:
+                return f"error {outcome.payload['error']['code']}"
+            page = outcome.payload.get("page") or {}
+            return f"ok returned={page.get('returned')} total={page.get('total')}"
+
+        return run
+
+    for who, name, args, ok in TOOL_SCENARIOS:
+        steps.append(
+            (f"{who} {name.removeprefix('edi_')} {next(iter(args), '')}", tool(who, name, args, ok))
+        )
     try:
         for label, step in steps:
             try:
@@ -327,6 +352,32 @@ async def _scenarios(transport: RecordingTransport, key_value: str) -> None:
             print(f"  {label:28} {transport.scrubber.scrub(summary)[:90]}")
     finally:
         await client.aclose()
+        for server in servers.values():
+            await server.aclose()
+
+
+#: (backend, tool, arguments, succeeds) recorded through the real tools.
+TOOL_SCENARIOS: list[tuple[str, str, dict[str, Any], bool]] = [
+    *(
+        (who, "edi_search_packages", args, True)
+        for who in ("key", "anon")
+        for args in (
+            {
+                "author": "likens",
+                "start_year": 1960,
+                "end_year": 1970,
+                "sort": "newest",
+                "limit": 5,
+            },
+            {"bbox": [-107, 32.4, -106.5, 32.8], "limit": 5},
+        )
+    ),
+    ("anon", "edi_search_packages", {"query": "thiessen", "scope": "HBR", "limit": 3}, True),
+    ("anon", "edi_search_packages", {"scope": "Seattle", "limit": 3}, True),
+    ("key", "edi_list_identifiers", {"scope": "knb-lter-zzz"}, False),
+    ("key", "edi_list_revisions", {"package": "jrn.210548103"}, True),
+    ("anon", "edi_list_revisions", {"package": "jrn.210548103"}, True),
+]
 
 
 def record() -> int:

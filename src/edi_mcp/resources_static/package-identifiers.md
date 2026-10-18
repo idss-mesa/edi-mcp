@@ -39,3 +39,23 @@ echoed in `resolved`:
 - `doi:10.6073/pasta/…`, `https://doi.org/10.6073/pasta/…`
 - portal `mapbrowse?scope=…&identifier=…&revision=…` URLs
 - PASTA package, metadata and data URLs
+- a site code or scope name in place of the scope: `jrn.210548103`,
+  `Jornada Basin.210548103.43`
+
+## Scope names and site codes
+
+Scope arguments (`scope=` and the scope part of a package) accept:
+
+- the exact scope: `knb-lter-jrn`, `edi`, `msb-cap`;
+- an LTER site code, any case: `JRN`, `hbr`. Three-letter codes always mean the LTER
+  site, so `cap` is Central Arizona-Phoenix (`knb-lter-cap`); use `msb-cap` exactly for
+  the Macrosystems scope;
+- a name, alias or location: `Jornada`, `Hubbard Brook`, `Toolik`, `Kansas`.
+
+A match is accepted when it is clear (score at least 0.75 and 1.15 times the runner-up)
+and echoed in `resolved` with its confidence. A shared name or location returns
+`ambiguous_input` with ranked candidates: `Alaska` (four sites), `New Mexico`
+(Jornada, Sevilleta), `Landsat` (two bulk scopes). A hyphenated code edi-mcp does not
+know yet passes through unchanged, so scopes newer than the snapshot still work with a
+key. `edi://reference/scopes` lists every scope, and `edi_list_scopes` lists them live
+when a key is set.

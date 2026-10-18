@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 from edi_mcp.edi.backends.base import (
     Backend,
+    BoundingBox,
     EntityInfo,
     ResolvedPackage,
     SearchHit,
@@ -34,6 +35,7 @@ def backend_for(ctx: ToolContext) -> PastaBackend | DataOneBackend:
 
 __all__ = [
     "Backend",
+    "BoundingBox",
     "DataOneBackend",
     "EntityInfo",
     "PastaBackend",

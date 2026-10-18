@@ -30,6 +30,9 @@ from edi_mcp.edi.backends.base import (
     SearchHit,
     SearchPage,
     SearchQuery,
+    solr_phrase,
+    year_end,
+    year_start,
 )
 from edi_mcp.edi.eml import entity_refs
 from edi_mcp.edi.pid import Doi, PackageId
@@ -145,21 +148,41 @@ class DataOneBackend(BackendBase):
 
     # ------------------------------------------------------------------ search
 
-    async def search(self, query: SearchQuery) -> SearchPage:
-        fq = f"{SOURCE_FILTER} AND -obsoletedBy:*"
+    def search_filter(self, query: SearchQuery) -> str:
+        clauses = [SOURCE_FILTER, "-obsoletedBy:*"]
         if query.scope:
-            fq += f" AND {self._id_prefix(query.scope)}"
-        elif query.exclude_bulk:
-            fq += "".join(f" AND -{self._id_prefix(s)}" for s in BULK_SCOPES)
+            clauses.append(self._id_prefix(query.scope))
+        if query.author:
+            # investigatorText holds creators' last names, tokenized (case-insensitive).
+            clauses.append(f"investigatorText:{solr_phrase(query.author)}")
+        if query.end_year is not None:
+            clauses.append(f"beginDate:[* TO {year_end(query.end_year)}]")
+        if query.start_year is not None:
+            clauses.append(f"endDate:[{year_start(query.start_year)} TO *]")
+        if query.bbox is not None:
+            b = query.bbox
+            clauses += [
+                f"northBoundCoord:[{b.south} TO *]",
+                f"southBoundCoord:[* TO {b.north}]",
+                f"eastBoundCoord:[{b.west} TO *]",
+                f"westBoundCoord:[* TO {b.east}]",
+            ]
+        if not query.scope and query.exclude_bulk:
+            clauses += [f"-{self._id_prefix(s)}" for s in BULK_SCOPES]
+        return " AND ".join(clauses)
+
+    async def search(self, query: SearchQuery) -> SearchPage:
         params = {
             "defType": "edismax",
-            "q": query.text.strip() if query.text and query.text.strip() else "*:*",
+            "q": query.query_text,
             "qf": SEARCH_QF,
-            "fq": fq,
+            "fq": self.search_filter(query),
             "fl": SEARCH_FIELDS,
             "rows": str(query.limit),
             "start": str(query.offset),
         }
+        if query.sort != "relevance":
+            params["sort"] = "pubDate desc" if query.sort == "newest" else "pubDate asc"
         response = await self._solr(params, cache="search")
         best: dict[str, SearchHit] = {}
         for doc in response.get("docs") or []:

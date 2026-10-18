@@ -29,3 +29,24 @@ All notable changes to edi-mcp are documented here. The format follows
   connectivity.
 - Recorded, scrubbed fixtures with a replaying test router, `scripts/record_fixtures.py`
   (`record`, `check`), live smoke tests and a nightly CI job.
+- Discovery tools on both backends: `edi_search_packages` (free text, scope, creator,
+  temporal overlap, bounding box, sort by publication date, paging),
+  `edi_list_scopes` (live with a key, a dated snapshot without), `edi_list_identifiers`
+  and `edi_list_revisions`.
+- Scope names and LTER site codes are accepted wherever a scope is (`Jornada`, `JRN`,
+  `jrn.210548103`), echoed in `resolved`; shared names return `ambiguous_input`.
+- Resource `edi://reference/scopes`: every scope with name, kind, site code, location
+  and package counts on PASTA and DataONE.
+
+### Changed
+
+- `lter-landsat-ledaps` joins `ecotrends` and `lter-landsat` as a bulk scope excluded
+  from search by default.
+- A PASTA 403 sent with valid credentials is now `upstream_forbidden` with
+  `reason: access_restricted` (the package is restricted) instead of a message blaming
+  the key.
+
+### Security
+
+- Upstream error text no longer carries the key owner's display name from PASTA's
+  `User '…' is not authorized` messages.

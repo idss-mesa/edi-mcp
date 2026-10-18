@@ -1,4 +1,4 @@
-"""MCP resources: static guides (derived references and templates arrive with the backends)."""
+"""MCP resources: static guides and the scope snapshot (templates arrive with step 5)."""
 
 from __future__ import annotations
 
@@ -54,6 +54,14 @@ STATIC: tuple[_Static, ...] = (
         "Package identifiers",
         "Scopes, scope.identifier.revision, newest/oldest, DOIs, entity ids and the forms "
         "edi-mcp accepts.",
+    ),
+    _Static(
+        "edi://reference/scopes",
+        "scopes.json",
+        "application/json",
+        "EDI scopes",
+        "Every scope with name, kind, LTER site code, location and package counts on PASTA and "
+        "DataONE (dated snapshot); scope arguments accept these site codes and names.",
     ),
 )
 

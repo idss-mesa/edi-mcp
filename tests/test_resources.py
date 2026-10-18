@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from edi_mcp.errors import ToolError
@@ -12,7 +14,11 @@ def test_listing_is_sorted_and_tagged() -> None:
     resources = list_resources()
     uris = [str(r.uri) for r in resources]
     assert uris == sorted(uris)
-    assert uris == ["edi://guide/api-key", "edi://guide/package-identifiers"]
+    assert uris == [
+        "edi://guide/api-key",
+        "edi://guide/package-identifiers",
+        "edi://reference/scopes",
+    ]
     assert all((r.meta or {})["io.edi-mcp/kind"] == "static" for r in resources)
     assert list_resource_templates() == []
 
@@ -25,8 +31,13 @@ async def test_static_reads(server: EdiServer) -> None:
     key_guide = (await read_resource("edi://guide/api-key", ctx)).text
     for phrase in ("2026-07-30", "auth/ui/key", "EDI_API_KEY", "X-EDI-Key", "upstream_forbidden"):
         assert phrase in key_guide
+    for phrase in ("access_restricted",):
+        assert phrase in key_guide
     ids = (await read_resource("edi://guide/package-identifiers", ctx)).text
     assert "knb-lter-hbr.14.22" in ids and "doi:10.6073/pasta/" in ids
+    scopes = json.loads((await read_resource("edi://reference/scopes", ctx)).text)
+    jrn = next(s for s in scopes["scopes"] if s["scope"] == "knb-lter-jrn")
+    assert jrn["name"] == "Jornada Basin LTER" and jrn["siteCode"] == "JRN"
 
 
 async def test_unknown_resource_suggests(server: EdiServer) -> None:
@@ -46,5 +57,6 @@ def test_instructions() -> None:
         "edi://guide/api-key",
         "edi_ping",
         "source.backend",
+        "site codes",
     ):
         assert phrase in SERVER_INSTRUCTIONS

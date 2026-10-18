@@ -1,0 +1,428 @@
+{
+ "asOf": "2026-10-18",
+ "about": "Every scope PASTA listed on 2026-10-18 (GET /package/eml). pastaPackages counts newest revisions in PASTA search; dataonePackages counts DataONE metadata records without obsoletedBy, an upper bound because superseded revisions often lack it (DESIGN.md D12). 0 means DataONE does not replicate the scope. Names are taken from package titles and organizations; null where none is verified. edi-mcp resolves scope names, site codes and locations to scopes with these records (DESIGN.md D9).",
+ "scopes": [
+  {
+   "scope": "cos-spu",
+   "name": "City of Seattle, Seattle Public Utilities",
+   "kind": "agency",
+   "siteCode": null,
+   "location": "Washington",
+   "aliases": [],
+   "pastaPackages": 11,
+   "dataonePackages": 0
+  },
+  {
+   "scope": "ecotrends",
+   "name": "EcoTrends",
+   "kind": "bulk",
+   "siteCode": null,
+   "location": null,
+   "aliases": [],
+   "pastaPackages": 15403,
+   "dataonePackages": 15401
+  },
+  {
+   "scope": "edi",
+   "name": "Environmental Data Initiative",
+   "kind": "edi",
+   "siteCode": null,
+   "location": null,
+   "aliases": [
+    "EDI"
+   ],
+   "pastaPackages": 2111,
+   "dataonePackages": 1970
+  },
+  {
+   "scope": "icarus",
+   "name": null,
+   "kind": "other",
+   "siteCode": null,
+   "location": null,
+   "aliases": [],
+   "pastaPackages": 1,
+   "dataonePackages": 0
+  },
+  {
+   "scope": "knb-lter-and",
+   "name": "H. J. Andrews Experimental Forest LTER",
+   "kind": "lter",
+   "siteCode": "AND",
+   "location": "Oregon",
+   "aliases": [
+    "Andrews Forest"
+   ],
+   "pastaPackages": 164,
+   "dataonePackages": 181
+  },
+  {
+   "scope": "knb-lter-arc",
+   "name": "Arctic LTER",
+   "kind": "lter",
+   "siteCode": "ARC",
+   "location": "Alaska",
+   "aliases": [
+    "Toolik Lake"
+   ],
+   "pastaPackages": 667,
+   "dataonePackages": 957
+  },
+  {
+   "scope": "knb-lter-bes",
+   "name": "Baltimore Ecosystem Study LTER",
+   "kind": "lter",
+   "siteCode": "BES",
+   "location": "Maryland",
+   "aliases": [],
+   "pastaPackages": 108,
+   "dataonePackages": 270
+  },
+  {
+   "scope": "knb-lter-ble",
+   "name": "Beaufort Lagoon Ecosystems LTER",
+   "kind": "lter",
+   "siteCode": "BLE",
+   "location": "Alaska",
+   "aliases": [],
+   "pastaPackages": 41,
+   "dataonePackages": 50
+  },
+  {
+   "scope": "knb-lter-bnz",
+   "name": "Bonanza Creek LTER",
+   "kind": "lter",
+   "siteCode": "BNZ",
+   "location": "Alaska",
+   "aliases": [],
+   "pastaPackages": 762,
+   "dataonePackages": 1058
+  },
+  {
+   "scope": "knb-lter-cap",
+   "name": "Central Arizona-Phoenix LTER",
+   "kind": "lter",
+   "siteCode": "CAP",
+   "location": "Arizona",
+   "aliases": [],
+   "pastaPackages": 283,
+   "dataonePackages": 333
+  },
+  {
+   "scope": "knb-lter-cce",
+   "name": "California Current Ecosystem LTER",
+   "kind": "lter",
+   "siteCode": "CCE",
+   "location": "California",
+   "aliases": [],
+   "pastaPackages": 106,
+   "dataonePackages": 130
+  },
+  {
+   "scope": "knb-lter-cdr",
+   "name": "Cedar Creek Ecosystem Science Reserve LTER",
+   "kind": "lter",
+   "siteCode": "CDR",
+   "location": "Minnesota",
+   "aliases": [],
+   "pastaPackages": 600,
+   "dataonePackages": 987
+  },
+  {
+   "scope": "knb-lter-cwt",
+   "name": "Coweeta LTER",
+   "kind": "lter",
+   "siteCode": "CWT",
+   "location": "North Carolina",
+   "aliases": [],
+   "pastaPackages": 248,
+   "dataonePackages": 257
+  },
+  {
+   "scope": "knb-lter-fce",
+   "name": "Florida Coastal Everglades LTER",
+   "kind": "lter",
+   "siteCode": "FCE",
+   "location": "Florida",
+   "aliases": [],
+   "pastaPackages": 235,
+   "dataonePackages": 406
+  },
+  {
+   "scope": "knb-lter-gce",
+   "name": "Georgia Coastal Ecosystems LTER",
+   "kind": "lter",
+   "siteCode": "GCE",
+   "location": "Georgia",
+   "aliases": [],
+   "pastaPackages": 781,
+   "dataonePackages": 907
+  },
+  {
+   "scope": "knb-lter-hbr",
+   "name": "Hubbard Brook LTER",
+   "kind": "lter",
+   "siteCode": "HBR",
+   "location": "New Hampshire",
+   "aliases": [
+    "Hubbard Brook Experimental Forest"
+   ],
+   "pastaPackages": 317,
+   "dataonePackages": 416
+  },
+  {
+   "scope": "knb-lter-hfr",
+   "name": "Harvard Forest LTER",
+   "kind": "lter",
+   "siteCode": "HFR",
+   "location": "Massachusetts",
+   "aliases": [],
+   "pastaPackages": 459,
+   "dataonePackages": 921
+  },
+  {
+   "scope": "knb-lter-jrn",
+   "name": "Jornada Basin LTER",
+   "kind": "lter",
+   "siteCode": "JRN",
+   "location": "New Mexico",
+   "aliases": [
+    "Jornada Experimental Range"
+   ],
+   "pastaPackages": 224,
+   "dataonePackages": 481
+  },
+  {
+   "scope": "knb-lter-kbs",
+   "name": "Kellogg Biological Station LTER",
+   "kind": "lter",
+   "siteCode": "KBS",
+   "location": "Michigan",
+   "aliases": [],
+   "pastaPackages": 89,
+   "dataonePackages": 117
+  },
+  {
+   "scope": "knb-lter-knz",
+   "name": "Konza Prairie LTER",
+   "kind": "lter",
+   "siteCode": "KNZ",
+   "location": "Kansas",
+   "aliases": [],
+   "pastaPackages": 188,
+   "dataonePackages": 331
+  },
+  {
+   "scope": "knb-lter-luq",
+   "name": "Luquillo LTER",
+   "kind": "lter",
+   "siteCode": "LUQ",
+   "location": "Puerto Rico",
+   "aliases": [],
+   "pastaPackages": 205,
+   "dataonePackages": 362
+  },
+  {
+   "scope": "knb-lter-mcm",
+   "name": "McMurdo Dry Valleys LTER",
+   "kind": "lter",
+   "siteCode": "MCM",
+   "location": "Antarctica",
+   "aliases": [],
+   "pastaPackages": 318,
+   "dataonePackages": 474
+  },
+  {
+   "scope": "knb-lter-mcr",
+   "name": "Moorea Coral Reef LTER",
+   "kind": "lter",
+   "siteCode": "MCR",
+   "location": "French Polynesia",
+   "aliases": [],
+   "pastaPackages": 131,
+   "dataonePackages": 144
+  },
+  {
+   "scope": "knb-lter-msp",
+   "name": "Minneapolis-St. Paul Metropolitan Area LTER",
+   "kind": "lter",
+   "siteCode": "MSP",
+   "location": "Minnesota",
+   "aliases": [],
+   "pastaPackages": 23,
+   "dataonePackages": 17
+  },
+  {
+   "scope": "knb-lter-nes",
+   "name": "Northeast U.S. Shelf LTER",
+   "kind": "lter",
+   "siteCode": "NES",
+   "location": "Atlantic Ocean",
+   "aliases": [],
+   "pastaPackages": 32,
+   "dataonePackages": 41
+  },
+  {
+   "scope": "knb-lter-nga",
+   "name": "Northern Gulf of Alaska LTER",
+   "kind": "lter",
+   "siteCode": "NGA",
+   "location": "Alaska",
+   "aliases": [],
+   "pastaPackages": 2,
+   "dataonePackages": 1
+  },
+  {
+   "scope": "knb-lter-nin",
+   "name": "North Inlet LTER",
+   "kind": "lter",
+   "siteCode": "NIN",
+   "location": "South Carolina",
+   "aliases": [],
+   "pastaPackages": 10,
+   "dataonePackages": 10
+  },
+  {
+   "scope": "knb-lter-ntl",
+   "name": "North Temperate Lakes LTER",
+   "kind": "lter",
+   "siteCode": "NTL",
+   "location": "Wisconsin",
+   "aliases": [],
+   "pastaPackages": 333,
+   "dataonePackages": 522
+  },
+  {
+   "scope": "knb-lter-nwk",
+   "name": "LTER Network Office",
+   "kind": "lter",
+   "siteCode": null,
+   "location": null,
+   "aliases": [
+    "LTER Network"
+   ],
+   "pastaPackages": 4,
+   "dataonePackages": 4
+  },
+  {
+   "scope": "knb-lter-nwt",
+   "name": "Niwot Ridge LTER",
+   "kind": "lter",
+   "siteCode": "NWT",
+   "location": "Colorado",
+   "aliases": [],
+   "pastaPackages": 386,
+   "dataonePackages": 439
+  },
+  {
+   "scope": "knb-lter-pal",
+   "name": "Palmer Antarctica LTER",
+   "kind": "lter",
+   "siteCode": "PAL",
+   "location": "Antarctica",
+   "aliases": [],
+   "pastaPackages": 97,
+   "dataonePackages": 157
+  },
+  {
+   "scope": "knb-lter-pie",
+   "name": "Plum Island Ecosystems LTER",
+   "kind": "lter",
+   "siteCode": "PIE",
+   "location": "Massachusetts",
+   "aliases": [],
+   "pastaPackages": 639,
+   "dataonePackages": 632
+  },
+  {
+   "scope": "knb-lter-sbc",
+   "name": "Santa Barbara Coastal LTER",
+   "kind": "lter",
+   "siteCode": "SBC",
+   "location": "California",
+   "aliases": [],
+   "pastaPackages": 279,
+   "dataonePackages": 364
+  },
+  {
+   "scope": "knb-lter-sev",
+   "name": "Sevilleta LTER",
+   "kind": "lter",
+   "siteCode": "SEV",
+   "location": "New Mexico",
+   "aliases": [],
+   "pastaPackages": 238,
+   "dataonePackages": 324
+  },
+  {
+   "scope": "knb-lter-sgs",
+   "name": "Shortgrass Steppe LTER",
+   "kind": "lter",
+   "siteCode": "SGS",
+   "location": "Colorado",
+   "aliases": [],
+   "pastaPackages": 105,
+   "dataonePackages": 106
+  },
+  {
+   "scope": "knb-lter-vcr",
+   "name": "Virginia Coast Reserve LTER",
+   "kind": "lter",
+   "siteCode": "VCR",
+   "location": "Virginia",
+   "aliases": [],
+   "pastaPackages": 372,
+   "dataonePackages": 468
+  },
+  {
+   "scope": "lter-landsat",
+   "name": "LTER Landsat imagery",
+   "kind": "bulk",
+   "siteCode": null,
+   "location": null,
+   "aliases": [],
+   "pastaPackages": 10492,
+   "dataonePackages": 10410
+  },
+  {
+   "scope": "lter-landsat-ledaps",
+   "name": "LEDAPS-corrected LTER Landsat imagery",
+   "kind": "bulk",
+   "siteCode": null,
+   "location": null,
+   "aliases": [],
+   "pastaPackages": 10471,
+   "dataonePackages": 10315
+  },
+  {
+   "scope": "msb-cap",
+   "name": null,
+   "kind": "project",
+   "siteCode": null,
+   "location": null,
+   "aliases": [],
+   "pastaPackages": 1,
+   "dataonePackages": 1
+  },
+  {
+   "scope": "msb-paleon",
+   "name": "PalEON",
+   "kind": "project",
+   "siteCode": null,
+   "location": null,
+   "aliases": [],
+   "pastaPackages": 47,
+   "dataonePackages": 48
+  },
+  {
+   "scope": "msb-tempbiodev",
+   "name": null,
+   "kind": "project",
+   "siteCode": null,
+   "location": null,
+   "aliases": [],
+   "pastaPackages": 53,
+   "dataonePackages": 69
+  }
+ ]
+}

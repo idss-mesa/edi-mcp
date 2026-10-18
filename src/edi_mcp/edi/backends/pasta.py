@@ -18,6 +18,9 @@ from edi_mcp.edi.backends.base import (
     SearchHit,
     SearchPage,
     SearchQuery,
+    solr_phrase,
+    year_end,
+    year_start,
 )
 from edi_mcp.edi.pid import Doi, PackageId, parse_reference
 from edi_mcp.edi.xml import children, descendants, parse_xml, text_of
@@ -49,6 +52,28 @@ def _csv_pairs(text: str) -> list[tuple[str, str]]:
         entity_id, _, value = line.partition(",")
         out.append((entity_id.strip(), value.strip()))
     return out
+
+
+def search_filter(query: SearchQuery) -> str | None:
+    """One ``fq`` for PASTA's Solr: positive clauses first, the bulk exclusion last."""
+    clauses: list[str] = []
+    if query.scope:
+        clauses.append(f"scope:{query.scope}")
+    if query.author:
+        clauses.append(f"author:{solr_phrase(query.author)}")
+    if query.end_year is not None:
+        clauses.append(f"begindate:[* TO {year_end(query.end_year)}]")
+    if query.start_year is not None:
+        clauses.append(f"enddate:[{year_start(query.start_year)} TO *]")
+    if query.bbox is not None:
+        b = query.bbox
+        # Solr's ENVELOPE takes minX, maxX, maxY, minY.
+        clauses.append(
+            f'coordinates:"Intersects(ENVELOPE({b.west}, {b.east}, {b.north}, {b.south}))"'
+        )
+    if not query.scope and query.exclude_bulk:
+        clauses.append(f"-scope:({' '.join(BULK_SCOPES)})")
+    return " AND ".join(clauses) or None
 
 
 class PastaBackend(BackendBase):
@@ -118,15 +143,17 @@ class PastaBackend(BackendBase):
     async def search(self, query: SearchQuery) -> SearchPage:
         params = {
             "defType": "edismax",
-            "q": query.text.strip() if query.text and query.text.strip() else "*:*",
+            "q": query.query_text,
             "fl": SEARCH_FIELDS,
             "rows": str(query.limit),
             "start": str(query.offset),
         }
-        if query.scope:
-            params["fq"] = f"scope:{query.scope}"
-        elif query.exclude_bulk:
-            params["fq"] = f"-scope:({' '.join(BULK_SCOPES)})"
+        fq = search_filter(query)
+        if fq:
+            params["fq"] = fq
+        if query.sort != "relevance":
+            # PASTA wants "field,direction"; "pubdate desc" is accepted and ignored.
+            params["sort"] = "pubdate,desc" if query.sort == "newest" else "pubdate,asc"
         total, hits = await self._search_xml(params)
         self.note("PASTA search covers the newest revision of each package only.")
         return SearchPage(hits, total, True, query.offset, query.limit)
