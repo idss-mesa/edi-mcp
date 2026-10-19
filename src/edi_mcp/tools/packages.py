@@ -91,6 +91,8 @@ class Loaded:
     root: Element
     echoes: list[Resolved] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
+    #: The EML document as fetched (edi_download_entities saves it beside the data).
+    body: bytes = b""
 
 
 async def load(
@@ -123,7 +125,7 @@ async def load(
         notes.append(
             f"Revision {package.revision} is the newest DataONE holds; PASTA can hold newer ones."
         )
-    return Loaded(backend, resolved, projection, root, echoes, notes)
+    return Loaded(backend, resolved, projection, root, echoes, notes, body)
 
 
 def _summary(meta: EntityMetadata, info: EntityInfo | None) -> EntitySummary:
@@ -504,6 +506,75 @@ class ListEntitiesResult(ToolResultBase):
     attributes_elided: bool | None = Field(
         None, description="True when some entities' attributes were dropped to fit the budget."
     )
+
+
+@dataclass
+class EntityRow:
+    """One entity with both views: the EML's and the backend's."""
+
+    meta: EntityMetadata | None
+    info: EntityInfo | None
+
+    @property
+    def entity_id(self) -> str | None:
+        return (self.info.entity_id if self.info else None) or (
+            self.meta.entity_id if self.meta else None
+        )
+
+    @property
+    def name(self) -> str | None:
+        return (self.meta.name if self.meta else None) or (self.info.name if self.info else None)
+
+    @property
+    def object_name(self) -> str | None:
+        return (self.meta.object_name if self.meta else None) or (
+            self.info.object_name if self.info else None
+        )
+
+    @property
+    def size(self) -> int | None:
+        if self.info is not None and self.info.size is not None:
+            return self.info.size
+        return self.meta.size if self.meta else None
+
+    def matches(self, wanted: str) -> bool:
+        w = wanted.strip().lower()
+        return any(
+            v is not None and v.lower() == w for v in (self.entity_id, self.name, self.object_name)
+        )
+
+
+async def entity_rows(loaded: Loaded) -> tuple[list[EntityRow], list[str]]:
+    """Every entity of the loaded package, EML and backend views merged."""
+    backend, package = loaded.backend, loaded.resolved.package
+    refs = entity_refs(loaded.root, source=backend.metadata_pid(package))
+    infos = await backend.list_entities(package, refs)
+    pairs, notes = merge_entities(infos, loaded.eml.entities)
+    return [EntityRow(m, i) for m, i in pairs], notes
+
+
+def pick_entities(
+    rows: list[EntityRow], wanted: list[str] | None, package_id: str
+) -> list[EntityRow]:
+    """The rows ``wanted`` names (id, name or file name, case-insensitive); all when None."""
+    if not wanted:
+        return list(rows)
+    out: list[EntityRow] = []
+    missing: list[str] = []
+    for value in wanted:
+        hit = next((r for r in rows if r.matches(value)), None)
+        if hit is None:
+            missing.append(value)
+        elif hit not in out:
+            out.append(hit)
+    if missing:
+        raise ToolError(
+            "not_found",
+            f"Package {package_id} has no entity {', '.join(repr(m) for m in missing[:5])}.",
+            details={"identifier": missing[0], "packageId": package_id, "missing": missing[:20]},
+            hint="Call edi_list_entities to see every entity's id, name and file name.",
+        )
+    return out
 
 
 def _matches(detail: EntityDetail, wanted: str) -> bool:

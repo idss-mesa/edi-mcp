@@ -8,7 +8,9 @@ called in the call's :class:`UpstreamStats` and adds caveats to ``notes``.
 
 from __future__ import annotations
 
+import json
 import re
+from contextlib import AbstractAsyncContextManager
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Literal, Protocol
 from urllib.parse import quote
@@ -21,9 +23,12 @@ from edi_mcp.logging import registered_secrets
 from edi_mcp.models.common import Resolved
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from edi_mcp.config import Config
     from edi_mcp.context import UpstreamStats
-    from edi_mcp.edi.client import EdiClient
+    from edi_mcp.edi.auth import ApiKey
+    from edi_mcp.edi.client import EdiClient, Streamed
 
 BackendName = Literal["pasta", "dataone"]
 
@@ -33,6 +38,8 @@ PASTA_PID_BASE = "https://pasta.lternet.edu/package"
 BULK_SCOPES = ("ecotrends", "lter-landsat", "lter-landsat-ledaps")
 
 SearchSort = Literal["relevance", "newest", "oldest"]
+CitationStyle = Literal["ESIP", "DRYAD", "BIBTEX"]
+_CITE_DOI_RE = re.compile(r"10\.6073/pasta/([0-9a-fA-F]{32})")
 _LOCAL_PARAMS = re.compile(r"^\s*(?:\{![^}]*\}\s*)+")
 
 
@@ -147,11 +154,44 @@ class Backend(Protocol):
     async def entity_checksum(self, package: PackageId, entity_id: str) -> str | None: ...
     async def package_doi(self, package: PackageId) -> str | None: ...
     async def resolve_doi(self, doi: Doi) -> PackageId: ...
+    async def read_report(self, package: PackageId) -> bytes: ...
     def data_url(self, package: PackageId, entity_id: str) -> str: ...
+    def entity_source_url(self, package: PackageId, entity_id: str) -> str: ...
+    def stream_entity(
+        self,
+        package: PackageId,
+        entity_id: str,
+        *,
+        allowed_hosts: Sequence[str] | None = None,
+        read_timeout_s: float | None = None,
+    ) -> AbstractAsyncContextManager[Streamed]: ...
+    async def citation(self, package: PackageId, style: CitationStyle) -> str: ...
+    async def citation_fields(self, package: PackageId) -> CitationFields: ...
+
+
+@dataclass
+class CitationFields:
+    """The EDI citation service's JSON, cleaned (trailing periods dropped)."""
+
+    authors: str | None = None
+    year: str | None = None
+    title: str | None = None
+    version: str | None = None
+    publisher: str | None = None
+    doi: str | None = None
+
+
+def _clean_cite(value: object) -> str | None:
+    if not isinstance(value, str):
+        return None
+    text = " ".join(value.split()).rstrip(".").strip()
+    return text or None
 
 
 class BackendBase:
     name: BackendName
+    #: The call's EDI API key (PASTA only); the client attaches it to PASTA hosts only.
+    key: ApiKey | None = None
 
     def __init__(self, client: EdiClient, config: Config, stats: UpstreamStats) -> None:
         self.client = client
@@ -179,6 +219,91 @@ class BackendBase:
 
     def metadata_pid(self, package: PackageId) -> str:
         return f"{PASTA_PID_BASE}/metadata/eml/{package.path}"
+
+    def report_pid(self, package: PackageId) -> str:
+        return f"{PASTA_PID_BASE}/report/eml/{package.path}"
+
+    def entity_source_url(self, package: PackageId, entity_id: str) -> str:
+        """Where this backend reads an entity's bytes from."""
+        return self.data_url(package, entity_id)
+
+    def stream_entity(
+        self,
+        package: PackageId,
+        entity_id: str,
+        *,
+        allowed_hosts: Sequence[str] | None = None,
+        read_timeout_s: float | None = None,
+    ) -> AbstractAsyncContextManager[Streamed]:
+        """Open the entity's bytes for streaming (never cached)."""
+        return self.client.stream(
+            self.entity_source_url(package, entity_id),
+            key=self.key,
+            stats=self.stats,
+            allowed_hosts=allowed_hosts,
+            read_timeout_s=read_timeout_s,
+        )
+
+    # ------------------------------------------------------------------ citations
+
+    @property
+    def cite_base(self) -> str:
+        return self.config.edi.cite_url.rstrip("/")
+
+    def _cite_error(self, exc: EdiApiError, package: PackageId) -> ToolError:
+        # cite.edirepository.org answers 400 with an HTML page for missing *and*
+        # access-restricted packages; never pass that HTML on.
+        if exc.status in (400, 404):
+            return ToolError(
+                "not_found",
+                f"The EDI citation service has no citation for {package.package_id}.",
+                details={"identifier": package.package_id, "service": "cite.edirepository.org"},
+                hint="The package may not exist, or may be access-restricted (the citation "
+                "service reads only public packages). Check it with edi_get_package.",
+            )
+        return map_api_error(
+            exc, entity="citation", identifier=package.package_id, secrets=registered_secrets()
+        )
+
+    async def citation(self, package: PackageId, style: CitationStyle) -> str:
+        """A formatted citation from the anonymous EDI citation service."""
+        try:
+            fetched = await self.client.get(
+                f"{self.cite_base}/{package.package_id}",
+                {"style": style},
+                cache="citations",
+                stats=self.stats,
+            )
+        except EdiApiError as exc:
+            raise self._cite_error(exc, package) from None
+        return fetched.text.strip()
+
+    async def citation_fields(self, package: PackageId) -> CitationFields:
+        try:
+            fetched = await self.client.get(
+                f"{self.cite_base}/{package.package_id}",
+                accept="application/json",
+                cache="citations",
+                stats=self.stats,
+            )
+        except EdiApiError as exc:
+            raise self._cite_error(exc, package) from None
+        try:
+            data = json.loads(fetched.body)
+        except ValueError:
+            data = {}
+        if not isinstance(data, dict):
+            data = {}
+        doi = _clean_cite(data.get("doi"))
+        m = _CITE_DOI_RE.search(doi) if doi else None
+        return CitationFields(
+            authors=_clean_cite(data.get("authors")),
+            year=_clean_cite(data.get("pub_year")),
+            title=_clean_cite(data.get("title")),
+            version=_clean_cite(data.get("version")),
+            publisher=_clean_cite(data.get("publisher")),
+            doi=f"doi:10.6073/pasta/{m.group(1).lower()}" if m else doi,
+        )
 
     def not_found_hint(self) -> str | None:
         return None
@@ -242,6 +367,8 @@ __all__ = [
     "BackendBase",
     "BackendName",
     "BoundingBox",
+    "CitationFields",
+    "CitationStyle",
     "EntityInfo",
     "ResolvedPackage",
     "SearchHit",

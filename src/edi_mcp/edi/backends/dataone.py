@@ -363,6 +363,22 @@ class DataOneBackend(BackendBase):
         self.note("The DOI came from the EDI citation service (DataONE has not indexed it).")
         return f"doi:10.6073/pasta/{m.group(1).lower()}"
 
+    def entity_source_url(self, package: PackageId, entity_id: str) -> str:
+        """Without a key, entity bytes come from the scope's GMN member node."""
+        return self.anonymous_data_url(package, entity_id)
+
+    async def read_report(self, package: PackageId) -> bytes:
+        """PASTA's quality report, replicated on the member node (served anonymously)."""
+        try:
+            fetched = await self._get_object(
+                self.report_pid(package),
+                package.scope,
+                max_bytes=self.config.limits.max_eml_bytes,
+            )
+        except EdiApiError as exc:
+            raise self.not_found(exc, "quality report", str(package)) from None
+        return fetched.body
+
     async def resolve_doi(self, doi: Doi) -> PackageId:
         try:
             fetched = await self.client.get(

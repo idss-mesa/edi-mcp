@@ -98,6 +98,51 @@ def compact_schema(schema: Any, keywords: tuple[str, ...]) -> Any:
     return schema
 
 
+_SCHEMA_MAPS = ("properties", "$defs", "patternProperties")
+_SCHEMA_ONE = ("items", "additionalProperties", "not", "contains", "propertyNames")
+_SCHEMA_LISTS = ("anyOf", "oneOf", "allOf", "prefixItems")
+_NULL = {"type": "null"}
+
+
+def fold_nullable(schema: Any, *, drop_null_defaults: bool) -> Any:
+    """Shorten pydantic's ``anyOf: [{type: T, ...}, {type: null}]`` to ``type: [T, "null"]``
+    (same meaning in JSON Schema 2020-12) and, for output schemas, drop ``default: null``.
+
+    Keeps ``tools/list`` inside its byte bound. Branches with ``enum``/``const``/``$ref``
+    are left alone, since folding ``null`` into them would change what validates.
+    """
+    if not isinstance(schema, dict):
+        return schema
+    out: dict[str, Any] = {}
+    for key, value in schema.items():
+        if key == "default" and value is None and drop_null_defaults:
+            continue
+        if key in _SCHEMA_MAPS and isinstance(value, dict):
+            out[key] = {
+                name: fold_nullable(sub, drop_null_defaults=drop_null_defaults)
+                for name, sub in value.items()
+            }
+        elif key in _SCHEMA_ONE:
+            out[key] = fold_nullable(value, drop_null_defaults=drop_null_defaults)
+        elif key in _SCHEMA_LISTS and isinstance(value, list):
+            out[key] = [fold_nullable(s, drop_null_defaults=drop_null_defaults) for s in value]
+        else:
+            out[key] = value
+    branches = out.get("anyOf")
+    if isinstance(branches, list) and len(branches) == 2 and _NULL in branches:
+        other = branches[0] if branches[1] == _NULL else branches[1]
+        if (
+            isinstance(other, dict)
+            and isinstance(other.get("type"), str)
+            and not ({"enum", "const", "$ref", "anyOf", "oneOf", "allOf"} & set(other))
+            and not (set(other) & (set(out) - {"anyOf"}))
+        ):
+            del out["anyOf"]
+            out.update(other)
+            out["type"] = [other["type"], "null"]
+    return out
+
+
 def _plain_responses(responses: Mapping[str, Any] | None) -> dict[str, Any] | None:
     """MRTR answers arrive as SDK models (``ElicitResult``); handlers get plain JSON."""
     if not responses:
@@ -142,7 +187,9 @@ class EdiServer:
     def input_schema(spec: ToolSpec) -> dict[str, Any]:
         """Validation schema by alias; pydantic's auto titles dropped, descriptions kept for the model."""
         raw = spec.input_model.model_json_schema(by_alias=True, mode="validation")
-        schema: dict[str, Any] = dict(compact_schema(raw, ("title",)))
+        schema: dict[str, Any] = fold_nullable(
+            compact_schema(raw, ("title",)), drop_null_defaults=False
+        )
         schema["$schema"] = JSON_SCHEMA_DIALECT
         return schema
 
@@ -150,7 +197,9 @@ class EdiServer:
     def output_schema(spec: ToolSpec) -> dict[str, Any]:
         """Serialization schema by alias, without titles/descriptions (docs render them from the models)."""
         raw = spec.output_model.model_json_schema(by_alias=True, mode="serialization")
-        schema: dict[str, Any] = dict(compact_schema(raw, ("title", "description")))
+        schema: dict[str, Any] = fold_nullable(
+            compact_schema(raw, ("title", "description")), drop_null_defaults=True
+        )
         schema["$schema"] = JSON_SCHEMA_DIALECT
         return schema
 
