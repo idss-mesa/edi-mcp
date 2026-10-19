@@ -12,7 +12,8 @@ ecological data packages.
 > Documentation: <https://idss-mesa.github.io/edi-mcp/>
 
 > **Status: under construction.** The discovery tools (`edi_ping`, search, list
-> scopes/identifiers/revisions) work; the rest of the tools below are planned. See
+> scopes/identifiers/revisions) and the package tools (`edi_get_package`,
+> `edi_get_metadata`, `edi_list_entities`) work; the rest of the tools below are planned. See
 > [DESIGN.md](DESIGN.md) for decisions and [RESEARCH.md](RESEARCH.md) for verified API
 > facts.
 

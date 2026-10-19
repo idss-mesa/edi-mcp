@@ -101,14 +101,15 @@ fallback was used). A refused key shows up as an `error` with code
 ## Without a key
 
 Without a key, edi-mcp answers from DataONE. The tools available today all work that
-way; several planned tools will need a key.
+way; several planned tools will need a key. Entity listings carry a keyless
+`anonymousUrl` (a DataONE member node) beside PASTA's `dataUrl`.
 
 | Operation | Without a key (DataONE) | With a key (PASTA) |
 | --- | --- | --- |
 | Search (`edi_search_packages`) | yes | yes |
 | Scope list (`edi_list_scopes`) | dated snapshot | live |
 | Identifiers and revisions (`edi_list_identifiers`, `edi_list_revisions`) | yes | yes |
-| Package metadata and data entities *(planned)* | yes | yes |
+| Package overview, metadata and data entities (`edi_get_package`, `edi_get_metadata`, `edi_list_entities`) | yes | yes |
 | Data preview and download *(planned)* | yes | yes |
 | Citations *(planned; cite.edirepository.org)* | yes | yes |
 | Quality reports, lineage, change feeds, read counts *(planned)* | no | yes |
@@ -583,8 +584,9 @@ stale_after: "2027-04-19T00:00:00Z"
 
 This walks through a first session in Claude Code[^claude-code-mcp]; other clients
 work the same way once connected ([Clients](clients.md)). It uses the tools available
-today: `edi_ping`, `edi_search_packages`, `edi_list_scopes`, `edi_list_identifiers` and
-`edi_list_revisions`. Package, metadata, preview, download and citation tools are still
+today: `edi_ping`, the discovery tools (`edi_search_packages`, `edi_list_scopes`,
+`edi_list_identifiers`, `edi_list_revisions`) and the package tools (`edi_get_package`,
+`edi_get_metadata`, `edi_list_entities`). Preview, download and citation tools are still
 being built; see the [Roadmap](../tools/roadmap.md).
 
 ## 1. Register the server
@@ -656,6 +658,19 @@ depends on the backend and on what EDI holds at the time.
     ```
 
     → the package identifiers in `knb-lter-hbr`, ascending and paged.
+
+4. **Read one package**
+
+    ```json
+    {"tool": "edi_get_package", "arguments": {"package": "knb-lter-hbr.14.22"}}
+    ```
+
+    → `title`, `doi`, `license`, `isNewest`, and `entities` with sizes and
+    `totalBytes`. Then `edi_get_metadata` (with `include` such as
+    `["overview", "coverage"]`) gives the abstract, keywords and coverage, and
+    `edi_list_entities` gives each table's columns, units and missing-value codes,
+    with a PASTA `dataUrl` and, where DataONE replicates the scope, a keyless
+    `anonymousUrl`. See [Packages, metadata and entities](../tools/packages.md).
 
 Every result also carries `notes` (caveats such as DataONE lag) and `nextSteps`
 (concrete follow-up calls). The [Tool reference](../tools/reference.md) lists every
@@ -808,7 +823,7 @@ its title, DOI, publication date, temporal coverage, the first five creators
 | `author` | A creator's last name, any case (`Likens`). |
 | `start_year`, `end_year` | Temporal overlap: coverage reaches `start_year` or later and starts in `end_year` or earlier. |
 | `bbox` | `[west, south, east, north]` in decimal degrees; geographic coverage must intersect it. `west <= east`: split a box that crosses the antimeridian into two searches. |
-| `sort` | `relevance` (default), `newest` or `oldest` by publication date. `oldest` lists undated packages first. |
+| `sort` | `relevance` (default), `newest` or `oldest` by publication date (by DataONE upload date without a key). `oldest` lists undated packages first. |
 | `include_bulk` | Include the generated bulk scopes `ecotrends`, `lter-landsat` and `lter-landsat-ledaps` (about 36,000 records), which are left out of unscoped searches by default. |
 | `limit`, `offset` | Page size (1–50, default 10) and the index of the first result. |
 
@@ -834,15 +849,13 @@ The same filters are sent to both backends, but the two indexes are not identica
 * **Freshness.** The DataONE index can lag new EDI uploads by days; results say so
   in `notes`.
 * **Publication date.** PASTA returns a year, DataONE a date.
-
-!!! warning "Known issue: date sorting without a key"
-
-    Since 2026-10-19 DataONE refuses to sort on publication date, so
-    `sort=newest` or `sort=oldest` currently fails without an EDI API key
-    (relevance sorting is unaffected). A fix that sorts DataONE results by the date
-    each revision reached DataONE is in review. DataONE also began returning some
-    records under an older identifier form, which can shorten filter-only result
-    pages; the same fix handles them. With a key, PASTA sorts and pages normally.
+* **Date sorting.** Since 2026-10-19 DataONE refuses to sort on publication date,
+  so without a key `sort=newest` and `sort=oldest` order results by the date each
+  revision reached DataONE (`uploaded` on each hit), and a note says so. PASTA sorts
+  by publication date.
+* **Identifier forms.** DataONE returns some records under an older
+  `scope.identifier.revision` id form; edi-mcp reads both and de-duplicates per
+  package series.
 
 ## List scopes
 
@@ -989,6 +1002,133 @@ scopes shipped with edi-mcp (`edi://reference/scopes`).
 [`edi_list_scopes`](reference.md#edi_list_scopes) lists every scope, live from
 PASTA when a key is set.
 
+---8<--- https://idss-mesa.github.io/edi-mcp/tools/packages/
+
+---
+title: "Packages, metadata and entities"
+description: "Inspect one EDI package revision with edi_get_package, read its EML metadata in compact sections with edi_get_metadata, and list its data tables and files with columns, formats and checksums with edi_list_entities."
+type: Guide
+tags:
+  - tools
+  - packages
+  - EML
+  - entities
+generated:
+  by: "claude/opus-5.5"
+  at: "2026-10-19T00:00:00Z"
+sources:
+  - id: pasta-api
+    resource: "https://pasta.lternet.edu/package/docs/api"
+    title: "EDI PASTA+ Data Package Manager REST API"
+    author: "team:edi"
+  - id: eml
+    resource: "https://eml.ecoinformatics.org/"
+    title: "Ecological Metadata Language (EML)"
+    author: "team:nceas"
+  - id: dataone-mn
+    resource: "https://dataoneorg.github.io/api-documentation/apis/MN_APIs.html"
+    title: "DataONE Member Node APIs"
+    author: "team:dataone"
+status: stable
+---
+
+# Packages, metadata and entities
+
+Once a search or listing has named a package, three tools read it:
+[`edi_get_package`](reference.md#edi_get_package) for an overview,
+[`edi_get_metadata`](reference.md#edi_get_metadata) for the EML metadata, and
+[`edi_list_entities`](reference.md#edi_list_entities) for the data tables and
+files. All three take the same `package` and `revision` inputs, work on both
+backends (PASTA with a key, DataONE without; see [Backends](backends.md)), and
+fetch and parse the package's EML document once per call.
+
+## Choosing a package and revision
+
+`package` accepts every form described in [Identifiers and scope names](identifiers.md):
+a full id (`knb-lter-hbr.14.22`), a series without a revision (`knb-lter-hbr.14`),
+a DOI (`doi:10.6073/pasta/…`), a portal or PASTA URL, and a scope written as a site
+code or name (`jrn.210548103`, `Jornada Basin.210548103`). When the package names
+no revision, `revision` picks one: a number, `newest` (the default) or `oldest`.
+Revision `0` is valid; some packages start there. Every result echoes the
+normalised `packageId` and says in `revisionFrom` how the revision was chosen
+(`given`, `newest`, `oldest` or `doi`).
+
+## edi_get_package
+
+The overview of one revision: `title`, `pubDate`, `creators` (names, with
+`creatorsTotal`), `license`, `doi` and `doiUrl`, `portalUrl`, `metadataUrl`, and
+`entities` with each entity's name, type and size, plus `entityCount` and
+`totalBytes` across all entities.
+
+- `newestRevision` and `isNewest` compare with the newest revision **on the backend
+  that answered**. DataONE can lag PASTA, so without a key a note says that
+  "newest" means DataONE's newest; PASTA may already hold a later revision.
+- At most 100 entities are listed. A package with more says so in `notes` and
+  `nextSteps` points at `edi_list_entities` with `offset=100` for the rest.
+- `metadataUrl` is PASTA's EML URL, which needs an EDI API key to open.
+
+## edi_get_metadata
+
+The EML document projected into compact, capped sections. `include` picks the
+sections (all by default):
+
+| Section | Contents |
+| --- | --- |
+| `overview` | title, short name, abstract, keyword sets (with thesauri), publication date, language, alternate identifiers, maintenance |
+| `people` | creators, contacts, associated parties and publisher, with roles, organisations, emails as published, and ORCIDs |
+| `coverage` | geographic bounding boxes, temporal ranges and taxonomic coverage |
+| `methods` | the method steps as prose, with the number of steps |
+| `rights` | intellectual rights text and the structured license (name, URL, identifier) |
+| `project` | project title, personnel, funding awards and related projects |
+| `entities` | the data entities in summary form (use `edi_list_entities` for columns) |
+
+`max_text_chars` (200–20000, default 2000) cuts the abstract, methods and rights
+text; a cut field is flagged (for example `abstractTruncated`). Lists are capped
+(25 people per list, 60 keywords, 50 taxa, 25 geographic and temporal ranges, …)
+and every capped list reports its full count, such as `keywordsTotal`. EML
+`<references>` to other elements are resolved, with a depth limit and a cycle guard.
+Very large documents stay small: the largest EML tried, 3.4 MB with more than a
+thousand taxa, projects to about 25 KB.
+
+The raw EML is never returned inline.
+
+## edi_list_entities
+
+Every data entity (data table, spatial raster or vector, stored procedure, view or
+other entity) with:
+
+- name, entity type, object (file) name, description, format, byte size and record count;
+- the text format of a delimited table: header and footer lines, field and record delimiters
+  (as written in the EML, for example the literal `\r\n`), quote character and orientation;
+- with `include_attributes` (default true), each column's name, label, definition,
+  storage type, measurement scale, unit, date format, numeric bounds, code lists,
+  missing-value codes and semantic annotations;
+- with `include_checksums`, SHA-1 checksums fetched for up to 25 entities per call
+  (one request per entity); without it, checksums appear only where the backend
+  already supplied them;
+- `dataUrl`, PASTA's data URL, which needs an EDI API key, and `anonymousUrl`, a
+  DataONE member-node URL that serves the same bytes without a key. `anonymousUrl`
+  is omitted for scopes that the server's dated snapshot shows DataONE does not
+  replicate.
+
+`entity` narrows the list to one entity by id, name or file name
+(case-insensitive). `offset` and `limit` (default 50, at most 200) page through
+large packages, and `page.nextOffset` gives the next page. If a page would exceed
+the result budget, column lists are dropped first and `attributesElided` is set;
+ask for fewer entities or one `entity` to get them back.
+
+## Typical flow
+
+1. `edi_search_packages` → pick a `packageId`.
+2. `edi_get_package` → is it the newest revision, how many entities, how big?
+3. `edi_get_metadata` with `include=["overview","coverage","methods"]` → is it the
+   right data?
+4. `edi_list_entities` with `entity=…` → which columns, units and missing-value
+   codes, and where to fetch the file.
+
+Previewing rows, downloading files and formatted citations come with the next
+build step; see the [Roadmap](roadmap.md).
+
 ---8<--- https://idss-mesa.github.io/edi-mcp/tools/reference/
 
 ---
@@ -1016,15 +1156,144 @@ status: stable
 
 # Tool reference
 
-Generated from the tool registry by `scripts/gen_tools_reference.py`; do not edit by hand. 5 tools are registered. Inputs are snake_case and outputs camelCase. Every result also carries `resolved`, `notes`, `nextSteps` and `source` (whose `backend` says whether PASTA or DataONE answered), and failures return `structuredContent.error` with a stable `code` (see [Utilities](utilities.md#error-codes)).
+Generated from the tool registry by `scripts/gen_tools_reference.py`; do not edit by hand. 8 tools are registered. Inputs are snake_case and outputs camelCase. Every result also carries `resolved`, `notes`, `nextSteps` and `source` (whose `backend` says whether PASTA or DataONE answered), and failures return `structuredContent.error` with a stable `code` (see [Utilities](utilities.md#error-codes)).
 
 | Tool | Title | Family | EDI API key |
 | --- | --- | --- | --- |
+| [`edi_get_metadata`](#edi_get_metadata) | Read a package's EML metadata | [packages](packages.md) | no |
+| [`edi_get_package`](#edi_get_package) | Get an EDI data package | [packages](packages.md) | no |
+| [`edi_list_entities`](#edi_list_entities) | List a package's data entities | [entities](packages.md) | no |
 | [`edi_list_identifiers`](#edi_list_identifiers) | List package identifiers in a scope | [discovery](discovery.md) | no |
 | [`edi_list_revisions`](#edi_list_revisions) | List the revisions of a package | [discovery](discovery.md) | no |
 | [`edi_list_scopes`](#edi_list_scopes) | List EDI scopes | [discovery](discovery.md) | no |
 | [`edi_ping`](#edi_ping) | Check edi-mcp status | [core](utilities.md) | no |
 | [`edi_search_packages`](#edi_search_packages) | Search EDI data packages | [discovery](discovery.md) | no |
+
+## edi_get_metadata
+
+**Read a package's EML metadata.** The package's EML, projected to compact sections: overview (abstract, keywords, dates), people (creators, contacts with ORCIDs), coverage (bounding boxes, date ranges, taxa), methods, rights and license, project and funding, and entities. Choose sections with include; long text is cut at max_text_chars and lists are capped with totals. Next: call edi_list_entities for column definitions, units and codes.
+
+| | |
+| --- | --- |
+| Surface | `packages` |
+| EDI API key | optional (PASTA with a key, DataONE without) |
+| Transports | http, stdio |
+| Annotations | readOnly=true, destructive=false, idempotent=true, openWorld=true |
+| Upstream endpoints | `GET pasta.lternet.edu/package/metadata/eml/{scope}/{id}/{rev}`<br>`GET gmn.lternet.edu/mn/v2/object/{pid}`<br>`GET pasta.lternet.edu/package/eml/{scope}/{id}`<br>`GET cn.dataone.org/cn/v2/query/solr/` |
+
+**Inputs**
+
+| Name | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `package` | string | yes |  | A package: knb-lter-hbr.14.22, knb-lter-hbr.14 (newest unless revision is set), a DOI, or a portal or PASTA URL; the scope may be a site code or name (jrn.210548103). (min length 1; max length 500) |
+| `revision` | integer \\| `newest` \\| `oldest` \\| null |  | null | Revision when package names none: a number, 'newest' (default) or 'oldest'. |
+| `include` | array of `overview` \\| `people` \\| `coverage` \\| `methods` \\| `rights` \\| `project` \\| `entities` |  |  | Sections to return: overview (abstract, keywords, dates), people, coverage (geographic, temporal, taxonomic), methods, rights, project (funding), entities. Default: all. (min items 1) |
+| `max_text_chars` | integer |  | `2000` | Cut abstract, methods and rights to this length. (>= 200; <= 20000) |
+
+**Result fields** (besides the common envelope)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `packageId` | string |  |
+| `revisionFrom` | `given` \\| `newest` \\| `oldest` \\| `doi` |  |
+| `emlVersion` | string \\| null |  |
+| `title` | string \\| null |  |
+| `shortName` | string \\| null |  |
+| `abstract` | string \\| null |  |
+| `abstractTruncated` | boolean \\| null |  |
+| `keywords` | array of KeywordSet \\| null |  |
+| `keywordsTotal` | integer \\| null |  |
+| `pubDate` | string \\| null |  |
+| `language` | string \\| null |  |
+| `alternateIdentifiers` | array of string \\| null |  |
+| `maintenance` | string \\| null |  |
+| `creators` | array of Person \\| null |  |
+| `creatorsTotal` | integer \\| null |  |
+| `contacts` | array of Person \\| null |  |
+| `associatedParties` | array of Person \\| null |  |
+| `publisher` | Person \\| null |  |
+| `coverage` | Coverage \\| null |  |
+| `methods` | Methods \\| null |  |
+| `license` | License \\| null |  |
+| `project` | Project \\| null |  |
+| `entities` | array of EntitySummary \\| null |  |
+| `entitiesTotal` | integer \\| null |  |
+
+## edi_get_package
+
+**Get an EDI data package.** Overview of one package revision: title, publication date, creators, license, DOI, portal and metadata URLs, whether it is the newest revision, and its data entities with sizes and the total. Accepts package ids, series (newest unless revision is set), DOIs, portal or PASTA URLs, and site codes or scope names for the scope. Next: call edi_get_metadata for the full description or edi_list_entities for columns.
+
+| | |
+| --- | --- |
+| Surface | `packages` |
+| EDI API key | optional (PASTA with a key, DataONE without) |
+| Transports | http, stdio |
+| Annotations | readOnly=true, destructive=false, idempotent=true, openWorld=true |
+| Upstream endpoints | `GET pasta.lternet.edu/package/metadata/eml/{scope}/{id}/{rev}`<br>`GET pasta.lternet.edu/package/name/eml/{scope}/{id}/{rev}`<br>`GET pasta.lternet.edu/package/data/size/eml/{scope}/{id}/{rev}`<br>`GET pasta.lternet.edu/package/doi/eml/{scope}/{id}/{rev}`<br>`GET pasta.lternet.edu/package/eml/{scope}/{id}`<br>`GET gmn.lternet.edu/mn/v2/object/{pid}`<br>`GET cn.dataone.org/cn/v2/query/solr/`<br>`GET cite.edirepository.org/cite/{packageId}` |
+
+**Inputs**
+
+| Name | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `package` | string | yes |  | A package: knb-lter-hbr.14.22, knb-lter-hbr.14 (newest unless revision is set), a DOI, or a portal or PASTA URL; the scope may be a site code or name (jrn.210548103). (min length 1; max length 500) |
+| `revision` | integer \\| `newest` \\| `oldest` \\| null |  | null | Revision when package names none: a number, 'newest' (default) or 'oldest'. |
+
+**Result fields** (besides the common envelope)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `packageId` | string |  |
+| `series` | string | scope.identifier |
+| `revision` | integer |  |
+| `revisionFrom` | `given` \\| `newest` \\| `oldest` \\| `doi` | How the revision was chosen: given, newest, oldest, or the DOI's. |
+| `newestRevision` | integer \\| null | Newest revision on the serving backend (DataONE can lag PASTA). |
+| `isNewest` | boolean \\| null | revision == newestRevision. |
+| `title` | string \\| null |  |
+| `pubDate` | string \\| null |  |
+| `doi` | string \\| null |  |
+| `doiUrl` | string \\| null |  |
+| `portalUrl` | string |  |
+| `metadataUrl` | string | PASTA EML URL (needs an EDI API key). |
+| `creators` | array of string |  |
+| `creatorsTotal` | integer |  |
+| `license` | License \\| null |  |
+| `entityCount` | integer | All entities, including any not listed below. |
+| `totalBytes` | integer \\| null | Sum of known entity sizes (all entities). |
+| `entities` | array of EntitySummary | The first 100; edi_list_entities pages through all. |
+
+## edi_list_entities
+
+**List a package's data entities.** Every data entity (table or file) of one package revision: name, type, file name, format, byte size, record count, CSV layout and the columns with definitions, storage types, units, date formats, code lists and missing-value codes; optional SHA-1 checksums. Gives the PASTA data URL and a DataONE URL readable without a key. Next: call edi_preview_entity or edi_download_entities with an entityId.
+
+| | |
+| --- | --- |
+| Surface | `entities` |
+| EDI API key | optional (PASTA with a key, DataONE without) |
+| Transports | http, stdio |
+| Annotations | readOnly=true, destructive=false, idempotent=true, openWorld=true |
+| Upstream endpoints | `GET pasta.lternet.edu/package/metadata/eml/{scope}/{id}/{rev}`<br>`GET pasta.lternet.edu/package/name/eml/{scope}/{id}/{rev}`<br>`GET pasta.lternet.edu/package/data/size/eml/{scope}/{id}/{rev}`<br>`GET pasta.lternet.edu/package/data/checksum/eml/{scope}/{id}/{rev}/{entity}`<br>`GET gmn.lternet.edu/mn/v2/object/{pid}`<br>`GET gmn.lternet.edu/mn/v2/meta/{pid}`<br>`GET cn.dataone.org/cn/v2/query/solr/` |
+
+**Inputs**
+
+| Name | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `package` | string | yes |  | A package: knb-lter-hbr.14.22, knb-lter-hbr.14 (newest unless revision is set), a DOI, or a portal or PASTA URL; the scope may be a site code or name (jrn.210548103). (min length 1; max length 500) |
+| `revision` | integer \\| `newest` \\| `oldest` \\| null |  | null | Revision when package names none: a number, 'newest' (default) or 'oldest'. |
+| `entity` | string \\| null |  | null | Only this entity: its id, name or file name (case-insensitive). (max length 300) |
+| `include_attributes` | boolean |  | true | Return each entity's columns (definitions, units, codes). |
+| `include_checksums` | boolean |  | false | Fetch missing SHA-1 checksums (one request per entity, at most 25). |
+| `limit` | integer |  | `50` | Entities per page (1-200). (>= 1; <= 200) |
+| `offset` | integer |  | `0` | Index of the first entity (paging). (>= 0) |
+
+**Result fields** (besides the common envelope)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `packageId` | string |  |
+| `revisionFrom` | `given` \\| `newest` \\| `oldest` \\| `doi` |  |
+| `entities` | array of EntityDetail |  |
+| `page` | Page |  |
+| `attributesElided` | boolean \\| null | True when some entities' attributes were dropped to fit the budget. |
 
 ## edi_list_identifiers
 
@@ -1209,23 +1478,12 @@ stale_after: "2027-01-19T00:00:00Z"
 
 # Roadmap
 
-edi-mcp is built in seven steps, one pull request each. Steps 1–4 are released on
+edi-mcp is built in seven steps, one pull request each. Steps 1–5 are released on
 `main`: the scaffold and auth probe, the MCP core (registry, transports, `edi_ping`,
-conformance tests), the EDI client with both backends, and the four
-[discovery tools](discovery.md). Everything on this page is **planned and not yet
+conformance tests), the EDI client with both backends, the four
+[discovery tools](discovery.md), and the [package, metadata and entity tools](packages.md). Everything on this page is **planned and not yet
 available**; tool names and inputs may still change. The [tool reference](reference.md)
 lists only what is registered today.
-
-## Step 5 — packages, metadata and entities (in review)
-
-| Planned tool | Purpose |
-| --- | --- |
-| `edi_get_package` | One revision's overview: title, publication date, creators, license, DOI, portal link, whether it is the newest revision, and its data entities with sizes. |
-| `edi_get_metadata` | A compact projection of the EML metadata in selectable sections: abstract and keywords, people, geographic, temporal and taxonomic coverage, methods, license, project and funding. |
-| `edi_list_entities` | Each data table or file with its columns (units, date formats, code lists, missing-value codes), its text format and optional SHA-1 checksums. |
-
-All three work with or without a key. Raw EML stays out of tool results; the
-projection is capped so large metadata documents produce compact results.
 
 ## Step 6 — previews, downloads, citations and key-only services
 
@@ -1410,7 +1668,7 @@ the source for them and fails if any appear.
 
 ## Measured size
 
-With the five tools registered today, `tools/list` is about 17 KB of compact JSON on
+With the eight tools registered today, `tools/list` is about 37 KB of compact JSON on
 both transports. The conformance bound is 60,000 bytes and will be re-measured once
 every planned tool has landed.
 
@@ -2052,13 +2310,13 @@ names them), marks the page `truncated` with `truncatedReason: budget` and a
 | `edi/backends/` | the `Backend` contract, `PastaBackend`, `DataOneBackend`, `backend_for`, `resolve_package` |
 | `edi/pid.py` | package identifier, DOI and URL parsing |
 | `edi/scopes.py` | scope snapshot, scope names, LTER site codes and `name.identifier` references |
-| `edi/xml.py`, `edi/eml.py` | defusedxml parsing; EML data-entity references |
-| `tools/` | one module per family (`core.py`, `discovery.py`), plus helpers in `_common.py` (`source`, `paginate`, `portal_url`) |
+| `edi/xml.py`, `edi/eml.py` | defusedxml parsing and EML prose; EML data-entity references and sizes |
+| `projections/eml.py` | parsed EML → compact, capped models (people, coverage, methods, license, project, entities and attributes), with `<references>` resolution |
+| `tools/` | one module per family (`core.py`, `discovery.py`, `packages.py`, which fetches and parses the EML once per call via `load()`), plus helpers in `_common.py` (`source`, `paginate`, `portal_url`) |
 | `transport/` | stdio; stateless Streamable HTTP with `/healthz`, `/readyz` and the request-context middleware |
 
-The package, metadata and entity tools with their EML projection
-(`projections/`, `tools/packages.py`) arrive in build step 5; preview, download,
-citation and the key-only tools in step 6 (see the [Roadmap](../tools/roadmap.md)).
+Preview, download, citation and the key-only tools arrive in build step 6 (see the
+[Roadmap](../tools/roadmap.md)).
 
 Design decisions and their reasons are recorded in `DESIGN.md` (the D-numbers)
 and verified API facts in `RESEARCH.md`, both at the repository root.
@@ -2632,6 +2890,8 @@ names belong to their respective owners; this site uses its own original artwork
 # Directory Update Log
 
 ## 2026-10-19
+* **Creation**: [Packages, metadata and entities](tools/packages.md) — `edi_get_package`, `edi_get_metadata` and `edi_list_entities` (build step 5), now on `main`.
+* **Update**: [Tool reference](tools/reference.md) regenerated (8 tools); [Discovery](tools/discovery.md) — DataONE date sorting by upload date and legacy identifiers replace the known-issue box; [Roadmap](tools/roadmap.md), [Quickstart](getting-started/quickstart.md), [EDI API key](getting-started/api-key.md), [Architecture](develop/architecture.md), [MCP 2026-07-28 conformance](mcp/spec-2026-07-28.md) and the home page updated for step 5.
 * **Creation**: Established the edi-mcp documentation bundle (OKF v0.2), ported from neon-mcp: root [index](index.md), this log, the Zensical site configuration, the OKF validator, the `llms.txt` generator and the post-build agent surface (Markdown mirror, `okf:*` head metadata, `robots.txt`), deployed to GitHub Pages.
 * **Creation**: [Getting started](getting-started/index.md) section: [Install](getting-started/install.md), [Quickstart](getting-started/quickstart.md), [EDI API key](getting-started/api-key.md), [Clients](getting-started/clients.md) and [Configuration](getting-started/configuration.md) (its settings table generated by `scripts/gen_config_reference.py`).
 * **Creation**: [Tools](tools/index.md) section: the generated [Tool reference](tools/reference.md) (`scripts/gen_tools_reference.py`), [Discovery](tools/discovery.md), [Package identifiers](tools/identifiers.md), [Backends](tools/backends.md), [Utilities and errors](tools/utilities.md) and the [Roadmap](tools/roadmap.md) of tools still to come.

@@ -95,14 +95,15 @@ fallback was used). A refused key shows up as an `error` with code
 ## Without a key
 
 Without a key, edi-mcp answers from DataONE. The tools available today all work that
-way; several planned tools will need a key.
+way; several planned tools will need a key. Entity listings carry a keyless
+`anonymousUrl` (a DataONE member node) beside PASTA's `dataUrl`.
 
 | Operation | Without a key (DataONE) | With a key (PASTA) |
 | --- | --- | --- |
 | Search (`edi_search_packages`) | yes | yes |
 | Scope list (`edi_list_scopes`) | dated snapshot | live |
 | Identifiers and revisions (`edi_list_identifiers`, `edi_list_revisions`) | yes | yes |
-| Package metadata and data entities *(planned)* | yes | yes |
+| Package overview, metadata and data entities (`edi_get_package`, `edi_get_metadata`, `edi_list_entities`) | yes | yes |
 | Data preview and download *(planned)* | yes | yes |
 | Citations *(planned; cite.edirepository.org)* | yes | yes |
 | Quality reports, lineage, change feeds, read counts *(planned)* | no | yes |

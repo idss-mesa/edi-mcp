@@ -103,13 +103,13 @@ names them), marks the page `truncated` with `truncatedReason: budget` and a
 | `edi/backends/` | the `Backend` contract, `PastaBackend`, `DataOneBackend`, `backend_for`, `resolve_package` |
 | `edi/pid.py` | package identifier, DOI and URL parsing |
 | `edi/scopes.py` | scope snapshot, scope names, LTER site codes and `name.identifier` references |
-| `edi/xml.py`, `edi/eml.py` | defusedxml parsing; EML data-entity references |
-| `tools/` | one module per family (`core.py`, `discovery.py`), plus helpers in `_common.py` (`source`, `paginate`, `portal_url`) |
+| `edi/xml.py`, `edi/eml.py` | defusedxml parsing and EML prose; EML data-entity references and sizes |
+| `projections/eml.py` | parsed EML → compact, capped models (people, coverage, methods, license, project, entities and attributes), with `<references>` resolution |
+| `tools/` | one module per family (`core.py`, `discovery.py`, `packages.py`, which fetches and parses the EML once per call via `load()`), plus helpers in `_common.py` (`source`, `paginate`, `portal_url`) |
 | `transport/` | stdio; stateless Streamable HTTP with `/healthz`, `/readyz` and the request-context middleware |
 
-The package, metadata and entity tools with their EML projection
-(`projections/`, `tools/packages.py`) arrive in build step 5; preview, download,
-citation and the key-only tools in step 6 (see the [Roadmap](../tools/roadmap.md)).
+Preview, download, citation and the key-only tools arrive in build step 6 (see the
+[Roadmap](../tools/roadmap.md)).
 
 Design decisions and their reasons are recorded in `DESIGN.md` (the D-numbers)
 and verified API facts in `RESEARCH.md`, both at the repository root.

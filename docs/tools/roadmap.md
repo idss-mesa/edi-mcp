@@ -24,23 +24,12 @@ stale_after: "2027-01-19T00:00:00Z"
 
 # Roadmap
 
-edi-mcp is built in seven steps, one pull request each. Steps 1–4 are released on
+edi-mcp is built in seven steps, one pull request each. Steps 1–5 are released on
 `main`: the scaffold and auth probe, the MCP core (registry, transports, `edi_ping`,
-conformance tests), the EDI client with both backends, and the four
-[discovery tools](discovery.md). Everything on this page is **planned and not yet
+conformance tests), the EDI client with both backends, the four
+[discovery tools](discovery.md), and the [package, metadata and entity tools](packages.md). Everything on this page is **planned and not yet
 available**; tool names and inputs may still change. The [tool reference](reference.md)
 lists only what is registered today.
-
-## Step 5 — packages, metadata and entities (in review)
-
-| Planned tool | Purpose |
-| --- | --- |
-| `edi_get_package` | One revision's overview: title, publication date, creators, license, DOI, portal link, whether it is the newest revision, and its data entities with sizes. |
-| `edi_get_metadata` | A compact projection of the EML metadata in selectable sections: abstract and keywords, people, geographic, temporal and taxonomic coverage, methods, license, project and funding. |
-| `edi_list_entities` | Each data table or file with its columns (units, date formats, code lists, missing-value codes), its text format and optional SHA-1 checksums. |
-
-All three work with or without a key. Raw EML stays out of tool results; the
-projection is capped so large metadata documents produce compact results.
 
 ## Step 6 — previews, downloads, citations and key-only services
 

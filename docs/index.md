@@ -12,8 +12,9 @@ server for the [Environmental Data Initiative](https://edirepository.org/){targe
 packages from the Long Term Ecological Research (LTER) network and many other
 projects, each described by EML metadata and published under a DOI. edi-mcp
 lets AI agents and coding assistants search those packages and walk the
-repository's scopes, identifiers and revisions through compact, size-bounded
-tool results.
+repository's scopes, identifiers and revisions, and read a package's EML
+metadata and data-entity descriptions, through compact, size-bounded tool
+results.
 
 The server implements the **MCP 2026-07-28** specification (stateless core)
 on the Python `mcp` 2.x SDK. It speaks `stdio` for local clients such as
@@ -24,8 +25,8 @@ at the University of New Mexico and released under the MIT license.
 !!! warning "Under construction"
 
     edi-mcp is being built in seven steps, one pull request each. The
-    discovery tools are available now; package metadata, entity, preview,
-    download and citation tools follow. See the [Roadmap](tools/roadmap.md)
+    discovery, package, metadata and entity tools are available now;
+    preview, download and citation tools follow. See the [Roadmap](tools/roadmap.md)
     for what is planned and the [Tool reference](tools/reference.md) for
     what is available today. There is no PyPI release yet.
 
