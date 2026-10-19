@@ -153,9 +153,11 @@ extensions:
 
 ## OpenCode
 
-Add to `~/.config/opencode/opencode.json`[^opencode-mcp]. This is the 1.x layout;
-OpenCode 2.x nests servers one level deeper, under `"mcp": {"servers": {…}}`, which is
-what the install script writes when it detects 2.x.
+Add to `~/.config/opencode/opencode.json`[^opencode-mcp]. This is the layout
+OpenCode's documentation shows. The install script, following gbif-mcp's, writes
+`"mcp": {"servers": {…}}` instead unless `opencode --version` reports 1.x; if your
+OpenCode does not pick the server up, move the entry to the layout its documentation
+gives.
 
 ```json
 {

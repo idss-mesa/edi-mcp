@@ -180,9 +180,12 @@ say()  { printf '  %s\n' "$(mask "$*")"; }
 warn() { printf '  \033[33m!\033[0m %s\n' "$(mask "$*")"; }
 
 run() {
-  # Print (with the key masked) and, unless dry-run, execute a command.
+  # Print (with the key masked) and, unless dry-run, execute a command. Its output is
+  # masked too, in case an agent CLI echoes the env it stored; pipefail keeps its status.
   say "\$ $*"
-  if [[ $DRY_RUN -eq 0 ]]; then "$@"; fi
+  if [[ $DRY_RUN -eq 0 ]]; then
+    "$@" 2>&1 | while IFS= read -r line || [[ -n "$line" ]]; do say "$line"; done
+  fi
 }
 
 # ---------------------------------------------------------------- config editing helper (python)
@@ -381,7 +384,12 @@ if dry:
 else:
     os.makedirs(os.path.dirname(file) or ".", exist_ok=True)
     if exists:
-        shutil.copyfile(file, file + ".bak")
+        shutil.copy2(file, file + ".bak")  # keeps the original's (possibly owner-only) mode
+        if secrets or any(k in original for k in SECRET_KEYS):
+            try:
+                os.chmod(file + ".bak", 0o600)  # the backup may hold the key
+            except OSError:
+                pass
     with open(file, "w", encoding="utf-8") as fh:
         fh.write(new)
     if secrets and not uninstall:

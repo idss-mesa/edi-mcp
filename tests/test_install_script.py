@@ -43,11 +43,14 @@ def sandbox(tmp_path: Path) -> Path:
     return tmp_path
 
 
-def run(sandbox: Path, *args: str, key: str | None = None) -> subprocess.CompletedProcess[str]:
+def run(
+    sandbox: Path, *args: str, key: str | None = None, extra: dict[str, str] | None = None
+) -> subprocess.CompletedProcess[str]:
     env = {
         "HOME": str(sandbox / "home"),
         "PATH": str(sandbox / "bin"),
         "EDI_INSTALL_PYTHON": sys.executable,
+        **(extra or {}),
     }
     if key is not None:
         env["EDI_API_KEY"] = key
@@ -138,6 +141,25 @@ def test_install_with_key_writes_every_config_and_never_prints_the_key(sandbox: 
         assert path.stat().st_mode & 0o077 == 0  # holds the key: owner-only
 
 
+def test_backups_of_key_bearing_files_stay_owner_only(sandbox: Path) -> None:
+    p = seed(sandbox)
+    for path in p.values():
+        path.chmod(0o644)
+    assert run(sandbox, "--agents", "all", "--with-key", key=FAKE_KEY).returncode == 0
+    # Second run (env change) backs up the 0600 key-bearing file; then uninstall backs it up again.
+    assert (
+        run(sandbox, "--agents", "all", "--with-key", "--env", "X=1", key=FAKE_KEY).returncode == 0
+    )
+    for path in p.values():
+        bak = Path(f"{path}.bak")
+        assert FAKE_KEY in bak.read_text()
+        assert bak.stat().st_mode & 0o077 == 0, bak
+    assert run(sandbox, "--agents", "all", "--uninstall").returncode == 0
+    for path in p.values():
+        assert FAKE_KEY not in path.read_text()
+        assert Path(f"{path}.bak").stat().st_mode & 0o077 == 0
+
+
 def test_dry_run_writes_nothing_and_masks_the_key(sandbox: Path) -> None:
     result = run(sandbox, "--agents", "all", "--with-key", "--dry-run", key=FAKE_KEY)
     assert result.returncode == 0, result.stderr
@@ -197,3 +219,55 @@ def test_help_lists_every_agent(sandbox: Path) -> None:
     for agent in ("claude", "claude-desktop", "codex", "gemini", "goose", "opencode"):
         assert agent in result.stdout
     assert os.access(SCRIPT, os.X_OK)
+
+
+STUB = """#!/bin/sh
+printf '%s\\n' "$0 $*" >> "$STUB_LOG"
+if [ "$2" = get ]; then exit "${STUB_GET_EXIT:-1}"; fi
+echo "stored: $*"
+"""
+
+
+@pytest.mark.parametrize("registered", [False, True])
+def test_agent_clis_get_the_key_in_env_args_and_their_output_is_masked(
+    sandbox: Path, registered: bool
+) -> None:
+    log = sandbox / "argv.log"
+    for cli in ("claude", "codex", "gemini"):
+        stub = sandbox / "bin" / cli
+        stub.write_text(STUB)
+        stub.chmod(0o755)
+    extra = {"STUB_LOG": str(log), "STUB_GET_EXIT": "0" if registered else "1"}
+    result = run(
+        sandbox, "--agents", "claude,codex,gemini", "--with-key", key=FAKE_KEY, extra=extra
+    )
+    assert result.returncode == 0, result.stderr
+    assert FAKE_KEY not in result.stdout + result.stderr
+    assert "stored:" in result.stdout  # the CLIs' own output is shown, masked
+    calls = [line.split(" ", 1)[1] for line in log.read_text().splitlines()]
+    adds = [c for c in calls if " add " in f" {c} "]
+    key_env = f"EDI_API_KEY={FAKE_KEY}"
+    assert f"mcp add --scope user edi -e {key_env} -- {SERVER}" in adds
+    assert f"mcp add edi --env {key_env} -- {SERVER}" in adds
+    assert f"mcp add --scope user --transport stdio -e {key_env} edi {SERVER}" in adds
+    removes = [c for c in calls if c.startswith("mcp remove")]
+    assert removes == (["mcp remove --scope user edi", "mcp remove edi"] if registered else [])
+    assert not any(path.exists() for path in paths(sandbox).values())  # CLIs, not files
+
+
+def test_agent_cli_uninstall(sandbox: Path) -> None:
+    log = sandbox / "argv.log"
+    for cli in ("claude", "codex", "gemini"):
+        stub = sandbox / "bin" / cli
+        stub.write_text(STUB)
+        stub.chmod(0o755)
+    result = run(
+        sandbox, "--agents", "claude,codex,gemini", "--uninstall", extra={"STUB_LOG": str(log)}
+    )
+    assert result.returncode == 0, result.stderr
+    calls = [line.split(" ", 1)[1] for line in log.read_text().splitlines()]
+    assert calls == [
+        "mcp remove --scope user edi",
+        "mcp remove edi",
+        "mcp remove --scope user edi",
+    ]

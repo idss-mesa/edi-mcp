@@ -122,8 +122,9 @@ scripts/install.sh --with-key
 ```
 
 - The key is then stored **in plain text** in each agent's config file. The script
-  restricts the files it writes to your user (mode `600`) and never prints the key;
-  dry runs show `***`.
+  restricts the files it writes, and their `.bak` copies, to your user (mode `600`),
+  and masks the key as `***` in everything it prints, including the output of the
+  agent CLIs it calls.
 - For agents registered through their own CLI (Claude Code, Codex, Gemini CLI), the
   key is passed to that CLI's `mcp add` command and is briefly visible in the process
   list. Add `--prefer-files` to have Codex and Gemini CLI configured by file instead.
@@ -314,6 +315,9 @@ Registrations made by the install script keep pointing at `.venv/bin/edi-mcp`, s
 `git pull && uv sync` is enough; restart desktop apps afterwards.
 
 ## Uninstallation
+
+`--uninstall` leaves each edited file's `.bak` copy behind; if you used `--with-key`,
+those backups (owner-only, like the files) still contain the key, so delete them too.
 
 ```bash
 scripts/install.sh --uninstall   # remove the server from every agent config
