@@ -1,0 +1,68 @@
+{
+  "responseHeader":{
+    "zkConnected":true,
+    "status":0,
+    "QTime":0,
+    "params":{
+      "q":"*:*",
+      "defType":"edismax",
+      "qf":"title^5 keywords^3 abstract^2 text",
+      "fl":"id,title,pubDate,dateUploaded,beginDate,endDate,keywords,origin,resourceMap",
+      "start":"0",
+      "fq":"formatType:METADATA AND datasource:(\"urn:node:EDI\" OR \"urn:node:LTER\") AND -obsoletedBy:* AND northBoundCoord:[32.4 TO *] AND southBoundCoord:[* TO 32.8] AND eastBoundCoord:[-107.0 TO *] AND westBoundCoord:[* TO -106.5] AND -id:https\\:\\/\\/pasta.lternet.edu\\/package\\/metadata\\/eml\\/ecotrends\\/* AND -id:https\\:\\/\\/pasta.lternet.edu\\/package\\/metadata\\/eml\\/lter\\-landsat\\/* AND -id:https\\:\\/\\/pasta.lternet.edu\\/package\\/metadata\\/eml\\/lter\\-landsat\\-ledaps\\/*",
+      "rows":"5",
+      "wt":"json"
+    }
+  },
+  "response":{
+    "numFound":605,
+    "start":0,
+    "numFoundExact":true,
+    "docs":[{
+      "id":"knb-lter-and.3192.9",
+      "dateUploaded":"2005-08-14T23:00:00Z",
+      "keywords":["Disturbance","Long-Term Ecological Research (LTER)"],
+      "title":"Fire history database of the western United States, 1994",
+      "beginDate":"1993-01-01T00:00:00Z",
+      "endDate":"1996-01-01T00:00:00Z",
+      "pubDate":"2013-09-13T00:00:00Z",
+      "origin":["Emily K. Heyerdahl"]
+    },{
+      "id":"knb-lter-and.4041.10",
+      "dateUploaded":"2005-08-14T23:00:00Z",
+      "keywords":["Carbon","Decomposition","Litterfall","Nitrogen","Phosphorus","Roots","Wood"],
+      "title":"LTER Intersite Fine Litter Decomposition Experiment (LIDET), 1990 to 2002",
+      "beginDate":"1990-01-31T00:00:00Z",
+      "endDate":"2007-06-12T00:00:00Z",
+      "pubDate":"2013-09-05T00:00:00Z",
+      "origin":["Andrews Forest LTER Site","Mark E. Harmon"]
+    },{
+      "id":"doi:10.6073/AA/knb-lter-lno.108.1",
+      "dateUploaded":"2005-07-27T23:00:00Z",
+      "keywords":["remote sensing","imagery","spatial raster","earth observation","satellite data","LTER","LandsatTM (Landsat Thematic Mapper)","Jornada Basin (JRN)"],
+      "title":"archive-lter-jrn-tm-20000509",
+      "beginDate":"2000-05-09T00:00:00Z",
+      "endDate":"2000-05-09T00:00:00Z",
+      "pubDate":"2004-01-01T00:00:00Z",
+      "origin":["John Vande Castle"]
+    },{
+      "id":"knb-lter-ntl.289.4",
+      "dateUploaded":"2014-01-04T00:00:00Z",
+      "keywords":["geographic information systems","populations","North Temperate Lakes - LTER","NTL LTER","NTL-LTER","GIS","spatial","lakes","area","count","perimeter"],
+      "title":"Lake Shoreline in the Contiguous United States",
+      "beginDate":"2013-01-15T00:00:00Z",
+      "endDate":"2013-01-15T00:00:00Z",
+      "pubDate":"2014-01-01T00:00:00Z",
+      "origin":["Luke A. Winslow"]
+    },{
+      "id":"knb-lter-cap.556.10",
+      "dateUploaded":"2011-09-23T23:00:00Z",
+      "keywords":["Land-Use, Land-Cover and Land Architecture","disturbance patterns","sonoran desert","phoenix","urban","metropolitan area","land use changes","humans","human environment feedback","public policy","state trust lands","ballots","land use","growth","dimensions","caplter","central arizona phoenix longterm ecological research","arizona","caplter created","az","cap","arid land"],
+      "title":"Institutional drivers of urban growth in the central Arizona-Phoenix area",
+      "beginDate":"2008-05-01T00:00:00Z",
+      "endDate":"2009-06-01T00:00:00Z",
+      "pubDate":"2009-01-01T00:00:00Z",
+      "origin":["Abby York","Shannon Conley"]
+    }]
+  }
+}

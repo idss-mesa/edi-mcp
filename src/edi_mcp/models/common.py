@@ -49,6 +49,9 @@ class EdiOutput(BaseModel):
     budget_elide_flag: ClassVar[str | None] = None
     #: The Page field describing ``budget_list``.
     budget_page: ClassVar[str] = "page"
+    #: Next step added when ``budget_list`` is trimmed, for tools without offset/limit;
+    #: ``{next_offset}`` is filled in. ``None`` = "call again with offset=…".
+    budget_next_step: ClassVar[str | None] = None
 
 
 class Page(EdiOutput):

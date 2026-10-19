@@ -1,0 +1,33 @@
+{
+  "responseHeader":{
+    "zkConnected":true,
+    "status":0,
+    "QTime":1,
+    "params":{
+      "q":"isDocumentedBy:\"https://pasta.lternet.edu/package/metadata/eml/knb-lter-jrn/210548103/32\"",
+      "fl":"id,fileName,size,checksum,checksumAlgorithm,formatId",
+      "rows":"1000",
+      "wt":"json"
+    }
+  },
+  "response":{
+    "numFound":2,
+    "start":0,
+    "numFoundExact":true,
+    "docs":[{
+      "id":"https://pasta.lternet.edu/package/report/eml/knb-lter-jrn/210548103/32",
+      "fileName":"knb-lter-jrn.210548103.32-report.xml",
+      "formatId":"text/xml",
+      "size":31820,
+      "checksum":"fa715222f9617e1dd4c90b70dad33f97bbd2f98d",
+      "checksumAlgorithm":"SHA-1"
+    },{
+      "id":"https://pasta.lternet.edu/package/data/eml/knb-lter-jrn/210548103/32/9c680810940709cb17bf09e4c4785100",
+      "fileName":"csis-15_ppt_detailed_L2_rev_32.csv",
+      "formatId":"text/csv",
+      "size":359545,
+      "checksum":"008425fe2f2c430585be11ec0569ce6b67d234cb",
+      "checksumAlgorithm":"SHA-1"
+    }]
+  }
+}

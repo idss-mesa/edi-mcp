@@ -13,12 +13,13 @@ facts; read them before changing behaviour.
 Build order (one PR each): 1 scaffold + auth probe ✅ → 2 core port from neon-mcp ✅
 (registry, adapter, config, errors, key resolution, transports, `edi_ping`, conformance
 tests, CI) → 3 client/token exchange/PID resolver/backends + fixtures ✅ → 4 discovery tools
-(search, list scopes/identifiers/revisions, D9 scope names) ✅ → 5 package, metadata and entity tools → 6 preview/download/citation/PASTA-only tools →
-7 resources, prompts, docs, server.json, Docker, v0.1.0.
+(search, list scopes/identifiers/revisions, D9 scope names) ✅ → 5 package, metadata and
+entity tools (EML projection) ✅ → 6 preview/download/citation/PASTA-only tools → 7 resources, prompts, docs, server.json, Docker, v0.1.0.
 `--check` stays offline (the live check is `edi_ping(check_api=true)`). Tool descriptions
-and `nextSteps` already name step-5 tools (`edi_get_package`, `edi_get_metadata`).
-`resources_static/scopes.json` is a dated snapshot; the live test
-`test_live_scope_snapshot_is_current` fails when PASTA's scope list changes.
+and `nextSteps` already name step-6 tools (`edi_preview_entity`, `edi_download_entities`,
+`edi_get_citation`). `resources_static/scopes.json` is a dated snapshot; the live test
+`test_live_scope_snapshot_is_current` fails when a known scope leaves PASTA (new ones warn).
+tools/list is 38 KB with 8 of 16 tools (bound 60 KB): re-measure in step 7.
 
 ## Commands
 
@@ -58,8 +59,9 @@ holds `PastaBackend` and `DataOneBackend` behind one contract — tools call
 `backend_for(ctx)` and `resolve_package(...)`, never the client directly; `edi/pid.py`
 parses identifiers; `edi/scopes.py` loads the scope snapshot and resolves scope names,
 site codes and `name.identifier` references (D9) — tools call `resolve_scope` /
-`resolve_reference` (or `resolve_package`, which uses it); `edi/xml.py` (defusedxml) and `edi/eml.py` (entity refs; full
-projection in step 5). Tests replay `tests/fixtures/` through `tests/fixture_router.py`
+`resolve_reference` (or `resolve_package`, which uses it); `edi/xml.py` (defusedxml; `prose()` for EML text) and
+`edi/eml.py` (entity refs); `projections/eml.py` projects a parsed EML into compact capped
+models (D15); package tools in `tools/packages.py` fetch and parse the EML once (`load()`). Tests replay `tests/fixtures/` through `tests/fixture_router.py`
 (any unrecorded request fails); `scripts/record_fixtures.py` records
 backend scenarios and `TOOL_SCENARIOS` (real tool calls on both backends); transports in
 `transport/`; static guides and `scopes.json` in `resources_static/`; tool helpers
@@ -85,6 +87,9 @@ annotations, every upstream endpoint listed, `requires_key=True` for PASTA-only 
 - PASTA's data entity id is the MD5 of the EML `entityName`.
 - PASTA search sorts only with `sort=pubdate,desc`; the space form is silently ignored,
   so live tests assert result order, not just HTTP 200. Malformed spatial `fq` is a 500.
+- DataONE drifts: on 2026-10-19 its `pubDate` became unsortable (sort by `dateUploaded`)
+  and legacy `scope.id.rev` ids surfaced. Never assert DataONE ranking in tests.
+- Both GMN member nodes serve data anonymously (`anonymousUrl`); GMN ignores `Range`.
 - Bulk scopes `ecotrends`, `lter-landsat`, `lter-landsat-ledaps` (~36k records) are
   excluded from search unless asked for. Revision 0 exists (`msb-paleon.31.0`).
 - A credentialed PASTA 403 means an access-restricted package (a bad key gets 401); the

@@ -37,11 +37,21 @@ All notable changes to edi-mcp are documented here. The format follows
   `jrn.210548103`), echoed in `resolved`; shared names return `ambiguous_input`.
 - Resource `edi://reference/scopes`: every scope with name, kind, site code, location
   and package counts on PASTA and DataONE.
+- Package tools on both backends: `edi_get_package` (overview, DOI, newest revision,
+  license, entities and total size), `edi_get_metadata` (EML projected to overview,
+  people, coverage, methods, rights, project and entity sections) and `edi_list_entities`
+  (columns with units, codes and missing values, CSV layout, optional SHA-1, PASTA and
+  anonymous DataONE URLs).
+- EML projection with inline-markup-aware text, `<references>` resolution and capped
+  lists with totals.
 
 ### Changed
 
 - `lter-landsat-ledaps` joins `ecotrends` and `lter-landsat` as a bulk scope excluded
   from search by default.
+- DataONE sorts search results by upload date: its `pubDate` became unsortable on
+  2026-10-19. Legacy `scope.id.rev` identifiers in DataONE's index are now understood, and
+  malformed dates dropped.
 - A PASTA 403 sent with valid credentials is now `upstream_forbidden` with
   `reason: access_restricted` (the package is restricted) instead of a message blaming
   the key.

@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<eml:eml packageId="edi.2081.1" system="https://pasta.edirepository.org"
+  xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0"
+  xmlns:stmml="http://www.xml-cml.org/schema/stmml-1.2"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://eml.ecoinformatics.org/eml-2.2.0/eml.xsd">
+   <access
+    authSystem="https://pasta.edirepository.org/authentication"
+    order="allowFirst" scope="document"
+      system="https://pasta.edirepository.org">
+      <allow>
+         <principal>uid=EDI,o=EDI,dc=edirepository,dc=org</principal>
+         <permission>all</permission>
+      </allow>
+      <allow>
+         <principal>n7PwxFR4h0AT1tgy1Nd8ffKxftcO_yfDXja-tfOhwa4</principal>
+         <permission>all</permission>
+      </allow>
+      <allow>
+         <principal>public</principal>
+         <permission>read</permission>
+      </allow>
+   </access>
+   <dataset>
+      <alternateIdentifier
+        system="https://doi.org">doi:10.6073/pasta/5100e60582808c66095e767be806109f</alternateIdentifier><title>Course Materials for Environmental Data Science in R: Introduction to Data Integration and Machine Learning (ENV 730)</title>
+      <creator>
+         <individualName>
+            <givenName>Sparkle</givenName>
+            <givenName>L.</givenName>
+            <surName>Malone</surName>
+         </individualName>
+         <organizationName>Yale School of the Environment, Yale University</organizationName>
+         <positionName>Assistant Professor</positionName>
+         <address>
+            <city>New Haven</city>
+            <administrativeArea>CT</administrativeArea>
+            <postalCode>06511</postalCode>
+            <country>USA</country>
+         </address>
+         <electronicMailAddress>sparkle.malone@yale.edu</electronicMailAddress>
+         <userId
+        directory="https://orcid.org">0000-0001-9034-1076</userId>
+      </creator>
+      <metadataProvider>
+         <individualName>
+            <givenName>Angel</givenName>
+            <surName>Chen</surName>
+         </individualName>
+         <organizationName>Yale School of the Environment, Yale University</organizationName>
+         <positionName>Data Scientist</positionName>
+         <address>
+            <city>New Haven</city>
+            <administrativeArea>CT</administrativeArea>
+            <postalCode>06511</postalCode>
+            <country>USA</country>
+         </address>
+         <electronicMailAddress>angel.chen.ac3656@yale.edu</electronicMailAddress>
+         <userId
+      directory="https://orcid.org">0000-0003-3515-6710</userId>
+      </metadataProvider>
+      <pubDate>2025-07-21</pubDate>
+      <abstract>
+         <para>In today's world, understanding environmental data and making informed decisions based on it is crucial for addressing complex environmental challenges. Yale School of the Environment's Environmental Data Science in R: Introduction to Data Integration and Machine Learning (ENV 730) course serves as an introduction to the integration of environmental data using R programming language, coupled with machine learning techniques. This dataset contains a zip file with all the data files used in this course, along with a README that has the metadata for those files.</para>
+      </abstract>
+      <keywordSet>
+         <keyword>environmental data science</keyword>
+         <keyword>data integration</keyword>
+         <keyword>machine learning</keyword>
+         <keyword>predictive modeling</keyword>
+         <keyword>data science</keyword>
+      </keywordSet>
+      <intellectualRights>
+         <para>This information is released under the Creative Commons license - Attribution - CC BY (https://creativecommons.org/licenses/by/4.0/). The consumer of these data ("Data User" herein) is required to cite it appropriately in any publication that results from its use. The Data User should realize that these data may be actively used by others for ongoing research and that coordination may be necessary to prevent duplicate publication. The Data User is urged to contact the authors of these data if any questions about methodology or results occur. Where appropriate, the Data User is encouraged to consider collaboration or co-authorship with the authors. The Data User should realize that misinterpretation of data may occur if used out of context of the original study. While substantial efforts are made to ensure the accuracy of data and associated documentation, complete accuracy of data sets cannot be guaranteed. All data are made available "as is." The Data User should be aware, however, that data are updated periodically and it is the responsibility of the Data User to check for new versions of the data. The data authors and the repository where these data were obtained shall not be liable for damages resulting from any use or misinterpretation of the data. Thank you.</para>
+      </intellectualRights>
+      <licensed>
+         <licenseName>Creative Commons Attribution 4.0 International</licenseName>
+         <url>https://spdx.org/licenses/CC-BY-4.0</url>
+         <identifier>CC-BY-4.0</identifier>
+      </licensed>
+      <distribution
+      id="10.6073/pasta/5100e60582808c66095e767be806109f" scope="system"
+          system="https://pasta.edirepository.org"><online><url
+        function="information">https://doi.org/10.6073/pasta/5100e60582808c66095e767be806109f</url></online></distribution><coverage>
+         <geographicCoverage>
+            <geographicDescription>Global coverage</geographicDescription>
+            <boundingCoordinates>
+               <westBoundingCoordinate>-180.0</westBoundingCoordinate>
+               <eastBoundingCoordinate>180.0</eastBoundingCoordinate>
+               <northBoundingCoordinate>90.0</northBoundingCoordinate>
+               <southBoundingCoordinate>-90.0</southBoundingCoordinate>
+            </boundingCoordinates>
+         </geographicCoverage>
+         <temporalCoverage>
+            <rangeOfDates>
+               <beginDate>
+                  <calendarDate>2001</calendarDate>
+               </beginDate>
+               <endDate>
+                  <calendarDate>2024</calendarDate>
+               </endDate>
+            </rangeOfDates>
+         </temporalCoverage>
+      </coverage>
+      <maintenance>
+         <description>
+            <para>This dataset was compiled on 7/9/25. </para>
+         </description>
+         <maintenanceUpdateFrequency>asNeeded</maintenanceUpdateFrequency>
+      </maintenance>
+      <contact>
+         <individualName>
+            <givenName>Sparkle</givenName>
+            <givenName>L.</givenName>
+            <surName>Malone</surName>
+         </individualName>
+         <organizationName>Yale School of the Environment, Yale University</organizationName>
+         <positionName>Assistant Professor</positionName>
+         <address>
+            <city>New Haven</city>
+            <administrativeArea>CT</administrativeArea>
+            <postalCode>06511</postalCode>
+            <country>USA</country>
+         </address>
+         <electronicMailAddress>sparkle.malone@yale.edu</electronicMailAddress>
+         <userId
+        directory="https://orcid.org">0000-0001-9034-1076</userId>
+      </contact>
+      <publisher>
+         <organizationName>Environmental Data Initiative</organizationName>
+         <electronicMailAddress>info@edirepository.org</electronicMailAddress>
+         <onlineUrl>https://edirepository.org</onlineUrl>
+         <userId
+          directory="https://ror.org">0330j0z60</userId>
+      </publisher>
+      <pubPlace>Environmental Data Initiative</pubPlace>
+      <methods>
+         <methodStep>
+            <description>
+               <para>Tabular site data have been downloaded from FLUXNET. A global elevation raster GeoTIFF was acquired from WorldClim. NDVI and EVI data for all FLUXNET sites were acquired from MODIS. A global raster GeoTIFF containing precipitation, minimum temperature, maximum temperature, and mean annual temperature layers was acquired from TerraClimate. A global raster GeoTIFF containing soil bulk density, pH level, and total nitrogen layers was acquired from SoilGrids. A raster GeoTIFF containing vegetation layers for the state of Connecticut was acquired from MODIS. </para>
+               <para/>
+               <para>All RDATA files have been created with the R programming language.</para>
+            </description>
+         </methodStep>
+      </methods>
+      <project>
+         <title>Course Materials for Environmental Data Science in R: Introduction to Data Integration and Machine Learning (ENV 730)</title>
+         <personnel>
+            <individualName>
+               <givenName>Sparkle</givenName>
+               <givenName>L.</givenName>
+               <surName>Malone</surName>
+            </individualName>
+            <organizationName>Yale School of the Environment, Yale University</organizationName>
+            <positionName>Assistant Professor</positionName>
+            <address>
+               <city>New Haven</city>
+               <administrativeArea>CT</administrativeArea>
+               <postalCode>06511</postalCode>
+               <country>USA</country>
+            </address>
+            <electronicMailAddress>sparkle.malone@yale.edu</electronicMailAddress>
+            <userId
+      directory="https://orcid.org">0000-0001-9034-1076</userId>
+            <role>Assistant Professor</role>
+         </personnel>
+      </project>
+      <otherEntity
+      id="757761d2f8d14f9026c67a449beac216" scope="document"
+          system="https://pasta.edirepository.org">
+         <entityName>EDS_Course_Materials</entityName>
+         <entityDescription>A zip file containing all the data files needed for Yale School of the Environment's ENV 730 course, along with a README that documents the metadata for those files. The data consists of a mix of CSV, GeoTIFF, and RDATA files. These files are meant to be used in conjunction with the course materials at https://yse-environmental-data-science.github.io/EDS_course/.</entityDescription>
+         <physical>
+            <objectName>EDS_Course_Materials.zip</objectName>
+            <size
+          unit="byte">779253756</size>
+            <authentication
+              method="MD5">d5d89e9a4ea3bacbe342e41a97207387</authentication>
+            <dataFormat>
+               <externallyDefinedFormat>
+                  <formatName>application/zip</formatName>
+               </externallyDefinedFormat>
+            </dataFormat>
+            <distribution>
+               <online>
+                  <url
+        function="download">https://pasta.lternet.edu/package/data/eml/edi/2081/1/757761d2f8d14f9026c67a449beac216</url>
+               </online>
+            </distribution>
+         </physical>
+         <entityType>application/zip</entityType>
+      </otherEntity>
+   </dataset>
+   <additionalMetadata>
+      <metadata>
+         <emlEditor
+        app="ezEML" release="2025.07.17"/>
+      </metadata>
+   </additionalMetadata>
+</eml:eml>

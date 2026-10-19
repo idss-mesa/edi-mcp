@@ -1,1 +1,19 @@
-{"responseHeader":{"status":0,"QTime":11,"params":{"q":"*:*","fq":"formatType:METADATA AND datasource:(\"urn:node:EDI\" OR \"urn:node:LTER\")","rows":"0","wt":"json"}},"response":{"numFound":85179,"start":0,"docs":[]}}
+{
+  "responseHeader":{
+    "zkConnected":true,
+    "status":0,
+    "QTime":17,
+    "params":{
+      "q":"*:*",
+      "fq":"formatType:METADATA AND datasource:(\"urn:node:EDI\" OR \"urn:node:LTER\")",
+      "rows":"0",
+      "wt":"json"
+    }
+  },
+  "response":{
+    "numFound":80325,
+    "start":0,
+    "numFoundExact":true,
+    "docs":[ ]
+  }
+}

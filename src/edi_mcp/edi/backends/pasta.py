@@ -33,6 +33,7 @@ if TYPE_CHECKING:
     from edi_mcp.edi.backends.dataone import DataOneBackend
     from edi_mcp.edi.cache import CacheFamily
     from edi_mcp.edi.client import EdiClient, Fetched
+    from edi_mcp.edi.eml import EmlEntity
 
 SEARCH_FIELDS = "packageid,title,pubdate,doi,begindate,enddate,scope,keyword,author"
 
@@ -193,7 +194,11 @@ class PastaBackend(BackendBase):
             raise self.not_found(exc, "package", str(package)) from None
         return fetched.body
 
-    async def list_entities(self, package: PackageId) -> list[EntityInfo]:
+    async def list_entities(
+        self, package: PackageId, refs: list[EmlEntity] | None = None
+    ) -> list[EntityInfo]:
+        """PASTA's authoritative names and byte sizes (``refs`` is unused here)."""
+        del refs
         try:
             names = _csv_pairs(
                 (await self._get(f"/name/eml/{package.path}", cache="metadata")).text

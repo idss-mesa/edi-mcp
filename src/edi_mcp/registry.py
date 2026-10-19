@@ -294,10 +294,15 @@ def _mark_trimmed(
     steps = payload.setdefault("nextSteps", [])
     if not isinstance(steps, list):
         return note_index
-    note = (
-        f"Result trimmed to fit {max_bytes} bytes; call again with offset={next_offset} "
-        "or a smaller limit."
-    )
+    if output_model.budget_next_step:
+        note = f"Result trimmed to fit {max_bytes} bytes; " + output_model.budget_next_step.format(
+            next_offset=next_offset
+        )
+    else:
+        note = (
+            f"Result trimmed to fit {max_bytes} bytes; call again with offset={next_offset} "
+            "or a smaller limit."
+        )
     if note_index is None:
         steps.append(note)
         return len(steps) - 1

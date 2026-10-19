@@ -314,6 +314,8 @@ async def _scenarios(transport: RecordingTransport, key_value: str) -> None:
         ),
         ("dataone doi", lambda: dataone().package_doi(hbr)),
         ("dataone doi edi", lambda: dataone().package_doi(edi_pkg)),
+        # DataONE has indexed hbr.14.22 since 2026-10-19; record the citation fallback directly.
+        ("dataone doi via cite", lambda: dataone()._doi_from_citation(hbr)),
         ("dataone resolve doi", lambda: dataone().resolve_doi(hbr_doi)),
     ]
     # Tool-level scenarios: the exact requests the tool tests make, on both backends.
@@ -373,10 +375,28 @@ TOOL_SCENARIOS: list[tuple[str, str, dict[str, Any], bool]] = [
         )
     ),
     ("anon", "edi_search_packages", {"query": "thiessen", "scope": "HBR", "limit": 3}, True),
-    ("anon", "edi_search_packages", {"scope": "Seattle", "limit": 3}, True),
+    ("anon", "edi_search_packages", {"scope": "icarus", "limit": 3}, True),
     ("key", "edi_list_identifiers", {"scope": "knb-lter-zzz"}, False),
     ("key", "edi_list_revisions", {"package": "jrn.210548103"}, True),
     ("anon", "edi_list_revisions", {"package": "jrn.210548103"}, True),
+    # Step 5: packages, metadata, entities. jrn.210548103.32 is pinned because DataONE's
+    # newest revision lags PASTA's (33 on 2026-10-19).
+    *(
+        (who, name, args, True)
+        for who in ("key", "anon")
+        for name, args in (
+            ("edi_get_package", {"package": "knb-lter-hbr.14.22"}),
+            ("edi_get_metadata", {"package": "knb-lter-jrn.210548103.32"}),
+            ("edi_get_metadata", {"package": "edi.2081.1", "include": ["rights"]}),
+            (
+                "edi_list_entities",
+                {"package": "knb-lter-jrn.210548103.32", "include_checksums": True},
+            ),
+            ("edi_list_entities", {"package": "knb-lter-hbr.14.22", "entity": "thiessen_weights"}),
+        )
+    ),
+    ("key", "edi_get_package", {"package": "knb-lter-hbr.14"}, True),
+    ("key", "edi_get_package", {"package": "icarus.13.1"}, False),
 ]
 
 

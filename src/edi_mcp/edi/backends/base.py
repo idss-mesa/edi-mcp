@@ -11,7 +11,9 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Literal, Protocol
+from urllib.parse import quote
 
+from edi_mcp.edi.eml import EmlEntity
 from edi_mcp.edi.pid import Doi, PackageId, RevisionSpec
 from edi_mcp.edi.scopes import resolve_reference
 from edi_mcp.errors import EdiApiError, ToolError, map_api_error
@@ -91,6 +93,8 @@ class SearchHit:
     end_date: str | None = None
     keywords: list[str] = field(default_factory=list)
     authors: list[str] = field(default_factory=list)
+    #: DataONE only: when this revision was uploaded (its sort key for newest/oldest).
+    uploaded: str | None = None
 
 
 @dataclass
@@ -128,14 +132,18 @@ class ResolvedPackage:
 
 
 class Backend(Protocol):
-    name: BackendName
     notes: list[str]
+
+    @property
+    def name(self) -> BackendName: ...
 
     async def search(self, query: SearchQuery) -> SearchPage: ...
     async def list_identifiers(self, scope: str) -> list[int]: ...
     async def list_revisions(self, scope: str, identifier: int) -> list[int]: ...
     async def read_eml(self, package: PackageId) -> bytes: ...
-    async def list_entities(self, package: PackageId) -> list[EntityInfo]: ...
+    async def list_entities(
+        self, package: PackageId, refs: list[EmlEntity] | None = None
+    ) -> list[EntityInfo]: ...
     async def entity_checksum(self, package: PackageId, entity_id: str) -> str | None: ...
     async def package_doi(self, package: PackageId) -> str | None: ...
     async def resolve_doi(self, doi: Doi) -> PackageId: ...
@@ -159,6 +167,15 @@ class BackendBase:
 
     def data_url(self, package: PackageId, entity_id: str) -> str:
         return f"{PASTA_PID_BASE}/data/eml/{package.path}/{entity_id}"
+
+    def member_node(self, scope: str) -> str:
+        """The DataONE member node holding ``scope`` (``…/mn/v2``, no trailing slash)."""
+        edi = self.config.edi
+        return (edi.gmn_edi_url if scope == "edi" else edi.gmn_lter_url).rstrip("/")
+
+    def anonymous_data_url(self, package: PackageId, entity_id: str) -> str:
+        """The entity on its DataONE member node, readable without a key (GMN proxies PASTA)."""
+        return f"{self.member_node(package.scope)}/object/{quote(self.data_url(package, entity_id), safe='')}"
 
     def metadata_pid(self, package: PackageId) -> str:
         return f"{PASTA_PID_BASE}/metadata/eml/{package.path}"

@@ -4,8 +4,8 @@ Build step 3 needs only what both backends use to list a package's data
 entities: each entity's name, type, object name, distribution URL and its
 PASTA entity id. PASTA names a data entity by the MD5 of its ``entityName``
 (verified 2026-10-17 on knb-lter-hbr.14.22), so the id is known even when the
-distribution URL is not a PASTA URL. The full metadata projection (title,
-coverage, attributes, …) lands with ``edi_get_metadata`` in step 5.
+distribution URL is not a PASTA URL. The full metadata projection lives in
+:mod:`edi_mcp.projections.eml`.
 """
 
 from __future__ import annotations
@@ -13,6 +13,7 @@ from __future__ import annotations
 import hashlib
 import re
 from dataclasses import dataclass
+from xml.etree.ElementTree import Element
 
 from edi_mcp.edi.xml import child, children, descendants, parse_xml, text_of
 
@@ -43,18 +44,26 @@ def pasta_entity_id(entity_name: str) -> str:
     return hashlib.md5(entity_name.encode("utf-8"), usedforsecurity=False).hexdigest()
 
 
-def _size(text: str | None) -> int | None:
-    if text is None:
+_BYTE_UNITS = ("", "byte", "bytes")
+
+
+def size_bytes(element: Element | None) -> int | None:
+    """``physical/size`` in bytes; ``None`` for another ``unit`` (kilobyte, …) or junk."""
+    if element is None or element.text is None:
+        return None
+    if (element.get("unit") or "").strip().lower() not in _BYTE_UNITS:
         return None
     try:
-        return int(float(text))
+        return int(float(element.text.strip()))
     except ValueError:
         return None
 
 
-def entity_refs(eml: bytes | str, *, source: str, service: str = "PASTA") -> list[EmlEntity]:
-    """Every data entity declared in ``eml``, in document order."""
-    root = parse_xml(eml, source=source, service=service)
+def entity_refs(
+    eml: bytes | str | Element, *, source: str, service: str = "PASTA"
+) -> list[EmlEntity]:
+    """Every data entity declared in ``eml`` (bytes or an already parsed root), in order."""
+    root = eml if isinstance(eml, Element) else parse_xml(eml, source=source, service=service)
     dataset = next(descendants(root, "dataset"), None)
     if dataset is None:
         return []
@@ -70,8 +79,7 @@ def entity_refs(eml: bytes | str, *, source: str, service: str = "PASTA") -> lis
         object_name = None
         if physical is not None:
             object_name = text_of(physical, "objectName")
-            size_el = next(children(physical, "size"), None)
-            size = _size(size_el.text if size_el is not None else None)
+            size = size_bytes(next(children(physical, "size"), None))
             url = next(
                 (
                     " ".join(u.text.split())
@@ -105,4 +113,4 @@ def entity_refs(eml: bytes | str, *, source: str, service: str = "PASTA") -> lis
     return out
 
 
-__all__ = ["ENTITY_TYPES", "EmlEntity", "entity_refs", "pasta_entity_id"]
+__all__ = ["ENTITY_TYPES", "EmlEntity", "entity_refs", "pasta_entity_id", "size_bytes"]

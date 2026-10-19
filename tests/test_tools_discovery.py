@@ -79,10 +79,15 @@ async def test_search_filters(either: EdiServer) -> None:
     assert dates == sorted(dates, reverse=True)
 
 
-async def test_search_bbox(either: EdiServer) -> None:
+async def test_search_bbox(either: EdiServer, router: FixtureRouter) -> None:
+    # Result order without query text is arbitrary upstream; the live tests check semantics.
     payload = await call_ok(either, "edi_search_packages", {"bbox": JORNADA_BOX, "limit": 5})
-    scopes = [h["packageId"].split(".")[0] for h in payload["items"]]
-    assert scopes.count("knb-lter-jrn") >= 3
+    assert payload["items"] and payload["page"]["total"] > 100
+    query = router.calls[-1].url
+    if _backend(either) == "pasta":
+        assert "ENVELOPE%28-107.0%2C+-106.5%2C+32.8%2C+32.4%29" in query
+    else:
+        assert "westBoundCoord%3A%5B%2A+TO+-106.5%5D" in query
 
 
 async def test_dataone_pages_advance_by_rows_not_hits(server: EdiServer) -> None:
@@ -96,9 +101,9 @@ async def test_dataone_pages_advance_by_rows_not_hits(server: EdiServer) -> None
 
 
 async def test_search_notes_unreplicated_scopes(server: EdiServer) -> None:
-    payload = await call_ok(server, "edi_search_packages", {"scope": "Seattle", "limit": 3})
-    assert payload["items"] == [] and payload["resolved"][0]["code"] == "cos-spu"
-    assert any("does not replicate scope cos-spu" in n for n in payload["notes"])
+    payload = await call_ok(server, "edi_search_packages", {"scope": "icarus", "limit": 3})
+    assert payload["items"] == []
+    assert any("held no replica of scope icarus" in n for n in payload["notes"])
     assert any("Broaden" in s for s in payload["nextSteps"])
 
 

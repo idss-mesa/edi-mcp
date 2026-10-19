@@ -1,0 +1,53 @@
+{
+  "responseHeader":{
+    "zkConnected":true,
+    "status":0,
+    "QTime":308,
+    "params":{
+      "q":"precipitation",
+      "defType":"edismax",
+      "qf":"title^5 keywords^3 abstract^2 text",
+      "fl":"id,title,pubDate,dateUploaded,beginDate,endDate,keywords,origin,resourceMap",
+      "start":"0",
+      "fq":"formatType:METADATA AND datasource:(\"urn:node:EDI\" OR \"urn:node:LTER\") AND -obsoletedBy:* AND id:https\\:\\/\\/pasta.lternet.edu\\/package\\/metadata\\/eml\\/knb\\-lter\\-hbr\\/*",
+      "rows":"3",
+      "wt":"json"
+    }
+  },
+  "response":{
+    "numFound":93,
+    "start":0,
+    "numFoundExact":true,
+    "docs":[{
+      "id":"https://pasta.lternet.edu/package/metadata/eml/knb-lter-hbr/277/11",
+      "dateUploaded":"2026-02-06T02:45:56.871Z",
+      "keywords":["ecosystems","forests","watersheds","precipitation","rain","meteorology","weather","disturbance","HBR","Hubbard Brook LTER","Hubbard Brook Experimental Forest","Hubbard Brook Ecosystem Study","HBES","HBEF","New Hampshire","NH","White Mountain National Forest","gage","gauge","climatologyMeteorologyAtmosphere","Ecology, Ecosystems, & Environment"],
+      "title":"Hubbard Brook Experimental Forest: 15-minute Precipitation Measurements, 2011 - present",
+      "beginDate":"2011-06-21T00:00:00Z",
+      "endDate":"2025-12-31T00:00:00Z",
+      "pubDate":"2026-02-06T00:00:00Z",
+      "origin":["USDA Forest Service, Northern Research Station"],
+      "resourceMap":["doi:10.6073/pasta/87f6cc1fd125758e337fbb3e81e28b39"]
+    },{
+      "id":"https://pasta.lternet.edu/package/metadata/eml/knb-lter-hbr/277/12",
+      "dateUploaded":"2026-10-13T22:45:29.615Z",
+      "keywords":["ecosystems","forests","watersheds","precipitation","rain","meteorology","weather","disturbance","HBR","Hubbard Brook LTER","Hubbard Brook Experimental Forest","Hubbard Brook Ecosystem Study","HBES","HBEF","New Hampshire","NH","White Mountain National Forest","gage","gauge","climatologyMeteorologyAtmosphere","Ecology, Ecosystems, & Environment"],
+      "title":"Hubbard Brook Experimental Forest: 15-minute Precipitation Measurements, 2011 - present",
+      "beginDate":"2011-06-21T00:00:00Z",
+      "endDate":"2026-09-30T00:00:00Z",
+      "pubDate":"2026-10-13T00:00:00Z",
+      "origin":["USDA Forest Service, Northern Research Station"],
+      "resourceMap":["doi:10.6073/pasta/744ac50cc12793320a3bf762dd35d8c4"]
+    },{
+      "id":"https://pasta.lternet.edu/package/metadata/eml/knb-lter-hbr/449/1",
+      "dateUploaded":"2026-09-04T15:45:08.159Z",
+      "keywords":["HBR","Hubbard Brook LTER","Hubbard Brook Experimental Forest","Hubbard Brook Ecosystem Study","HBES","HBEF","New Hampshire","NH","White Mountain National Forest","environment","streams","flux","ecosystems","forests","watersheds","acid neutralizing capacity","aluminum","ammonium","calcium","chemistry","chloride","dissolved inorganic carbon","dissolved organic carbon","dissolved organic nitrogen","magnesium","nitrate","pH","phosphate","potassium","silica","sodium","streamflow","sulfate","total dissolved nitrogen","disturbance","fluorine","iron","hydrogen","manganese","specific conductivity","inorganic nutrients","Ecology, Ecosystems, & Environment"],
+      "title":"Hubbard Brook Experimental Forest: Chemistry of Precipitation – Monthly Fluxes, 1963 – ongoing",
+      "beginDate":"1963-08-01T00:00:00Z",
+      "endDate":"2024-05-31T00:00:00Z",
+      "pubDate":"2026-09-04T00:00:00Z",
+      "origin":["Hubbard Brook Watershed Ecosystem Record (HBWatER)"],
+      "resourceMap":["doi:10.6073/pasta/1410954a2fdaa41f86fe75707ad8d9a9"]
+    }]
+  }
+}
