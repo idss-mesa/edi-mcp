@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="edi-mcp">
+  <!-- edi-mcp glyph: a data package (box) holding a stream hydrograph. -->
+  <circle cx="32" cy="32" r="30" fill="#3949ab"/>
+  <g fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M14 23 L32 14 L50 23 V41 L32 50 L14 41 Z"/>
+    <path d="M14 23 L32 32 L50 23"/>
+    <path d="M32 32 V50"/>
+    <path d="M18 37 C21 33 23 41 26 37"/>
+  </g>
+</svg>

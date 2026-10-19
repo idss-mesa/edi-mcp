@@ -1,0 +1,53 @@
+# edi-mcp documentation
+
+> edi-mcp is a Model Context Protocol (MCP 2026-07-28) server for the Environmental Data Initiative (EDI) PASTA+ repository (https://edirepository.org): search, inspect and cite LTER and EDI ecological data packages, through PASTA with an EDI API key or the anonymous DataONE replicas without one. This documentation covers installation, client setup, the EDI API key, the tool catalogue, the MCP protocol surface, deployment and development. The source repository is an Open Knowledge Format (OKF v0.2) bundle: every page carries YAML frontmatter with type, provenance (generated/sources), and lifecycle (status/stale_after) fields.
+
+Full corpus for ingestion: https://idss-mesa.github.io/edi-mcp/llms-full.txt
+
+Every page's Markdown source (OKF frontmatter included) is served at its URL plus `index.md` — for example https://idss-mesa.github.io/edi-mcp/getting-started/api-key/index.md. Agent guide: https://idss-mesa.github.io/edi-mcp/about/ai-agents/
+
+If you want EDI data rather than documentation, connect to the edi-mcp server itself (stdio or Streamable HTTP) and call its tools; the agent guide explains how.
+
+## Getting started
+
+- [EDI API key](https://idss-mesa.github.io/edi-mcp/getting-started/api-key/): Why EDI's PASTA+ API needs a key since 2026-07-30, how to create one, how to give it to edi-mcp as EDI_API_KEY, how to check that EDI accepts it, what works without a key, and the errors a missing or refused key produces.
+- [Clients](https://idss-mesa.github.io/edi-mcp/getting-started/clients/): Register edi-mcp with Claude Code, Claude Desktop, Codex CLI, OpenCode and VS Code over stdio, or connect to a hosted server over HTTP, with the EDI API key passed through the environment.
+- [Configuration](https://idss-mesa.github.io/edi-mcp/getting-started/configuration/): Configure edi-mcp with a YAML file, EDI_MCP_ environment variables or command-line flags; precedence rules, the EDI API key, and every setting with its default.
+- [Install edi-mcp](https://idss-mesa.github.io/edi-mcp/getting-started/install/): Install the edi-mcp server with uv or pip from GitHub, verify it with --version and --check, and run it from source.
+- [Quickstart](https://idss-mesa.github.io/edi-mcp/getting-started/quickstart/): A first session with edi-mcp: register it with Claude Code with or without an EDI API key, check it with edi_ping, search for packages and list a package's revisions.
+
+## Tools
+
+- [Backends: PASTA and DataONE](https://idss-mesa.github.io/edi-mcp/tools/backends/): Why edi-mcp reads PASTA when an EDI API key is set and the anonymous DataONE replicas otherwise, how a result says which one answered, and the caveats of the DataONE fallback.
+- [Discovery](https://idss-mesa.github.io/edi-mcp/tools/discovery/): Find EDI data packages with edi_search_packages and walk the repository hierarchy with edi_list_scopes, edi_list_identifiers and edi_list_revisions, on PASTA or DataONE.
+- [Identifiers and scope names](https://idss-mesa.github.io/edi-mcp/tools/identifiers/): How EDI packages are identified (scope.identifier.revision, DOIs, portal and PASTA URLs), which forms edi-mcp accepts, and how scope names and LTER site codes resolve.
+- [Tool reference](https://idss-mesa.github.io/edi-mcp/tools/reference/): Every edi-mcp tool with its inputs, result fields, upstream endpoints, key requirement and annotations, generated from the registry.
+- [Roadmap](https://idss-mesa.github.io/edi-mcp/tools/roadmap/): Tools, resources and packaging that are planned for edi-mcp but not yet released: package and entity inspection, previews, downloads, citations and the key-only PASTA services.
+- [Utilities and errors](https://idss-mesa.github.io/edi-mcp/tools/utilities/): Check the server, its key status and backend with edi_ping, and the stable error codes every edi-mcp tool can return.
+
+## MCP protocol
+
+- [MCP 2026-07-28 conformance](https://idss-mesa.github.io/edi-mcp/mcp/spec-2026-07-28/): Which parts of the MCP 2026-07-28 stateless core edi-mcp implements — discovery, cache hints, result types, schemas, _meta, MRTR — and which deprecated features it deliberately leaves out.
+- [Transports](https://idss-mesa.github.io/edi-mcp/mcp/transports/): The stdio and stateless Streamable HTTP transports: routes, health checks, header routing, DNS-rebinding protection and per-request EDI API keys.
+
+## Deploy
+
+- [Hosted HTTP deployment](https://idss-mesa.github.io/edi-mcp/deploy/hosted-http/): Run edi-mcp as a stateless Streamable HTTP service behind a TLS reverse proxy: binding, public_base_url, host allow-lists, per-caller EDI API keys and health endpoints.
+- [Security](https://idss-mesa.github.io/edi-mcp/deploy/security/): How edi-mcp handles EDI API keys and edi-tokens, which hosts receive credentials, how URLs, logs and upstream errors are scrubbed, how untrusted XML is parsed, and what keeps test fixtures free of secrets.
+
+## Develop
+
+- [Adding a tool](https://idss-mesa.github.io/edi-mcp/develop/adding-tools/): The checklist for a new edi-mcp tool: input and output models, registration rules, backend calls, fixtures and tests, the conformance sets, and regenerating the docs.
+- [Architecture](https://idss-mesa.github.io/edi-mcp/develop/architecture/): The module map of edi-mcp: SDK adapter and tool registry, per-call context and backend choice, the PASTA and DataONE backends, the one upstream HTTP client, identifier and scope resolution, and the transports.
+- [Contributing](https://idss-mesa.github.io/edi-mcp/develop/contributing/): Branch and pull-request rules, the checks to run before pushing, the design and research records, the two change logs, documentation updates and versioning for edi-mcp.
+- [Testing](https://idss-mesa.github.io/edi-mcp/develop/testing/): edi-mcp's hermetic test suite, the FixtureRouter that replays recorded PASTA and DataONE traffic, recording and checking fixtures, opt-in live tests, the coverage, type and lint gates, CI jobs and the documentation checks.
+
+## About
+
+- [For AI agents](https://idss-mesa.github.io/edi-mcp/about/ai-agents/): How agents and harnesses should consume this documentation — llms.txt, per-page Markdown with OKF frontmatter, trust signals — and why they should connect to the edi-mcp server itself for EDI data.
+- [Citing EDI data](https://idss-mesa.github.io/edi-mcp/about/citing-edi/): How to cite an EDI data package by its revision DOI (doi:10.6073/pasta/…), the ESIP, DRYAD and BibTeX styles of cite.edirepository.org, intellectual rights per package, and how to mention edi-mcp.
+- [License](https://idss-mesa.github.io/edi-mcp/about/license/): The edi-mcp server code is MIT-licensed by The Regents of the University of New Mexico; this documentation is CC-BY 4.0; EDI data packages carry their own intellectual rights, per package.
+
+## Meta
+
+- [Documentation update log](https://idss-mesa.github.io/edi-mcp/log/): dated history of changes to this bundle.

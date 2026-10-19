@@ -226,3 +226,6 @@ edi-downloads/
 tests/fixtures/_raw/
 .coverage*
 probe.json
+
+# Zensical build output
+site/

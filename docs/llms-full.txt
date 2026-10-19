@@ -1,0 +1,2638 @@
+# edi-mcp documentation — full corpus
+
+Each page below begins with its canonical URL followed by its original Markdown, OKF frontmatter included.
+
+---8<--- https://idss-mesa.github.io/edi-mcp/getting-started/api-key/
+
+---
+title: "EDI API key"
+description: "Why EDI's PASTA+ API needs a key since 2026-07-30, how to create one, how to give it to edi-mcp as EDI_API_KEY, how to check that EDI accepts it, what works without a key, and the errors a missing or refused key produces."
+type: Guide
+tags:
+  - getting-started
+  - authentication
+  - api-key
+generated:
+  by: "claude/opus-5.5"
+  at: "2026-10-19T00:00:00Z"
+sources:
+  - id: edi-news-20260727
+    resource: "https://edirepository.org/news/news-20260727.00"
+    title: "EDI news — authentication required for the PASTA API (2026-07-27)"
+    author: "team:edi"
+  - id: edi-access-keys
+    resource: "https://edirepository.org/resources/working-with-access-keys"
+    title: "EDI — Working with access keys"
+    author: "team:edi"
+  - id: edi-auth
+    resource: "https://auth.edirepository.org/auth/ui/signin"
+    title: "EDI authentication service"
+    author: "team:edi"
+  - id: api-key-guide
+    resource: "https://github.com/idss-mesa/edi-mcp/blob/main/src/edi_mcp/resources_static/api-key.md"
+    title: "edi-mcp guide edi://guide/api-key"
+    author: "team:idss-mesa"
+status: stable
+stale_after: "2027-04-19T00:00:00Z"
+---
+
+# EDI API key
+
+## Why a key
+
+Since **2026-07-30** the EDI repository's PASTA+ REST API requires authentication for
+every request, including reads of public data[^edi-news-20260727]. An anonymous request
+is refused with HTTP 403 ("Public Access … not authorized"), or 401 from the audit
+service. Keys are free.
+
+edi-mcp is a hybrid: with a key it talks to PASTA; without one it reads the anonymous
+DataONE replicas of EDI content (see [Backends](../tools/backends.md)). A key gives you
+the authoritative, up-to-date repository and, once they are built, the operations only
+PASTA offers. The server carries a short version of this page as the
+`edi://guide/api-key` resource[^api-key-guide].
+
+## Create a key
+
+1. Sign in at [auth.edirepository.org](https://auth.edirepository.org/auth/ui/signin){target=_blank}[^edi-auth]
+   with Google, Microsoft, GitHub or ORCID. A free EDI profile is created on first
+   sign-in.
+2. Open **Access Keys** from the avatar menu at the top right, or go straight to
+   [auth.edirepository.org/auth/ui/key](https://auth.edirepository.org/auth/ui/key){target=_blank}.
+3. Choose **New Key**, give it a name (for example `edi-mcp`), and set **Principal** to
+   your own profile. A group principal limits the key to that group's access.
+4. Copy the key.
+
+EDI's own guide: [Working with access keys](https://edirepository.org/resources/working-with-access-keys){target=_blank}[^edi-access-keys].
+
+## Give it to edi-mcp
+
+- **stdio (Claude Code, Claude Desktop, …):** set `EDI_API_KEY` in the server's
+  environment, for example
+  `claude mcp add edi -s user -e EDI_API_KEY="$EDI_API_KEY" -- edi-mcp --transport stdio`
+  ([Clients](clients.md) has every client). `EDI_MCP_EDI__API_KEY`, when set, takes
+  precedence.
+- **HTTP deployments:** each caller sends their own key in the `X-EDI-Key` header. It is
+  honoured only when the server's `public_base_url` is `https://`. The operator's key is
+  not lent to callers unless `share_config_key_over_http` is enabled, and the MCP
+  `Authorization` header is never forwarded to EDI. See
+  [Hosted HTTP deployment](../deploy/hosted-http.md).
+
+There is deliberately **no command-line flag** for the key: arguments show up in `ps`
+output and shell history. edi-mcp does not load `.env` files itself, and it ignores
+look-alike names such as `EDI_KEY`, `EDI_TOKEN` and `EDI_AUTH_TOKEN` (it logs a warning
+when one of them is set without `EDI_API_KEY`).
+
+edi-mcp exchanges the key for a short-lived `edi-token` (8 hours) at
+`auth.edirepository.org`, keeps it in memory only, renews it before it expires, and
+sends it to PASTA as a cookie. If the authentication service is unavailable it falls
+back to passing the key as a query parameter to PASTA. The key and the token go only to
+EDI hosts and never appear in results, logs or errors; every URL edi-mcp reports is
+scrubbed first.
+
+## Check the key
+
+`edi-mcp --check` only reports whether a key is configured (`keyConfigured`) and which
+backend that selects; it makes no network request. To confirm that EDI accepts the key,
+ask your agent to call `edi_ping` with `check_api=true`. The `api` block of the result
+shows `reachable: true` and `credential: "token"` (or `"key"` when the query-parameter
+fallback was used). A refused key shows up as an `error` with code
+`upstream_forbidden`.
+
+## Without a key
+
+Without a key, edi-mcp answers from DataONE. The tools available today all work that
+way; several planned tools will need a key.
+
+| Operation | Without a key (DataONE) | With a key (PASTA) |
+| --- | --- | --- |
+| Search (`edi_search_packages`) | yes | yes |
+| Scope list (`edi_list_scopes`) | dated snapshot | live |
+| Identifiers and revisions (`edi_list_identifiers`, `edi_list_revisions`) | yes | yes |
+| Package metadata and data entities *(planned)* | yes | yes |
+| Data preview and download *(planned)* | yes | yes |
+| Citations *(planned; cite.edirepository.org)* | yes | yes |
+| Quality reports, lineage, change feeds, read counts *(planned)* | no | yes |
+| Whole-package zip download *(planned)* | no | yes |
+
+See the [Roadmap](../tools/roadmap.md) for the planned tools.
+
+Caveats of the fallback: the DataONE index can lag new EDI uploads by a day or more and
+may not hold every scope or revision PASTA has; the DataONE member nodes proxy PASTA, so
+EDI could restrict them too. `source.backend` in every result says which backend
+answered.
+
+## Errors
+
+- `auth_required`: the operation needs a key and none is configured for this call. The
+  error points at the `edi://guide/api-key` resource.
+- `upstream_forbidden`: a key was sent and EDI refused the request.
+    - Without a `reason` (HTTP 401): EDI rejected the key (mistyped, expired, deleted, or
+      a group key without access). Fix or replace the key.
+    - With `reason: access_restricted` (HTTP 403): the key works, but this package is
+      restricted to named users or groups. A new key will not help; ask the package's
+      contact for access or pick another package.
+
+edi-mcp never silently falls back to DataONE in either case: a bad key is an error, not
+a downgrade.
+
+[^edi-news-20260727]: EDI news, 2026-07-27. <https://edirepository.org/news/news-20260727.00>
+[^edi-auth]: EDI authentication service. <https://auth.edirepository.org/auth/ui/signin>
+[^edi-access-keys]: EDI — Working with access keys. <https://edirepository.org/resources/working-with-access-keys>
+[^api-key-guide]: edi-mcp guide `edi://guide/api-key`. <https://github.com/idss-mesa/edi-mcp/blob/main/src/edi_mcp/resources_static/api-key.md>
+
+---8<--- https://idss-mesa.github.io/edi-mcp/getting-started/clients/
+
+---
+title: "Clients"
+description: "Register edi-mcp with Claude Code, Claude Desktop, Codex CLI, OpenCode and VS Code over stdio, or connect to a hosted server over HTTP, with the EDI API key passed through the environment."
+type: Guide
+tags:
+  - getting-started
+  - clients
+  - claude-code
+  - codex
+generated:
+  by: "claude/opus-5.5"
+  at: "2026-10-19T00:00:00Z"
+sources:
+  - id: claude-code-mcp
+    resource: "https://docs.claude.com/en/docs/claude-code/mcp"
+    title: "Claude Code — MCP"
+    author: "team:anthropic"
+  - id: codex-mcp
+    resource: "https://developers.openai.com/codex/cli/"
+    title: "OpenAI Codex CLI"
+    author: "team:openai"
+  - id: opencode-mcp
+    resource: "https://opencode.ai/docs/mcp-servers/"
+    title: "OpenCode — MCP servers"
+    author: "team:opencode"
+  - id: vscode-mcp
+    resource: "https://code.visualstudio.com/docs/copilot/chat/mcp-servers"
+    title: "VS Code — Use MCP servers"
+    author: "team:microsoft"
+status: stable
+stale_after: "2027-04-19T00:00:00Z"
+---
+
+# Clients
+
+Local clients start edi-mcp themselves over **stdio**; hosted deployments are reached
+over **Streamable HTTP**. The examples use `edi-mcp` on your `PATH` (see
+[Install](install.md)); replace it with an absolute path such as
+`/home/me/edi-mcp/.venv/bin/edi-mcp` when the client does not share your shell's
+`PATH`. JSON-configured clients do not expand `~` or `$HOME`, so use absolute paths
+there.
+
+The key is optional; [EDI API key](api-key.md) shows how to create one. Every example
+passes it as `EDI_API_KEY`, the name EDI's own guides use. Put it in the client's
+environment settings, never in a shared or committed file. Leave it out and edi-mcp
+uses the anonymous DataONE backend.
+
+## Claude Code
+
+```bash
+claude mcp add edi -s user -e EDI_API_KEY="$EDI_API_KEY" -- edi-mcp --transport stdio
+claude mcp list
+```
+
+`-s user` makes the server available in every project[^claude-code-mcp]; drop the `-e`
+option to run without a key.
+
+## Claude Desktop
+
+Edit `claude_desktop_config.json` (macOS: `~/Library/Application Support/Claude/`;
+Windows: `%APPDATA%\Claude\`) and restart the app:
+
+```json
+{
+  "mcpServers": {
+    "edi": {
+      "command": "/absolute/path/to/edi-mcp",
+      "args": ["--transport", "stdio"],
+      "env": { "EDI_API_KEY": "paste-your-key-here" }
+    }
+  }
+}
+```
+
+## Codex CLI
+
+```bash
+codex mcp add edi --env EDI_API_KEY="$EDI_API_KEY" -- edi-mcp --transport stdio
+codex mcp list
+```
+
+This writes the server into `~/.codex/config.toml`[^codex-mcp]; restart running
+sessions.
+
+## OpenCode
+
+Add to `~/.config/opencode/opencode.json`[^opencode-mcp]:
+
+```json
+{
+  "mcp": {
+    "edi": {
+      "type": "local",
+      "command": ["/absolute/path/to/edi-mcp", "--transport", "stdio"],
+      "enabled": true,
+      "environment": { "EDI_API_KEY": "paste-your-key-here" }
+    }
+  }
+}
+```
+
+## VS Code
+
+Add to `.vscode/mcp.json` in a workspace, or to your user configuration[^vscode-mcp].
+An `inputs` prompt keeps the key out of the file:
+
+```json
+{
+  "inputs": [
+    { "type": "promptString", "id": "edi-api-key", "description": "EDI API key", "password": true }
+  ],
+  "servers": {
+    "edi": {
+      "type": "stdio",
+      "command": "/absolute/path/to/edi-mcp",
+      "args": ["--transport", "stdio"],
+      "env": { "EDI_API_KEY": "${input:edi-api-key}" }
+    }
+  }
+}
+```
+
+## Any other stdio client
+
+Run `edi-mcp --transport stdio` (bare `edi-mcp` does the same) with the key in the
+environment. The server speaks MCP 2026-07-28 and still accepts clients on earlier
+protocol revisions over stdio.
+
+## A hosted server (HTTP)
+
+```bash
+claude mcp add --transport http edi https://edi-mcp.example.org/mcp \
+  --header "X-EDI-Key: $EDI_API_KEY"
+```
+
+Each user sends their own key in `X-EDI-Key`; the server honours it only when its
+`public_base_url` is `https://` (see [Transports](../mcp/transports.md)). Over HTTP the
+planned download tools are not offered.
+
+[^claude-code-mcp]: Claude Code — MCP. <https://docs.claude.com/en/docs/claude-code/mcp>
+[^codex-mcp]: OpenAI Codex CLI. <https://developers.openai.com/codex/cli/>
+[^opencode-mcp]: OpenCode — MCP servers. <https://opencode.ai/docs/mcp-servers/>
+[^vscode-mcp]: VS Code — Use MCP servers. <https://code.visualstudio.com/docs/copilot/chat/mcp-servers>
+
+---8<--- https://idss-mesa.github.io/edi-mcp/getting-started/configuration/
+
+---
+title: "Configuration"
+description: "Configure edi-mcp with a YAML file, EDI_MCP_ environment variables or command-line flags; precedence rules, the EDI API key, and every setting with its default."
+type: Reference
+tags:
+  - getting-started
+  - configuration
+  - environment
+generated:
+  by: "claude/opus-5.5"
+  at: "2026-10-19T00:00:00Z"
+sources:
+  - id: config-module
+    resource: "https://github.com/idss-mesa/edi-mcp/blob/main/src/edi_mcp/config.py"
+    title: "edi-mcp configuration model (config.py)"
+    author: "team:idss-mesa"
+status: stable
+---
+
+# Configuration
+
+edi-mcp runs with no configuration at all: the defaults serve stdio, cache upstream
+responses in memory, keep tool results small and confine downloads to
+`~/edi-downloads`. Settings come from four layers; a higher layer wins:
+
+1. **Command-line flags** (only a handful of common settings).
+2. **Environment variables** named `EDI_MCP_<SECTION>__<FIELD>`, with a double
+   underscore descending into nested sections at any depth, for example
+   `EDI_MCP_EDI__RETRIES__MAX_ATTEMPTS=5`. List settings take a comma-separated value:
+   `EDI_MCP_SERVER__ALLOWED_HOSTS=edi.example.org,alt.example.org`. The empty string,
+   `none` and `null` mean "unset".
+3. **A YAML file** passed with `--config path.yaml`, using the same section and field
+   names.
+4. **Built-in defaults** (the table below).
+
+Unknown keys in the YAML file or the environment are ignored with a warning, so a typo
+does not stop the server but is visible in its log. The loader only checks the shape of
+the settings; it never contacts EDI.
+
+## The EDI API key
+
+The key is the only secret, and it is read from the environment only. Set
+`EDI_API_KEY`, the name EDI's own guides use. `EDI_MCP_EDI__API_KEY`, when set, takes
+precedence (for giving edi-mcp a different key from your other EDI tools). Look-alike
+names (`EDI_KEY`, `EDI_TOKEN`, `EDI_AUTH_TOKEN`) are **not** read; edi-mcp logs a
+warning if one of them is set without `EDI_API_KEY`. There is deliberately **no
+command-line flag** for the key: arguments are visible to every user in the process
+list and end up in shell history. edi-mcp does not load `.env` files itself; if you
+keep the key in one, export it into the environment before starting the server. See
+[EDI API key](api-key.md) for creating a key and checking that EDI accepts it.
+
+The key decides the backend: with one, edi-mcp reads PASTA; without one, it reads the
+anonymous DataONE replicas ([Backends](../tools/backends.md)).
+
+## Command-line flags
+
+| Flag | Sets |
+| --- | --- |
+| `--config PATH` | YAML file to load |
+| `--transport {stdio,http}` | `server.transport` |
+| `--bind-address`, `--bind-port` | `server.bind_address`, `server.bind_port` |
+| `--log-level` | `server.log_level` |
+| `--download-dir PATH` | `downloads.directory` |
+| `--no-downloads` | `downloads.enabled = false` |
+| `--print-config` | print the effective configuration as YAML (key shown as `***`) and exit |
+| `--check` | load the configuration, call `edi_ping` in-process (no network request), print a JSON report, exit 0 or 1 |
+| `--version` | print the version |
+
+## A YAML example
+
+```yaml
+# edi-mcp.yaml — pass with: edi-mcp --config edi-mcp.yaml
+edi:
+  max_concurrency: 4
+  retries:
+    max_attempts: 3
+cache:
+  ttl_s:
+    search: 600
+limits:
+  max_result_bytes: 50000
+downloads:
+  directory: /data/edi-downloads
+server:
+  log_level: info
+```
+
+Never put the API key in a YAML file you share or commit; use `EDI_API_KEY`.
+
+## Automatic values
+
+A few settings default to "unset" and resolve per transport:
+
+* `downloads.enabled`: downloads exist only on stdio; over HTTP the download tools are
+  never listed, whatever this says. `--no-downloads` turns them off on stdio too. (The
+  download tools themselves are still being built; see the
+  [Roadmap](../tools/roadmap.md).)
+* `server.dns_rebinding_protection`: unset follows the MCP SDK default, which is on for
+  loopback binds or when `allowed_hosts` / `allowed_origins` are set.
+* `server.public_base_url`: when set, its host and origin join the allow-lists, and an
+  `https://` URL enables per-caller keys in the `X-EDI-Key` header (see
+  [Hosted HTTP deployment](../deploy/hosted-http.md)).
+
+## All settings
+
+<!-- BEGIN GENERATED CONFIG (scripts/gen_config_reference.py; do not edit) -->
+
+| Setting (YAML path) | Environment variable | Type | Default | Description |
+| --- | --- | --- | --- | --- |
+| `edi.pasta_base_url` | `EDI_MCP_EDI__PASTA_BASE_URL` | str | `https://pasta.lternet.edu` | PASTA+ base URL (package and audit services). |
+| `edi.auth_base_url` | `EDI_MCP_EDI__AUTH_BASE_URL` | str | `https://auth.edirepository.org/auth/v1` | EDI Identity and Access Manager API (key -> edi-token exchange). |
+| `edi.dataone_cn_url` | `EDI_MCP_EDI__DATAONE_CN_URL` | str | `https://cn.dataone.org/cn/v2` | DataONE coordinating node (Solr search, resolve) used without a key. |
+| `edi.gmn_lter_url` | `EDI_MCP_EDI__GMN_LTER_URL` | str | `https://gmn.lternet.edu/mn/v2` | DataONE member node serving knb-lter-* packages without a key. |
+| `edi.gmn_edi_url` | `EDI_MCP_EDI__GMN_EDI_URL` | str | `https://gmn.edirepository.org/mn/v2` | DataONE member node serving edi.* and other non-LTER packages without a key. |
+| `edi.cite_url` | `EDI_MCP_EDI__CITE_URL` | str | `https://cite.edirepository.org/cite` | EDI citation service (anonymous). |
+| `edi.portal_url` | `EDI_MCP_EDI__PORTAL_URL` | str | `https://portal.edirepository.org/nis` | EDI Data Portal (landing pages are built from it). |
+| `edi.api_key` | `EDI_MCP_EDI__API_KEY`<br>(or `EDI_API_KEY`) | SecretStr \| null | unset | EDI API access key (https://auth.edirepository.org/auth/ui/key). Enables the PASTA backend; without it edi-mcp uses DataONE. Prefer the EDI_API_KEY env var; never commit it. |
+| `edi.user_agent_suffix` | `EDI_MCP_EDI__USER_AGENT_SUFFIX` | str \| null | unset | Text appended to the User-Agent header. |
+| `edi.connect_timeout_s` | `EDI_MCP_EDI__CONNECT_TIMEOUT_S` | float | `10.0` | TCP/TLS connect timeout. |
+| `edi.read_timeout_s` | `EDI_MCP_EDI__READ_TIMEOUT_S` | float | `60.0` | Default read timeout. |
+| `edi.download_read_timeout_s` | `EDI_MCP_EDI__DOWNLOAD_READ_TIMEOUT_S` | float | `300.0` | Read timeout for data-entity downloads. |
+| `edi.max_concurrency` | `EDI_MCP_EDI__MAX_CONCURRENCY` | int | `4` | Maximum simultaneous upstream requests. |
+| `edi.token_refresh_margin_s` | `EDI_MCP_EDI__TOKEN_REFRESH_MARGIN_S` | float | `3600.0` | Refresh the 8-hour edi-token once fewer than this many seconds remain. |
+| `edi.auth_fallback_s` | `EDI_MCP_EDI__AUTH_FALLBACK_S` | float | `300.0` | After the EDI auth service fails, send ?key= for this long before retrying it. |
+| `edi.max_response_bytes` | `EDI_MCP_EDI__MAX_RESPONSE_BYTES` | int | `20971520` | Largest upstream response body read into memory. |
+| `edi.retries.max_attempts` | `EDI_MCP_EDI__RETRIES__MAX_ATTEMPTS` | int | `3` | Attempts per upstream call, including the first. |
+| `edi.retries.backoff_base_s` | `EDI_MCP_EDI__RETRIES__BACKOFF_BASE_S` | float | `0.5` | Base of the exponential backoff (0.5 * 2^n seconds). |
+| `edi.retries.backoff_max_s` | `EDI_MCP_EDI__RETRIES__BACKOFF_MAX_S` | float | `8.0` | Cap on a single backoff sleep. |
+| `edi.retries.retry_after_default_s` | `EDI_MCP_EDI__RETRIES__RETRY_AFTER_DEFAULT_S` | float | `1.0` | Wait used on HTTP 429 when no Retry-After header is sent. |
+| `cache.enabled` | `EDI_MCP_CACHE__ENABLED` | bool | `true` | Cache upstream responses in memory. |
+| `cache.max_entries` | `EDI_MCP_CACHE__MAX_ENTRIES` | int | `1024` | Overall entry cap across families. |
+| `cache.stale_if_error_s` | `EDI_MCP_CACHE__STALE_IF_ERROR_S` | int | `86400` | How long an expired entry may be served when a refresh fails. |
+| `cache.ttl_s.listings` | `EDI_MCP_CACHE__TTL_S__LISTINGS` | int | `3600` | Scope, identifier and revision listings. |
+| `cache.ttl_s.search` | `EDI_MCP_CACHE__TTL_S__SEARCH` | int | `600` | Search results. |
+| `cache.ttl_s.metadata` | `EDI_MCP_CACHE__TTL_S__METADATA` | int | `86400` | EML and entity facts of a given revision (immutable upstream). |
+| `cache.ttl_s.reports` | `EDI_MCP_CACHE__TTL_S__REPORTS` | int | `86400` | Quality reports and provenance. |
+| `cache.ttl_s.feeds` | `EDI_MCP_CACHE__TTL_S__FEEDS` | int | `300` | Change and upload feeds, read counts. |
+| `cache.ttl_s.citations` | `EDI_MCP_CACHE__TTL_S__CITATIONS` | int | `86400` | Formatted citations. |
+| `limits.default_limit` | `EDI_MCP_LIMITS__DEFAULT_LIMIT` | int | `25` | Default page size where a tool does not set its own. |
+| `limits.max_limit` | `EDI_MCP_LIMITS__MAX_LIMIT` | int | `200` | Largest page size any tool accepts. |
+| `limits.max_result_bytes` | `EDI_MCP_LIMITS__MAX_RESULT_BYTES` | int | `50000` | Tool results are trimmed (with page.truncated) to fit this many bytes of compact JSON. |
+| `limits.hard_max_result_bytes` | `EDI_MCP_LIMITS__HARD_MAX_RESULT_BYTES` | int | `200000` | A result still larger than this after trimming fails with result_too_large. |
+| `limits.text_budget_summary` | `EDI_MCP_LIMITS__TEXT_BUDGET_SUMMARY` | int | `300` | Characters kept of long text fields (abstracts) in summaries. |
+| `limits.text_budget_detail` | `EDI_MCP_LIMITS__TEXT_BUDGET_DETAIL` | int | `4000` | Default characters kept of long text fields in detail views. |
+| `limits.max_eml_bytes` | `EDI_MCP_LIMITS__MAX_EML_BYTES` | int | `20971520` | Largest EML document parsed (larger ones fail with result_too_large). |
+| `limits.preview_max_bytes` | `EDI_MCP_LIMITS__PREVIEW_MAX_BYTES` | int | `262144` | Most bytes edi_preview_entity reads from an entity. |
+| `limits.tools_list_max_bytes` | `EDI_MCP_LIMITS__TOOLS_LIST_MAX_BYTES` | int | `60000` | Conformance bound on the serialized tools/list result; tightened once every tool lands. |
+| `downloads.enabled` | `EDI_MCP_DOWNLOADS__ENABLED` | bool \| null | unset | Offer the download tools. Unset: true on stdio; never available over http. |
+| `downloads.directory` | `EDI_MCP_DOWNLOADS__DIRECTORY` | Path | `~/edi-downloads` | Directory every download is confined to (created on first use). |
+| `downloads.max_files_per_call` | `EDI_MCP_DOWNLOADS__MAX_FILES_PER_CALL` | int | `50` | Most entities one edi_download_entities call transfers. |
+| `downloads.max_bytes_per_call` | `EDI_MCP_DOWNLOADS__MAX_BYTES_PER_CALL` | int | `2147483648` | Most bytes one download call transfers. |
+| `downloads.max_file_bytes` | `EDI_MCP_DOWNLOADS__MAX_FILE_BYTES` | int | `1073741824` | Largest single file accepted. |
+| `downloads.verify_checksums` | `EDI_MCP_DOWNLOADS__VERIFY_CHECKSUMS` | bool | `true` | Verify the SHA-1 checksums EDI publishes. |
+| `downloads.allowed_hosts` | `EDI_MCP_DOWNLOADS__ALLOWED_HOSTS` | list[str] | `[pasta.lternet.edu, gmn.lternet.edu, gmn.edirepository.org, cn.dataone.org]` | Hosts downloads (and their redirects) may come from; '*.' is a subdomain wildcard. |
+| `server.transport` | `EDI_MCP_SERVER__TRANSPORT` | `stdio` \| `http` | `stdio` | stdio (local clients) or http (stateless Streamable HTTP at /mcp). |
+| `server.bind_address` | `EDI_MCP_SERVER__BIND_ADDRESS` | str | `127.0.0.1` | HTTP bind address. |
+| `server.bind_port` | `EDI_MCP_SERVER__BIND_PORT` | int | `8080` | HTTP bind port. |
+| `server.public_base_url` | `EDI_MCP_SERVER__PUBLIC_BASE_URL` | str \| null | unset | Public URL of a hosted deployment; its host/origin join the allow-lists and https:// enables per-request keys. |
+| `server.allowed_hosts` | `EDI_MCP_SERVER__ALLOWED_HOSTS` | list[str] | `[]` | Host header allow-list (DNS-rebinding protection). |
+| `server.allowed_origins` | `EDI_MCP_SERVER__ALLOWED_ORIGINS` | list[str] | `[]` | Origin header allow-list (DNS-rebinding protection). |
+| `server.dns_rebinding_protection` | `EDI_MCP_SERVER__DNS_REBINDING_PROTECTION` | bool \| null | unset | Force DNS-rebinding protection on/off. Unset: SDK default (on for loopback binds or when allow-lists are set). |
+| `server.json_response` | `EDI_MCP_SERVER__JSON_RESPONSE` | bool | `false` | Answer POST /mcp with application/json instead of a single SSE frame. |
+| `server.max_request_body_size` | `EDI_MCP_SERVER__MAX_REQUEST_BODY_SIZE` | int | `1048576` | Largest accepted request body in bytes. |
+| `server.accept_header_key` | `EDI_MCP_SERVER__ACCEPT_HEADER_KEY` | bool | `true` | HTTP: honour a per-request EDI API key header (subject to the TLS gate). |
+| `server.request_key_header` | `EDI_MCP_SERVER__REQUEST_KEY_HEADER` | str | `X-EDI-Key` | Header carrying a caller's EDI API key in HTTP mode. |
+| `server.allow_insecure_header_key` | `EDI_MCP_SERVER__ALLOW_INSECURE_HEADER_KEY` | bool | `false` | Accept header keys when public_base_url is not https:// (development only). |
+| `server.share_config_key_over_http` | `EDI_MCP_SERVER__SHARE_CONFIG_KEY_OVER_HTTP` | bool | `false` | Lend the operator's configured key to HTTP callers without one (private deployments only). |
+| `server.tools_list_ttl_ms` | `EDI_MCP_SERVER__TOOLS_LIST_TTL_MS` | int | `300000` | ttlMs advertised on tools/list. |
+| `server.log_level` | `EDI_MCP_SERVER__LOG_LEVEL` | `debug` \| `info` \| `warning` \| `error` \| `critical` | `info` | Log verbosity. |
+| `server.instructions_extra` | `EDI_MCP_SERVER__INSTRUCTIONS_EXTRA` | str \| null | unset | Text appended to the server instructions. |
+
+<!-- END GENERATED CONFIG -->
+
+---8<--- https://idss-mesa.github.io/edi-mcp/getting-started/install/
+
+---
+title: "Install edi-mcp"
+description: "Install the edi-mcp server with uv or pip from GitHub, verify it with --version and --check, and run it from source."
+type: Guide
+tags:
+  - getting-started
+  - install
+  - uv
+generated:
+  by: "claude/opus-5.5"
+  at: "2026-10-19T00:00:00Z"
+sources:
+  - id: uv
+    resource: "https://docs.astral.sh/uv/"
+    title: "uv documentation"
+    author: "team:astral"
+  - id: repo
+    resource: "https://github.com/idss-mesa/edi-mcp"
+    title: "edi-mcp source repository"
+    author: "team:idss-mesa"
+status: stable
+stale_after: "2027-04-19T00:00:00Z"
+---
+
+# Install edi-mcp
+
+edi-mcp is a Python 3.11+ package with one command, `edi-mcp`. The recommended
+installer is [uv](https://docs.astral.sh/uv/){target=_blank}[^uv], which keeps the
+server in its own environment.
+
+!!! note "No PyPI release yet"
+
+    edi-mcp is under construction and has not been published to PyPI; the first
+    release (v0.1.0) is the last step of the build plan, although the package already
+    reports that version number. Until then, install from GitHub[^repo] as shown below.
+
+=== "uv tool (recommended)"
+
+    ```bash
+    uv tool install git+https://github.com/idss-mesa/edi-mcp
+    ```
+
+    This puts `edi-mcp` on your `PATH` (`~/.local/bin`). Upgrade with
+    `uv tool upgrade edi-mcp`.
+
+=== "uvx (no install)"
+
+    ```bash
+    uvx --from git+https://github.com/idss-mesa/edi-mcp edi-mcp --version
+    ```
+
+=== "pipx / pip"
+
+    ```bash
+    pipx install git+https://github.com/idss-mesa/edi-mcp
+    # or, inside a virtual environment:
+    pip install "git+https://github.com/idss-mesa/edi-mcp"
+    ```
+
+=== "From source"
+
+    ```bash
+    git clone https://github.com/idss-mesa/edi-mcp
+    cd edi-mcp
+    uv sync --all-extras          # creates .venv with the package and dev tools
+    uv run edi-mcp --version
+    ```
+
+    MCP clients can then run `/absolute/path/to/edi-mcp/.venv/bin/edi-mcp`.
+
+## Verify
+
+```bash
+edi-mcp --version     # edi-mcp 0.1.0
+edi-mcp --check       # {"ok": true, "version": "0.1.0", "protocolVersion": "2026-07-28", "transport": "stdio", "keyConfigured": false, "backend": "dataone"}
+```
+
+`--check` loads your configuration, calls `edi_ping` in-process and prints a one-line
+JSON report: the version, protocol, transport, whether an EDI API key is configured
+and which backend that selects (`pasta` with a key, `dataone` without). It makes no
+network request, so it does not prove that EDI accepts your key. For that, ask your
+agent to call `edi_ping` with `check_api=true` once the server is connected; see
+[EDI API key](api-key.md#check-the-key). `--print-config` shows the effective settings
+with the key replaced by `***`.
+
+Next: [connect a client](clients.md) and [add your EDI API key](api-key.md).
+
+[^uv]: uv documentation. <https://docs.astral.sh/uv/>
+[^repo]: edi-mcp source repository. <https://github.com/idss-mesa/edi-mcp>
+
+---8<--- https://idss-mesa.github.io/edi-mcp/getting-started/quickstart/
+
+---
+title: "Quickstart"
+description: "A first session with edi-mcp: register it with Claude Code with or without an EDI API key, check it with edi_ping, search for packages and list a package's revisions."
+type: Tutorial
+tags:
+  - getting-started
+  - quickstart
+  - tutorial
+generated:
+  by: "claude/opus-5.5"
+  at: "2026-10-19T00:00:00Z"
+sources:
+  - id: claude-code-mcp
+    resource: "https://docs.claude.com/en/docs/claude-code/mcp"
+    title: "Claude Code — MCP"
+    author: "team:anthropic"
+  - id: pasta-api
+    resource: "https://pasta.lternet.edu/package/docs/api"
+    title: "EDI PASTA+ Data Package Manager REST API"
+    author: "team:edi"
+status: stable
+stale_after: "2027-04-19T00:00:00Z"
+---
+
+# Quickstart
+
+This walks through a first session in Claude Code[^claude-code-mcp]; other clients
+work the same way once connected ([Clients](clients.md)). It uses the tools available
+today: `edi_ping`, `edi_search_packages`, `edi_list_scopes`, `edi_list_identifiers` and
+`edi_list_revisions`. Package, metadata, preview, download and citation tools are still
+being built; see the [Roadmap](../tools/roadmap.md).
+
+## 1. Register the server
+
+edi-mcp works with or without an EDI API key. With a key it reads EDI's own PASTA+ API;
+without one it falls back to the anonymous DataONE replicas of EDI content (see
+[Backends](../tools/backends.md)).
+
+=== "With an EDI API key"
+
+    Create a key at [auth.edirepository.org](https://auth.edirepository.org/auth/ui/key){target=_blank}
+    ([step by step](api-key.md#create-a-key)) and export it as `EDI_API_KEY` without
+    echoing it to the terminal:
+
+    ```bash
+    read -rs EDI_API_KEY && export EDI_API_KEY     # paste the key, press Enter
+    claude mcp add edi -s user -e EDI_API_KEY="$EDI_API_KEY" -- edi-mcp --transport stdio
+    ```
+
+=== "Without a key"
+
+    ```bash
+    claude mcp add edi -s user -- edi-mcp --transport stdio
+    ```
+
+    Search and the listing tools answer from DataONE, which can lag new EDI uploads.
+    `edi_list_scopes` then serves a dated snapshot instead of the live list.
+
+## 2. Check it
+
+Ask the agent to "call edi_ping with check_api=true". The result shows the version,
+protocol `2026-07-28`, `keyConfigured`, the `backend` serving you (`pasta` or
+`dataone`) and, under `api`, whether one small request to that backend succeeded. With
+a key, `api.credential` is `token` when edi-mcp exchanged the key for a short-lived
+`edi-token`. The key itself never appears in any result.
+
+## 3. Find and inspect a package
+
+The agent normally chains these on its own; the arguments below are what it sends.
+Results are abbreviated, and the package ids are examples: what a search returns
+depends on the backend and on what EDI holds at the time.
+
+1. **Search**
+
+    ```json
+    {"tool": "edi_search_packages", "arguments": {"query": "net primary production", "scope": "Jornada"}}
+    ```
+
+    → `resolved: [{"field": "scope", "input": "Jornada", "code": "knb-lter-jrn", ...}]`
+    and `items`, each with `packageId` (such as `knb-lter-jrn.210548103.33`), `title`,
+    `pubDate`, `doi`, `authors`, `keywords` and `portalUrl`, plus `page` for paging and
+    `source.backend`. Scopes accept exact names (`knb-lter-jrn`), LTER site codes (`JRN`)
+    and names (`Jornada`); see [Package identifiers](../tools/identifiers.md).
+
+2. **List the revisions of one package**
+
+    ```json
+    {"tool": "edi_list_revisions", "arguments": {"package": "jrn.210548103"}}
+    ```
+
+    → `series: "knb-lter-jrn.210548103"`, the `revisions` in ascending order, `newest`,
+    `oldest` and `newestPackageId`. Without a key, DataONE answers and may not yet hold
+    the newest revision PASTA has.
+
+3. **Browse a scope**
+
+    ```json
+    {"tool": "edi_list_identifiers", "arguments": {"scope": "HBR"}}
+    ```
+
+    → the package identifiers in `knb-lter-hbr`, ascending and paged.
+
+Every result also carries `notes` (caveats such as DataONE lag) and `nextSteps`
+(concrete follow-up calls). The [Tool reference](../tools/reference.md) lists every
+input and result field.
+
+[^claude-code-mcp]: Claude Code — MCP. <https://docs.claude.com/en/docs/claude-code/mcp>
+[^pasta-api]: EDI PASTA+ Data Package Manager REST API. <https://pasta.lternet.edu/package/docs/api>
+
+---8<--- https://idss-mesa.github.io/edi-mcp/tools/backends/
+
+---
+title: "Backends: PASTA and DataONE"
+description: "Why edi-mcp reads PASTA when an EDI API key is set and the anonymous DataONE replicas otherwise, how a result says which one answered, and the caveats of the DataONE fallback."
+type: Explanation
+tags:
+  - tools
+  - backends
+  - pasta
+  - dataone
+generated:
+  by: "claude/opus-5.5"
+  at: "2026-10-19T00:00:00Z"
+sources:
+  - id: edi-news-auth
+    resource: "https://edirepository.org/news/news-20260727.00"
+    title: "EDI news, 2026-07-27: authentication required for the PASTA API"
+    author: "team:edi"
+  - id: pasta-api
+    resource: "https://pasta.lternet.edu/package/docs/api"
+    title: "EDI PASTA+ Data Package Manager REST API"
+    author: "team:edi"
+  - id: dataone-api
+    resource: "https://dataoneorg.github.io/api-documentation/"
+    title: "DataONE API documentation"
+    author: "team:dataone"
+status: stable
+---
+
+# Backends: PASTA and DataONE
+
+Since **2026-07-30** every request to EDI's PASTA+ REST API must be authenticated,
+including reads of public data[^edi-news-auth]; an anonymous request gets HTTP 403
+("Public Access … not authorized"). DataONE still serves EDI content anonymously, so
+edi-mcp has two backends behind one contract:
+
+| | PASTA | DataONE |
+| --- | --- | --- |
+| Used when | the call has an EDI API key | the call has no key |
+| Search and listings | `pasta.lternet.edu/package/search/eml` and `/package/eml/…` | the coordinating node's Solr index, `cn.dataone.org/cn/v2/query/solr/` |
+| EML and data | `pasta.lternet.edu/package/…` | the member node holding the scope (`gmn.edirepository.org` for `edi`, `gmn.lternet.edu` otherwise), then `cn.dataone.org` as a fallback |
+| Freshness | authoritative | replicas; new uploads can take days to appear |
+
+Each tool produces the same output model from either backend, and every result's
+`source.backend` says which one answered: `pasta` or `dataone`, or `local` when
+no upstream call was made. [`edi_ping`](reference.md#edi_ping) reports the backend that
+serves the current caller.
+
+## A bad key is an error, never a downgrade
+
+If a key is configured and PASTA rejects it (HTTP 401), the tool fails with
+`upstream_forbidden`; edi-mcp does **not** quietly retry on DataONE, because a silent
+downgrade would hide the misconfiguration and change what the results mean. A 403
+with valid credentials means the package is restricted to named users or groups; it
+is also `upstream_forbidden`, with `reason: access_restricted`, and a new key will not
+help. See [Utilities and errors](utilities.md#error-codes).
+
+One deliberate exception keeps answers correct rather than changing their source:
+PASTA's search indexes only the newest revision of each package, so a DOI of an
+older revision is resolved through DataONE even with a key, and the result's notes
+say so.
+
+## Key-only operations
+
+Some EDI services have no DataONE counterpart: quality reports, provenance
+(lineage), change and upload feeds, read counts and whole-package zip downloads. The
+tools planned for them (see the [Roadmap](roadmap.md)) will return `auth_required`
+without a key. [`edi_list_scopes`](reference.md#edi_list_scopes) needs PASTA for a
+live list and falls back to edi-mcp's dated scope snapshot without a key.
+
+## Caveats of the DataONE fallback
+
+* **Lag.** The DataONE index can trail new EDI uploads and new revisions by a day or
+  more. Results served from DataONE carry a note saying so.
+* **Coverage.** Not every EDI scope is replicated to DataONE;
+  [`edi_list_scopes`](reference.md#edi_list_scopes) shows DataONE package counts from
+  the snapshot, and a scope with none needs a key.
+* **Revisions.** DataONE's obsolescence links are unreliable, so edi-mcp parses each
+  record's revision from its identifier, keeps the highest revision per package,
+  and reports search totals as an upper bound (`totalExact: false`).
+* **Proxying.** The member nodes proxy PASTA, so EDI could restrict them in the same
+  way it restricted PASTA.
+* **Drift.** DataONE's index changes without notice: which scopes are replicated,
+  which fields can be sorted, and the order of results for filter-only queries have
+  all changed while edi-mcp was being built. Do not rely on DataONE's result order,
+  and set a key when you need authoritative answers.
+
+[^edi-news-auth]: EDI news, 2026-07-27. <https://edirepository.org/news/news-20260727.00>
+
+---8<--- https://idss-mesa.github.io/edi-mcp/tools/discovery/
+
+---
+title: "Discovery"
+description: "Find EDI data packages with edi_search_packages and walk the repository hierarchy with edi_list_scopes, edi_list_identifiers and edi_list_revisions, on PASTA or DataONE."
+type: Guide
+tags:
+  - tools
+  - search
+  - discovery
+generated:
+  by: "claude/opus-5.5"
+  at: "2026-10-19T00:00:00Z"
+sources:
+  - id: pasta-search
+    resource: "https://pasta.lternet.edu/package/docs/api#GET%20:%20/search/eml"
+    title: "PASTA+ Data Package Manager — search/eml"
+    author: "team:edi"
+  - id: dataone-solr
+    resource: "https://dataoneorg.github.io/api-documentation/design/SearchMetadata.html"
+    title: "DataONE Solr search metadata"
+    author: "team:dataone"
+status: stable
+---
+
+# Discovery
+
+Four tools find packages and walk the repository's hierarchy of
+**scope → identifier → revision**. All four work with or without an EDI API key:
+with a key PASTA answers, without one the anonymous DataONE replicas do (see
+[Backends](backends.md)). Every scope argument accepts an exact scope
+(`knb-lter-jrn`), an LTER site code (`JRN`) or a name such as `Jornada`; see
+[Identifiers and scope names](identifiers.md).
+
+| Tool | Use it to |
+| --- | --- |
+| [`edi_search_packages`](reference.md#edi_search_packages) | find packages by text, scope, creator, years or bounding box |
+| [`edi_list_scopes`](reference.md#edi_list_scopes) | see every scope with its name, kind, site code and package counts |
+| [`edi_list_identifiers`](reference.md#edi_list_identifiers) | list the package identifiers in one scope |
+| [`edi_list_revisions`](reference.md#edi_list_revisions) | list every revision of one package and find the newest |
+
+## Search packages
+
+`edi_search_packages` returns the **newest revision** of each matching package with
+its title, DOI, publication date, temporal coverage, the first five creators
+(`moreAuthors` counts the rest), the first ten keywords and an EDI Data Portal link.
+
+| Input | Meaning |
+| --- | --- |
+| `query` | Free text over titles, keywords and abstracts: words, `"phrases"`, `AND` / `OR` / `NOT`. Omit it to browse with filters only. |
+| `scope` | One scope, site code or scope name. |
+| `author` | A creator's last name, any case (`Likens`). |
+| `start_year`, `end_year` | Temporal overlap: coverage reaches `start_year` or later and starts in `end_year` or earlier. |
+| `bbox` | `[west, south, east, north]` in decimal degrees; geographic coverage must intersect it. `west <= east`: split a box that crosses the antimeridian into two searches. |
+| `sort` | `relevance` (default), `newest` or `oldest` by publication date. `oldest` lists undated packages first. |
+| `include_bulk` | Include the generated bulk scopes `ecotrends`, `lter-landsat` and `lter-landsat-ledaps` (about 36,000 records), which are left out of unscoped searches by default. |
+| `limit`, `offset` | Page size (1–50, default 10) and the index of the first result. |
+
+Example: Hubbard Brook streamflow packages that cover the 1990s:
+
+```json
+{"query": "streamflow", "scope": "Hubbard Brook", "start_year": 1990, "end_year": 1999}
+```
+
+The scope name is resolved to `knb-lter-hbr` and echoed in `resolved` with its
+confidence.
+
+### PASTA and DataONE differences
+
+The same filters are sent to both backends, but the two indexes are not identical:
+
+* **Totals.** On PASTA `page.total` is exact. On DataONE `totalExact` is `false`:
+  DataONE still counts some superseded revisions, which edi-mcp collapses to one hit
+  per package, so `page.total` is an upper bound and a page can hold fewer than
+  `limit` packages. A package can reappear on a later page at a higher revision.
+* **Paging.** `page.nextOffset` advances by the rows requested (`offset + limit`),
+  not by the hits kept, so no DataONE rows are read twice.
+* **Freshness.** The DataONE index can lag new EDI uploads by days; results say so
+  in `notes`.
+* **Publication date.** PASTA returns a year, DataONE a date.
+
+!!! warning "Known issue: date sorting without a key"
+
+    Since 2026-10-19 DataONE refuses to sort on publication date, so
+    `sort=newest` or `sort=oldest` currently fails without an EDI API key
+    (relevance sorting is unaffected). A fix that sorts DataONE results by the date
+    each revision reached DataONE is in review. DataONE also began returning some
+    records under an older identifier form, which can shorten filter-only result
+    pages; the same fix handles them. With a key, PASTA sorts and pages normally.
+
+## List scopes
+
+`edi_list_scopes` lists the repository's scopes (`knb-lter-hbr`, `edi`, `msb-paleon`,
+…) with name, `kind` (`lter`, `edi`, `bulk`, `project`, `agency`, `other`), LTER site
+code, location and package counts on PASTA and DataONE. Filter with `kind`.
+
+* **With a key** the scope list comes live from PASTA (`live: true`). Names and
+  counts still come from edi-mcp's dated snapshot (`snapshotAsOf`); a scope newer
+  than the snapshot has `kind: unknown`.
+* **Without a key** DataONE has no scope listing, so the list is the snapshot
+  itself (`live: false`), and scopes created since then are missing. The same
+  snapshot is the `edi://reference/scopes` resource.
+
+`dataonePackages: 0` means DataONE does not replicate that scope; reading it needs a
+key.
+
+## List identifiers
+
+`edi_list_identifiers(scope=...)` lists a scope's numeric package identifiers in
+ascending order, 200 per page by default (up to 1,000). A scope with no packages
+returns `not_found`.
+
+## List revisions
+
+`edi_list_revisions(package=...)` lists every revision of one package, ascending,
+with `newest`, `oldest` and `newestPackageId`. `package` accepts a series
+(`knb-lter-hbr.14`), any revision (`knb-lter-hbr.14.22`), a DOI, or a portal or
+PASTA URL, and the scope part may be a site code or name (`jrn.210548103`).
+Revision numbers can start at 0.
+
+Without a key the revisions come from DataONE, which can lag a new revision; edi-mcp
+reads the revision from each record's identifier instead of DataONE's obsolescence
+links, which are unreliable.
+
+## Pagination
+
+Search and identifier listings are paginated with `offset` and `limit`. Every page
+reports `page.total` (when known), `returned`, `truncated` and `nextOffset`; when
+`nextOffset` is set, the result's `nextSteps` include the call for the next page.
+A result that would exceed the size budget is trimmed and reports
+`truncatedReason: budget`.
+
+---8<--- https://idss-mesa.github.io/edi-mcp/tools/identifiers/
+
+---
+title: "Identifiers and scope names"
+description: "How EDI packages are identified (scope.identifier.revision, DOIs, portal and PASTA URLs), which forms edi-mcp accepts, and how scope names and LTER site codes resolve."
+type: Guide
+tags:
+  - tools
+  - identifiers
+  - scopes
+generated:
+  by: "claude/opus-5.5"
+  at: "2026-10-19T00:00:00Z"
+sources:
+  - id: pasta-api
+    resource: "https://pasta.lternet.edu/package/docs/api"
+    title: "EDI PASTA+ Data Package Manager REST API"
+    author: "team:edi"
+  - id: edi-doi
+    resource: "https://edirepository.org/resources/citing-data"
+    title: "EDI — Citing data"
+    author: "team:edi"
+status: stable
+---
+
+# Identifiers and scope names
+
+## Anatomy of a package id
+
+An EDI data package is identified by **scope.identifier.revision**:
+
+| Part | Example | Meaning |
+| --- | --- | --- |
+| scope | `knb-lter-hbr`, `edi` | Namespace: `knb-lter-<site>` for each LTER site (hbr = Hubbard Brook, jrn = Jornada, ntl = North Temperate Lakes, …), `edi` for general EDI submissions, and others such as `msb-paleon` or `ecotrends`. |
+| identifier | `14`, `210548103` | Integer, unique within the scope. |
+| revision | `22` | Integer, incremented on every update. Older revisions stay available. Revisions can start at 0 (`msb-paleon.31.0`). |
+
+`knb-lter-hbr.14.22` is revision 22 of package 14 in the Hubbard Brook scope; the
+path form is `knb-lter-hbr/14/22`. `knb-lter-hbr.14` (no revision) is the package
+*series*. `newest` and `oldest` stand for the latest and the first revision.
+
+## Other identifiers
+
+* **DOI.** Every revision has its own DOI, `doi:10.6073/pasta/<32 hex>`, resolvable
+  at `https://doi.org/10.6073/pasta/<32 hex>`.
+* **Landing page.**
+  `https://portal.edirepository.org/nis/mapbrowse?scope=knb-lter-hbr&identifier=14&revision=22`
+  (search results carry it as `portalUrl`).
+* **Data entity.** A package's tables and files are *entities*, each with a 32-hex
+  entity id (the MD5 of its EML `entityName`), addressed as
+  `https://pasta.lternet.edu/package/data/eml/knb-lter-hbr/14/22/<entityId>`.
+* **DataONE.** In DataONE the EML document's identifier is its PASTA metadata URL
+  (`https://pasta.lternet.edu/package/metadata/eml/knb-lter-hbr/14/22`) and the
+  package's resource map is its DOI.
+
+## Forms edi-mcp accepts
+
+Wherever a tool takes a package (today
+[`edi_list_revisions`](reference.md#edi_list_revisions)), any of these work, and the
+normalized id is echoed in `resolved` when it differs from the input:
+
+* `knb-lter-hbr.14.22`, `knb-lter-hbr/14/22`, with an optional `.xml` suffix as in
+  DataONE file names;
+* `knb-lter-hbr.14`, `knb-lter-hbr.14.newest`, `knb-lter-hbr.14.oldest`;
+* `doi:10.6073/pasta/…`, `10.6073/pasta/…`, `https://doi.org/10.6073/pasta/…`
+  (also `dx.doi.org`);
+* portal URLs: `…/nis/mapbrowse?scope=…&identifier=…&revision=…` or
+  `…?packageid=scope.identifier.revision`;
+* PASTA package, metadata and data URLs, also when URL-encoded inside a DataONE
+  `/object/` or `/resolve/` URL;
+* a site code or scope name in place of the scope: `jrn.210548103`,
+  `Jornada Basin.210548103.33`.
+
+A DOI outside `10.6073/pasta/` is rejected with `invalid_argument`: only EDI DOIs
+identify EDI packages. A DOI is turned into a package id by the backend; with a key,
+PASTA's search finds the newest revision's DOI and an older revision's DOI is looked
+up in DataONE (the result's notes say so).
+
+## Scope names and site codes
+
+Scope arguments (`scope=` and the scope part of a package id) accept, in this order:
+
+1. the **exact scope**: `knb-lter-jrn`, `edi`, `msb-cap`;
+2. an **LTER site code**, any case: `JRN`, `hbr`. Three-letter codes always mean
+   the LTER site, so `cap` is Central Arizona-Phoenix (`knb-lter-cap`); use
+   `msb-cap` exactly for the Macrosystems scope;
+3. a **name, alias or location**, scored alike: `Jornada`, `Hubbard Brook`,
+   `Toolik`, `Kansas`;
+4. a **hyphenated code** edi-mcp does not know passes through unchanged, so scopes
+   newer than the snapshot still work with a key.
+
+A name match is accepted when it is clear — a score of at least **0.75** and at least
+**1.15 times** the runner-up — and is echoed in `resolved` with its confidence. A
+name or location shared by several scopes returns `ambiguous_input` with ranked
+`candidates` (`Alaska` matches four sites, `New Mexico` both Jornada and Sevilleta,
+`Landsat` two bulk scopes); a name that matches nothing well returns `not_found`
+with `didYouMean`.
+
+Names, site codes and locations come from a dated snapshot of the repository's
+scopes shipped with edi-mcp (`edi://reference/scopes`).
+[`edi_list_scopes`](reference.md#edi_list_scopes) lists every scope, live from
+PASTA when a key is set.
+
+---8<--- https://idss-mesa.github.io/edi-mcp/tools/reference/
+
+---
+title: "Tool reference"
+description: "Every edi-mcp tool with its inputs, result fields, upstream endpoints, key requirement and annotations, generated from the registry."
+type: MCP Tool Reference
+tags:
+  - tools
+  - reference
+  - generated
+generated:
+  by: "process:gen_tools_reference"
+  at: "2026-10-19T00:00:00Z"
+sources:
+  - id: registry
+    resource: "https://github.com/idss-mesa/edi-mcp/tree/main/src/edi_mcp/tools"
+    title: "edi-mcp tool registry"
+    author: "team:idss-mesa"
+  - id: pasta-api
+    resource: "https://pasta.lternet.edu/package/docs/api"
+    title: "EDI PASTA+ Data Package Manager REST API"
+    author: "team:edi"
+status: stable
+---
+
+# Tool reference
+
+Generated from the tool registry by `scripts/gen_tools_reference.py`; do not edit by hand. 5 tools are registered. Inputs are snake_case and outputs camelCase. Every result also carries `resolved`, `notes`, `nextSteps` and `source` (whose `backend` says whether PASTA or DataONE answered), and failures return `structuredContent.error` with a stable `code` (see [Utilities](utilities.md#error-codes)).
+
+| Tool | Title | Family | EDI API key |
+| --- | --- | --- | --- |
+| [`edi_list_identifiers`](#edi_list_identifiers) | List package identifiers in a scope | [discovery](discovery.md) | no |
+| [`edi_list_revisions`](#edi_list_revisions) | List the revisions of a package | [discovery](discovery.md) | no |
+| [`edi_list_scopes`](#edi_list_scopes) | List EDI scopes | [discovery](discovery.md) | no |
+| [`edi_ping`](#edi_ping) | Check edi-mcp status | [core](utilities.md) | no |
+| [`edi_search_packages`](#edi_search_packages) | Search EDI data packages | [discovery](discovery.md) | no |
+
+## edi_list_identifiers
+
+**List package identifiers in a scope.** List the package identifiers in one scope, ascending and paginated (offset/limit). The scope may be exact (knb-lter-hbr), an LTER site code (HBR) or a name ('Hubbard Brook'). Identifiers are numbers; a package is scope.identifier.revision. Next: call edi_list_revisions(package='scope.identifier') for one identifier's revisions.
+
+| | |
+| --- | --- |
+| Surface | `discovery` |
+| EDI API key | optional (PASTA with a key, DataONE without) |
+| Transports | http, stdio |
+| Annotations | readOnly=true, destructive=false, idempotent=true, openWorld=true |
+| Upstream endpoints | `GET pasta.lternet.edu/package/eml/{scope}`<br>`GET cn.dataone.org/cn/v2/query/solr/` |
+
+**Inputs**
+
+| Name | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `scope` | string | yes |  | A scope (knb-lter-jrn), LTER site code (JRN) or scope name or location ('Jornada', 'Hubbard Brook'); see edi_list_scopes. (min length 1; max length 100) |
+| `limit` | integer |  | `200` | Identifiers per page (1-1000). (>= 1; <= 1000) |
+| `offset` | integer |  | `0` | Index of the first identifier (paging). (>= 0) |
+
+**Result fields** (besides the common envelope)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `scope` | string |  |
+| `identifiers` | array of integer | Package identifiers in ascending order. |
+| `page` | Page |  |
+
+## edi_list_revisions
+
+**List the revisions of a package.** List every revision of one data package (scope.identifier), ascending, with the newest and oldest. Accepts a series (knb-lter-hbr.14), any revision, a DOI, a portal or PASTA URL, and site codes or scope names in place of the scope. Without an API key DataONE answers and can lag new revisions. Next: call edi_get_package(package=newestPackageId).
+
+| | |
+| --- | --- |
+| Surface | `discovery` |
+| EDI API key | optional (PASTA with a key, DataONE without) |
+| Transports | http, stdio |
+| Annotations | readOnly=true, destructive=false, idempotent=true, openWorld=true |
+| Upstream endpoints | `GET pasta.lternet.edu/package/eml/{scope}/{identifier}`<br>`GET pasta.lternet.edu/package/search/eml`<br>`GET cn.dataone.org/cn/v2/query/solr/`<br>`GET cn.dataone.org/cn/v2/object/{pid}` |
+
+**Inputs**
+
+| Name | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `package` | string | yes |  | A package series or any revision of it: knb-lter-hbr.14, knb-lter-hbr.14.22, knb-lter-hbr/14, a DOI, a portal or PASTA URL; the scope may be a site code or name (jrn.210548103). (min length 1; max length 500) |
+
+**Result fields** (besides the common envelope)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `series` | string | scope.identifier |
+| `scope` | string |  |
+| `identifier` | integer |  |
+| `revisions` | array of integer | Every revision, ascending. |
+| `newest` | integer |  |
+| `oldest` | integer |  |
+| `newestPackageId` | string |  |
+
+## edi_list_scopes
+
+**List EDI scopes.** List the repository's scopes (knb-lter-hbr, edi, ...) with name, kind, LTER site code, location and package counts on PASTA and DataONE. With an API key the list comes live from PASTA; without one it is edi-mcp's dated snapshot (also edi://reference/scopes). Scope arguments elsewhere also accept these site codes and names. Next: call edi_search_packages(scope=...) or edi_list_identifiers(scope=...).
+
+| | |
+| --- | --- |
+| Surface | `discovery` |
+| EDI API key | optional (PASTA with a key, DataONE without) |
+| Transports | http, stdio |
+| Annotations | readOnly=true, destructive=false, idempotent=true, openWorld=true |
+| Upstream endpoints | `GET pasta.lternet.edu/package/eml` |
+
+**Inputs**
+
+| Name | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `kind` | `lter` \\| `edi` \\| `bulk` \\| `project` \\| `agency` \\| `other` \\| null |  | null | Only one kind: lter (LTER sites), edi (general EDI submissions), bulk (generated; excluded from search by default), project, agency or other. |
+
+**Result fields** (besides the common envelope)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `scopes` | array of ScopeInfo |  |
+| `page` | Page |  |
+| `live` | boolean | True when PASTA listed the scopes just now; false = edi-mcp's snapshot. |
+| `snapshotAsOf` | string | Date of the snapshot that supplies names and counts. |
+
+## edi_ping
+
+**Check edi-mcp status.** Liveness and capability report: server version and protocol, whether an EDI API key is available and therefore which backend serves this caller (pasta with a key, dataone without), which tools need a key, and whether downloads are enabled. Never reveals the key. With check_api=true it also makes one small request to that backend to confirm the key and connectivity. Next: call edi_search_packages to find data packages.
+
+| | |
+| --- | --- |
+| Surface | `core` |
+| EDI API key | optional (PASTA with a key, DataONE without) |
+| Transports | http, stdio |
+| Annotations | readOnly=true, destructive=false, idempotent=true, openWorld=true |
+| Upstream endpoints | `GET pasta.lternet.edu/package/eml`<br>`GET cn.dataone.org/cn/v2/query/solr/` |
+
+**Inputs**
+
+| Name | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `check_api` | boolean |  | false | Also make one small request to the backend serving this caller (with a key: exchange it for a token and list PASTA scopes; without: one DataONE query). |
+
+**Result fields** (besides the common envelope)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `pong` | `ok` |  |
+| `version` | string |  |
+| `protocolVersion` | string |  |
+| `transport` | `stdio` \\| `http` |  |
+| `keyConfigured` | boolean | True when this call has an EDI API key available (never the key itself). |
+| `keySource` | `config` \\| `request` \\| `none` |  |
+| `backend` | `pasta` \\| `dataone` | Backend serving this caller: pasta with a key, dataone without one. |
+| `keyRequiredTools` | array of string | Registered tools that need a key and fail with auth_required without one. |
+| `downloadsEnabled` | boolean |  |
+| `downloadDir` | string \\| null |  |
+| `endpoints` | Endpoints |  |
+| `api` | ApiCheck \\| null | Present when check_api was requested. |
+
+## edi_search_packages
+
+**Search EDI data packages.** Search EDI/LTER data packages by free text, scope (exact, LTER site code or name such as 'Jornada'), creator last name, temporal overlap (start_year/end_year) and bounding box; sort by relevance or publication date; paginated (offset/limit). Returns the newest revision of each package with title, DOI, coverage dates, creators and keywords. Bulk generated scopes are excluded unless include_bulk=true. Next: call edi_get_package or edi_get_metadata with a packageId.
+
+| | |
+| --- | --- |
+| Surface | `discovery` |
+| EDI API key | optional (PASTA with a key, DataONE without) |
+| Transports | http, stdio |
+| Annotations | readOnly=true, destructive=false, idempotent=true, openWorld=true |
+| Upstream endpoints | `GET pasta.lternet.edu/package/search/eml`<br>`GET cn.dataone.org/cn/v2/query/solr/` |
+
+**Inputs**
+
+| Name | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `query` | string \\| null |  | null | Free text over titles, keywords and abstracts (words, "phrases", AND/OR/NOT). Omit to browse with filters only. (max length 500) |
+| `scope` | string \\| null |  | null | Only this scope. A scope (knb-lter-jrn), LTER site code (JRN) or scope name or location ('Jornada', 'Hubbard Brook'); see edi_list_scopes. (max length 100) |
+| `author` | string \\| null |  | null | A creator's last name, e.g. 'Likens' (any case). (max length 100) |
+| `start_year` | integer \\| null |  | null | Temporal coverage reaches this year or later. (>= 1000; <= 2200) |
+| `end_year` | integer \\| null |  | null | Temporal coverage starts in this year or earlier. (>= 1000; <= 2200) |
+| `bbox` | array of number \\| null |  | null | [west, south, east, north] in decimal degrees; geographic coverage must intersect it. west <= east (no antimeridian crossing). (min items 4; max items 4) |
+| `sort` | `relevance` \\| `newest` \\| `oldest` |  | `"relevance"` | relevance, or publication date: newest or oldest (oldest lists undated packages first). |
+| `include_bulk` | boolean |  | false | Include the generated bulk scopes (ecotrends, lter-landsat, lter-landsat-ledaps; ~36k records) when no scope is given. |
+| `limit` | integer |  | `10` | Packages per page (1-50). (>= 1; <= 50) |
+| `offset` | integer |  | `0` | Index of the first result (paging). (>= 0; <= 10000) |
+
+**Result fields** (besides the common envelope)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `items` | array of PackageHit |  |
+| `page` | Page |  |
+| `totalExact` | boolean | False on DataONE: page.total is an upper bound (superseded revisions are counted, then collapsed to one hit per package). |
+
+---8<--- https://idss-mesa.github.io/edi-mcp/tools/roadmap/
+
+---
+title: "Roadmap"
+description: "Tools, resources and packaging that are planned for edi-mcp but not yet released: package and entity inspection, previews, downloads, citations and the key-only PASTA services."
+type: Roadmap
+tags:
+  - tools
+  - roadmap
+  - planned
+generated:
+  by: "claude/opus-5.5"
+  at: "2026-10-19T00:00:00Z"
+sources:
+  - id: repo
+    resource: "https://github.com/idss-mesa/edi-mcp"
+    title: "edi-mcp repository"
+    author: "team:idss-mesa"
+  - id: pasta-api
+    resource: "https://pasta.lternet.edu/package/docs/api"
+    title: "EDI PASTA+ Data Package Manager REST API"
+    author: "team:edi"
+status: stable
+stale_after: "2027-01-19T00:00:00Z"
+---
+
+# Roadmap
+
+edi-mcp is built in seven steps, one pull request each. Steps 1–4 are released on
+`main`: the scaffold and auth probe, the MCP core (registry, transports, `edi_ping`,
+conformance tests), the EDI client with both backends, and the four
+[discovery tools](discovery.md). Everything on this page is **planned and not yet
+available**; tool names and inputs may still change. The [tool reference](reference.md)
+lists only what is registered today.
+
+## Step 5 — packages, metadata and entities (in review)
+
+| Planned tool | Purpose |
+| --- | --- |
+| `edi_get_package` | One revision's overview: title, publication date, creators, license, DOI, portal link, whether it is the newest revision, and its data entities with sizes. |
+| `edi_get_metadata` | A compact projection of the EML metadata in selectable sections: abstract and keywords, people, geographic, temporal and taxonomic coverage, methods, license, project and funding. |
+| `edi_list_entities` | Each data table or file with its columns (units, date formats, code lists, missing-value codes), its text format and optional SHA-1 checksums. |
+
+All three work with or without a key. Raw EML stays out of tool results; the
+projection is capped so large metadata documents produce compact results.
+
+## Step 6 — previews, downloads, citations and key-only services
+
+| Planned tool | Purpose | Key |
+| --- | --- | --- |
+| `edi_preview_entity` | The first rows of a tabular entity, read with a byte cap. | optional |
+| `edi_download_entities` | Save data entities under the configured download directory and verify their SHA-1. stdio only. | optional |
+| `edi_download_package` | Save a whole package as a zip. stdio only. | required |
+| `edi_get_citation` | A formatted citation (ESIP, DRYAD or BibTeX) from `cite.edirepository.org`. | optional |
+| `edi_get_quality_report` | A summary of PASTA's congruence checks for a package. | required |
+| `edi_get_lineage` | Provenance: a package's sources and descendants. | required |
+| `edi_recent_changes` | Recent inserts, updates and deletes, by date or scope. | required |
+| `edi_get_read_counts` | Download and read counts for a package. | required |
+
+"Required" tools have no DataONE counterpart and will return `auth_required` without
+a key (see [Backends](backends.md)). Downloads will be the only tools that write,
+will never overwrite, and will be offered only over stdio.
+
+## Step 7 — resources, prompts and release
+
+* More `edi://` guides and references, and resource templates for a package and its
+  raw EML.
+* Prompts for finding data, citing a package and planning a download.
+* A `server.json` for the MCP Registry, a Docker image, and the **v0.1.0** release
+  on PyPI.
+
+---8<--- https://idss-mesa.github.io/edi-mcp/tools/utilities/
+
+---
+title: "Utilities and errors"
+description: "Check the server, its key status and backend with edi_ping, and the stable error codes every edi-mcp tool can return."
+type: Reference
+tags:
+  - tools
+  - ping
+  - errors
+generated:
+  by: "claude/opus-5.5"
+  at: "2026-10-19T00:00:00Z"
+sources:
+  - id: registry
+    resource: "https://github.com/idss-mesa/edi-mcp/blob/main/src/edi_mcp/errors.py"
+    title: "edi-mcp error codes (errors.py)"
+    author: "team:idss-mesa"
+  - id: mcp-tools
+    resource: "https://modelcontextprotocol.io/specification/2026-07-28/server/tools"
+    title: "MCP specification — Tools"
+    author: "team:modelcontextprotocol"
+status: stable
+---
+
+# Utilities and errors
+
+## edi_ping
+
+[`edi_ping`](reference.md#edi_ping) is a liveness and capability report. It makes no
+upstream request unless asked to, so it is the first thing to call when a client
+connects or a tool fails unexpectedly.
+
+| Field | Meaning |
+| --- | --- |
+| `pong` | Always `ok`. |
+| `version`, `protocolVersion` | edi-mcp version and the MCP revision it serves (`2026-07-28`). |
+| `transport` | `stdio` or `http`. |
+| `keyConfigured` | Whether this call has an EDI API key available. The key itself is never shown. |
+| `keySource` | `config` (the server's environment or config file), `request` (an HTTP caller's `X-EDI-Key` header) or `none`. |
+| `backend` | `pasta` with a key, `dataone` without one (see [Backends](backends.md)). |
+| `keyRequiredTools` | Registered tools that fail with `auth_required` without a key. |
+| `downloadsEnabled`, `downloadDir` | Whether download tools are offered on this transport, and where they write. |
+| `endpoints` | The PASTA, auth, DataONE and citation base URLs in use. |
+| `api` | Present only with `check_api=true`. |
+
+With `check_api=true` edi-mcp makes one small request to the backend serving the
+caller — with a key, it exchanges the key for a token and lists PASTA's scopes;
+without one, it runs a zero-row DataONE query — and reports in `api`:
+
+| Field | Meaning |
+| --- | --- |
+| `reachable` | Whether the backend answered. |
+| `backend` | The backend that was checked. |
+| `credential` | `token` (an `edi-token` cookie), `key` (the key as a query parameter, used only when EDI's auth service is unreachable) or `none` (DataONE). |
+| `endpoint`, `latencyMs` | The request made and how long it took. |
+| `error` | The error `code` and `message` when the check failed, e.g. `upstream_forbidden` for a rejected key. |
+
+`edi-mcp --check` calls `edi_ping` in-process and prints the report as JSON. It
+stays offline; the live check is `edi_ping(check_api=true)`.
+
+## Error codes
+
+A failed tool call returns `isError: true` and
+`structuredContent.error = {code, message, details, hint?}`. `code` is stable and
+machine-readable; `message` is safe to show a user and never contains a key or token;
+`hint`, when present, is a one-line remedy.
+
+| Code | Meaning | What to do |
+| --- | --- | --- |
+| `invalid_argument` | The arguments failed validation, an identifier could not be parsed, or the upstream rejected the request (HTTP 400). | Fix the argument; `details` names the problem and, for identifiers, lists the accepted forms. |
+| `not_found` | No such package, scope, revision or resource (HTTP 404/410), or a scope name matched nothing. | Check the identifier; scope misses include `didYouMean`. |
+| `ambiguous_input` | A scope name or location matches several scopes about equally. | Pick one of the ranked `candidates` and pass its exact scope. |
+| `auth_required` | The operation needs an EDI API key and none is available for this call. | Set `EDI_API_KEY` (stdio) or send `X-EDI-Key` (HTTP); `details.guide` points at `edi://guide/api-key`. |
+| `upstream_forbidden` | A key was sent and EDI refused. Without `reason` (HTTP 401) the key was rejected; with `reason: access_restricted` (HTTP 403) the key works but the package is restricted to named users or groups. | Replace the key, or for a restricted package ask its contact for access. edi-mcp never falls back to DataONE here. |
+| `rate_limited` | The upstream answered HTTP 429. | Wait `details.retryAfterSeconds` before retrying. |
+| `upstream_error` | The upstream failed (HTTP 5xx), answered with an unexpected status, or returned a body that could not be parsed. | Retry later; `details` carries the status and endpoint. |
+| `upstream_unavailable` | The upstream could not be reached (network error or timeout). | Retry in a moment; call `edi_ping(check_api=true)`. |
+| `result_too_large` | A result stayed above the hard size limit after trimming, or an upstream response exceeded the byte cap. | Narrow the request: a smaller `limit` or a narrower search. |
+| `unknown_tool` | No tool has that name. | `details.available` lists the tools. |
+| `internal_error` | A bug in edi-mcp. | Report it with the request id. |
+| `feature_unavailable` | Reserved: a feature disabled by configuration. | — |
+| `not_available_in_http_mode` | Reserved for the stdio-only download tools ([Roadmap](roadmap.md)). | Use a stdio deployment. |
+| `download_limit_exceeded`, `download_denied`, `checksum_mismatch` | Reserved for the download tools ([Roadmap](roadmap.md)): a per-call limit, a path or host outside what is allowed, and a file whose SHA-1 differs from the one EDI publishes. | — |
+
+Results that are merely large are not errors: lists are trimmed to fit the result
+budget (50,000 bytes by default) and report `page.truncatedReason: budget` with a
+`nextOffset` to continue from.
+
+---8<--- https://idss-mesa.github.io/edi-mcp/mcp/spec-2026-07-28/
+
+---
+title: "MCP 2026-07-28 conformance"
+description: "Which parts of the MCP 2026-07-28 stateless core edi-mcp implements — discovery, cache hints, result types, schemas, _meta, MRTR — and which deprecated features it deliberately leaves out."
+type: Reference
+tags:
+  - mcp
+  - specification
+  - conformance
+generated:
+  by: "claude/opus-5.5"
+  at: "2026-10-19T00:00:00Z"
+sources:
+  - id: mcp-spec
+    resource: "https://modelcontextprotocol.io/specification/2026-07-28"
+    title: "Model Context Protocol specification, 2026-07-28"
+    author: "team:modelcontextprotocol"
+  - id: python-sdk
+    resource: "https://github.com/modelcontextprotocol/python-sdk"
+    title: "MCP Python SDK"
+    author: "team:modelcontextprotocol"
+status: stable
+stale_after: "2027-07-28T00:00:00Z"
+---
+
+# MCP 2026-07-28 conformance
+
+edi-mcp targets the **2026-07-28** revision of the Model Context Protocol, the
+*stateless core*[^mcp-spec], on the Python `mcp` SDK 2.x (2.3.0 today) through its
+low-level `Server` API[^python-sdk]. `server.py` is the only module coupled to the
+SDK; the tool registry is SDK-agnostic.
+
+## What the server does
+
+| Requirement | edi-mcp |
+| --- | --- |
+| No `initialize` handshake, no sessions | Streamable HTTP runs with `stateless_http=True`: no `Mcp-Session-Id`, any instance answers any request. stdio also accepts the legacy handshake. |
+| `server/discover` | Answered by the SDK with the supported versions, capabilities (tools, resources) and the server instructions. |
+| Per-request `_meta` envelope | `io.modelcontextprotocol/clientCapabilities` decides whether a tool may ask a follow-up question (MRTR elicitation). |
+| Cacheable results | `tools/list` 5 min, `resources/list` and `resources/templates/list` 1 h, `server/discover` 5 min, `resources/read` 24 h for static guides and 1 h for derived content; `cacheScope` is always `public` because nothing depends on the caller. |
+| `resultType` | `complete` on every result; `input_required` only for an MRTR follow-up. |
+| `structuredContent` and `outputSchema` | Every tool declares an `outputSchema`; results carry `structuredContent` and the same JSON as text. Failures set `isError` with `structuredContent.error` (see [error codes](../tools/utilities.md#error-codes)). |
+| JSON Schema 2020-12 | Every `inputSchema` and `outputSchema` declares the dialect. Pydantic's generated `title` keys are dropped from both, and descriptions from output schemas (the [tool reference](../tools/reference.md) keeps them). |
+| Tool annotations | All four hints (`readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`) and a title on every tool. |
+| Tool `_meta` | `io.edi-mcp/surface`, `io.edi-mcp/requiresKey`, `io.edi-mcp/endpoints`, and `io.edi-mcp/stdioOnly` on stdio-only tools. |
+| Result `_meta` | The SDK's `io.modelcontextprotocol/serverInfo` plus `io.edi-mcp/upstream`: upstream request count, cache hits, the backend used and how the call authenticated (never the credential). |
+| Deterministic `tools/list` | Sorted by name and fixed per deployment (transport and whether downloads are enabled); its serialized size has a conformance bound. |
+| Header routing | `Mcp-Method` / `Mcp-Name` must match the body; protocol-version mismatches are `-32020` and unsupported versions `-32022` (see [Transports](transports.md)). |
+
+## MRTR and requestState
+
+The server supports multi round-trip requests: a tool can return an
+`InputRequiredResult` with an elicitation form, and the client resumes by calling the
+tool again with `inputResponses` and the `requestState` continuation. The
+continuation is compact base64url JSON of at most 16 KiB, never contains a key, token
+or authorization decision, and is rejected when malformed, issued for another tool, or
+older than an hour. Elicitation is used only when the client declares support. No
+released tool asks a question yet; the mechanism is covered by the conformance tests.
+
+## Deliberately left out
+
+edi-mcp uses none of the features the 2026-07-28 revision deprecates or that a
+stateless server cannot honour: no legacy SSE transport, no sessions, no
+`roots/list`, no `sampling/createMessage` and no `logging/setLevel`. A CI job greps
+the source for them and fails if any appear.
+
+## Measured size
+
+With the five tools registered today, `tools/list` is about 17 KB of compact JSON on
+both transports. The conformance bound is 60,000 bytes and will be re-measured once
+every planned tool has landed.
+
+## Conformance tests
+
+`tests/test_spec_conformance_2026_07_28.py` and `tests/transport/` run as their own
+CI job: schema dialect and validity, annotations and `_meta`, sorted and stable
+`tools/list` within its size bound, aliases accepted and unknown arguments rejected,
+cache hints on lists and reads, `server/discover`, stateless requests in both eras,
+result `_meta`, header routing, protocol-version errors, host allow-lists, resources
+over HTTP, an MRTR round trip with a tampered continuation, a stateless session
+manager, and a real stdio subprocess speaking both protocol eras.
+
+[^mcp-spec]: Model Context Protocol specification, 2026-07-28. <https://modelcontextprotocol.io/specification/2026-07-28>
+[^python-sdk]: MCP Python SDK. <https://github.com/modelcontextprotocol/python-sdk>
+
+---8<--- https://idss-mesa.github.io/edi-mcp/mcp/transports/
+
+---
+title: "Transports"
+description: "The stdio and stateless Streamable HTTP transports: routes, health checks, header routing, DNS-rebinding protection and per-request EDI API keys."
+type: Reference
+tags:
+  - mcp
+  - transports
+  - http
+  - stdio
+generated:
+  by: "claude/opus-5.5"
+  at: "2026-10-19T00:00:00Z"
+sources:
+  - id: mcp-transports
+    resource: "https://modelcontextprotocol.io/specification/2026-07-28/basic/transports"
+    title: "MCP specification — Transports"
+    author: "team:modelcontextprotocol"
+status: stable
+---
+
+# Transports
+
+## stdio (default)
+
+`edi-mcp` (or `edi-mcp --transport stdio`) serves one client over standard input and
+output, the usual setup for Claude Code, Claude Desktop and other local clients. Only
+MCP framing goes to stdout; logs go to stderr. The key in the server's environment
+(`EDI_API_KEY`) is used for every call, and the stdio-only download tools, once
+released, are offered only here. The SDK's stdio loop serves both protocol eras: a
+client that starts with the legacy `initialize` handshake and a 2026-07-28 client
+both work.
+
+## Streamable HTTP (stateless)
+
+`edi-mcp --transport http` serves on `127.0.0.1:8080` by default (`--bind-address`,
+`--bind-port`)[^mcp-transports]:
+
+| Route | Behaviour |
+| --- | --- |
+| `POST /mcp` (and `/mcp/`) | JSON-RPC over Streamable HTTP; one response per request (a single SSE frame, or JSON with `server.json_response`). |
+| `GET /mcp`, `DELETE /mcp` | 405 with `Allow: POST`: the server sends no server-initiated messages and keeps no sessions. |
+| `GET /healthz` | Liveness, always 200 while the process serves: `{"status": "ok", "version", "protocolVersion", "transport"}`. |
+| `GET /readyz` | Readiness: 503 `{"status": "warming"}` during startup work, then 200 `{"status": "ready", "degraded", "keyConfigured"}`. It never reveals the key. |
+
+The server runs stateless: there is no `Mcp-Session-Id`, and any instance can answer
+any request, so it scales horizontally behind a load balancer. Every response carries
+`X-Request-Id` (yours, if you sent a well-formed one). Request bodies are capped at
+1 MiB (`server.max_request_body_size`).
+
+### Header checks
+
+For 2026-07-28 requests the SDK checks the HTTP headers against the JSON-RPC body:
+
+* `Mcp-Method` must match the body's `method`, and `Mcp-Name` the tool name,
+  resource URI or prompt name; a mismatch is HTTP 400.
+* `MCP-Protocol-Version` must agree with the version in the request's `_meta`
+  envelope (`-32020` otherwise); an unsupported version is `-32022`, with the
+  supported versions in `error.data.supported`.
+
+A request whose `MCP-Protocol-Version` header names an older revision is served in
+the legacy era, still without a session.
+
+### Host and origin checks
+
+DNS-rebinding protection is on automatically for loopback binds. For a public
+deployment set `server.public_base_url` (its host and origin join the allow-lists)
+and optionally `server.allowed_hosts` / `server.allowed_origins`; a request with any
+other `Host` gets 421. Behind a proxy that rewrites `Host`, set
+`server.dns_rebinding_protection = false`.
+
+### Per-request EDI API keys
+
+Each HTTP caller sends its own EDI API key in the `X-EDI-Key` header (configurable
+with `server.request_key_header`; turn it off with `server.accept_header_key =
+false`). The header is honoured only when `server.public_base_url` starts with
+`https://`, meaning TLS terminates in front of the server, or when
+`server.allow_insecure_header_key` is set for development. Otherwise the header is
+stripped before any handler sees it and one warning is logged.
+
+A caller without a key is served from DataONE: the operator's configured key is not
+lent to HTTP callers unless `server.share_config_key_over_http` is set, which is meant
+for private deployments only. The MCP-level `Authorization` header is never forwarded
+to EDI. Download tools are never offered over HTTP.
+
+[^mcp-transports]: MCP specification — Transports. <https://modelcontextprotocol.io/specification/2026-07-28/basic/transports>
+
+---8<--- https://idss-mesa.github.io/edi-mcp/deploy/hosted-http/
+
+---
+title: "Hosted HTTP deployment"
+description: "Run edi-mcp as a stateless Streamable HTTP service behind a TLS reverse proxy: binding, public_base_url, host allow-lists, per-caller EDI API keys and health endpoints."
+type: Guide
+tags:
+  - deploy
+  - http
+  - reverse-proxy
+  - systemd
+generated:
+  by: "claude/opus-5.5"
+  at: "2026-10-19T00:00:00Z"
+sources:
+  - id: mcp-transports
+    resource: "https://modelcontextprotocol.io/specification/2026-07-28/basic/transports"
+    title: "MCP 2026-07-28 — Transports"
+    author: "team:modelcontextprotocol"
+  - id: uvicorn
+    resource: "https://www.uvicorn.org/deployment/"
+    title: "Uvicorn — Deployment"
+    author: "team:encode"
+  - id: caddy
+    resource: "https://caddyserver.com/docs/caddyfile/directives/reverse_proxy"
+    title: "Caddy — reverse_proxy"
+    author: "team:caddy"
+status: stable
+---
+
+# Hosted HTTP deployment
+
+A hosted edi-mcp lets many users connect with
+`claude mcp add --transport http edi https://edi-mcp.example.org/mcp`. The HTTP
+transport is stateless Streamable HTTP[^mcp-transports] at `/mcp`: no session
+header, no server-initiated stream, so any instance can answer any request and
+instances can sit behind a plain load balancer.
+
+```bash
+edi-mcp --transport http --bind-address 127.0.0.1 --bind-port 8080
+```
+
+`POST /mcp` takes JSON-RPC requests; `GET` and `DELETE` on `/mcp` return 405
+with `Allow: POST`. `/mcp/` is served directly rather than redirected. Every
+response carries an `x-request-id` header (the caller's own value when it is a
+short safe token, otherwise a generated one) that also appears in the JSON logs.
+
+## Configuration essentials
+
+```bash
+EDI_MCP_SERVER__TRANSPORT=http
+EDI_MCP_SERVER__BIND_ADDRESS=127.0.0.1          # the proxy connects locally
+EDI_MCP_SERVER__BIND_PORT=8080
+EDI_MCP_SERVER__PUBLIC_BASE_URL=https://edi-mcp.example.org
+```
+
+`public_base_url` does two things:
+
+* its host and origin join the `Host` and `Origin` allow-lists
+  (`server.allowed_hosts`, `server.allowed_origins`) used for DNS-rebinding
+  protection. Add any other names the service answers on to those lists;
+  `server.dns_rebinding_protection` forces the check on or off (unset leaves
+  the SDK default, which is on for loopback binds or when allow-lists are set);
+* when it starts with `https://`, it opens the TLS gate for per-caller keys
+  (below).
+
+Other HTTP settings: `server.json_response` answers `POST /mcp` with
+`application/json` instead of a single SSE frame, and
+`server.max_request_body_size` (default 1 MiB) caps request bodies. All settings
+are listed on the [Configuration](../getting-started/configuration.md) page.
+
+## EDI API keys over HTTP
+
+Each caller brings their own EDI API key in the `X-EDI-Key` header (the name is
+`server.request_key_header`). The header is honoured only when
+`public_base_url` is `https://`; otherwise the middleware strips it before any
+handler sees it and logs one warning. `server.allow_insecure_header_key`
+overrides the gate for local development only.
+
+A call with a key is served by PASTA; a call without one is served anonymously
+from DataONE, as on stdio (see [Backends](../tools/backends.md)). The
+operator's own key (`EDI_API_KEY` in the server's environment) is **not** lent
+to HTTP callers unless `server.share_config_key_over_http` is true; enable that
+only on a private deployment where every caller may act as the operator. The
+MCP-level `Authorization` header is never forwarded to EDI. See
+[Security](security.md) for the full key-handling rules.
+
+## Behind a reverse proxy
+
+Terminate TLS at the proxy (the key is a bearer secret), forward `Host`
+unchanged, and pass `X-EDI-Key` through. uvicorn runs with proxy headers
+enabled[^uvicorn]. Caddy[^caddy]:
+
+```text
+edi-mcp.example.org {
+    reverse_proxy 127.0.0.1:8080
+}
+```
+
+nginx:
+
+```nginx
+location / {
+    proxy_pass http://127.0.0.1:8080;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_http_version 1.1;
+    proxy_buffering off;          # single SSE frame per response
+}
+```
+
+## systemd
+
+```ini
+[Unit]
+Description=edi-mcp (Streamable HTTP)
+After=network-online.target
+
+[Service]
+User=edi
+EnvironmentFile=/etc/edi-mcp.env
+ExecStart=/opt/edi-mcp/.venv/bin/edi-mcp --transport http
+Restart=on-failure
+NoNewPrivileges=true
+ProtectSystem=strict
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Keep `/etc/edi-mcp.env` readable by the service user only if it holds an
+operator key.
+
+## Container image
+
+A `Dockerfile` (Python slim base, non-root user, health check on `/healthz`) is
+planned for the v0.1.0 release and is not in the repository yet. Until then,
+install the package into a virtual environment as above.
+
+## Health and readiness
+
+* `GET /healthz` is liveness only: always 200 with `status`, `version`,
+  `protocolVersion` and `transport`; it contacts nothing upstream.
+* `GET /readyz` returns 503 with `status: warming` while startup work runs, then
+  200 with `status: ready`, `degraded` and `keyConfigured` (whether an operator
+  key is set; the key itself is never shown).
+
+## Not available over HTTP
+
+Downloads exist only on stdio, confined to `downloads.directory`: the
+download tools (planned for build step 6) are never listed over HTTP. Each instance keeps its own
+in-memory response cache (`cache.*` settings), so instances do not share state.
+
+[^mcp-transports]: MCP 2026-07-28 — Transports. <https://modelcontextprotocol.io/specification/2026-07-28/basic/transports>
+[^uvicorn]: Uvicorn — Deployment. <https://www.uvicorn.org/deployment/>
+[^caddy]: Caddy — reverse_proxy. <https://caddyserver.com/docs/caddyfile/directives/reverse_proxy>
+
+---8<--- https://idss-mesa.github.io/edi-mcp/deploy/security/
+
+---
+title: "Security"
+description: "How edi-mcp handles EDI API keys and edi-tokens, which hosts receive credentials, how URLs, logs and upstream errors are scrubbed, how untrusted XML is parsed, and what keeps test fixtures free of secrets."
+type: Policy
+tags:
+  - deploy
+  - security
+  - credentials
+  - api-key
+generated:
+  by: "claude/opus-5.5"
+  at: "2026-10-19T00:00:00Z"
+sources:
+  - id: edi-news
+    resource: "https://edirepository.org/news/news-20260727.00"
+    title: "EDI news: authentication required for PASTA (2026-07-27)"
+    author: "team:edi"
+  - id: edi-keys
+    resource: "https://edirepository.org/resources/working-with-access-keys"
+    title: "EDI — Working with access keys"
+    author: "team:edi"
+  - id: mcp-security
+    resource: "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+    title: "MCP 2026-07-28 — Security best practices"
+    author: "team:modelcontextprotocol"
+  - id: defusedxml
+    resource: "https://github.com/tiran/defusedxml"
+    title: "defusedxml — XML bomb protection for Python stdlib modules"
+    author: "team:defusedxml"
+status: stable
+---
+
+# Security
+
+Since 2026-07-30 every PASTA endpoint needs credentials[^edi-news], so an EDI
+API key is a real secret: it reads everything its owner can read, including
+access-restricted packages. edi-mcp treats it accordingly. Version 1 is
+**read-only**: no tool creates, updates or deletes anything in EDI, and the
+only local writes will be the stdio-only downloads, confined to
+`downloads.directory`.
+
+## Where the key comes from
+
+* **stdio:** the server's environment only. `EDI_API_KEY` (the name EDI's
+  guides use[^edi-keys]) or `EDI_MCP_EDI__API_KEY`, which overrides it. There
+  is no command-line flag (command lines leak into `ps` and shell history),
+  `.env` files are not loaded automatically, and look-alike names
+  (`EDI_KEY`, `EDI_TOKEN`, `EDI_AUTH_TOKEN`) are not read: the loader warns
+  when one is set without `EDI_API_KEY`. A YAML `edi.api_key` also works but
+  should not be committed.
+* **HTTP:** each caller's `X-EDI-Key` header, honoured only when
+  `server.public_base_url` is `https://` (or the development override
+  `allow_insecure_header_key` is on); otherwise the header is stripped before
+  any handler runs. The operator's key is not lent to callers unless
+  `share_config_key_over_http` is enabled. The MCP-level `Authorization`
+  header is never read for EDI and never forwarded upstream[^mcp-security].
+  See [Hosted HTTP deployment](hosted-http.md).
+
+A bad key is an error (`upstream_forbidden`), never a silent downgrade to
+DataONE.
+
+## What happens to the key
+
+* The key is held in an `ApiKey` object whose `repr` and `str` never show it,
+  and every key and token the process sees is registered with the log
+  redactor.
+* The key is exchanged for a short-lived `edi-token` (8 hours) at
+  `auth.edirepository.org`. Tokens live in memory only, one slot per key
+  identity (a truncated SHA-256 of the key), so HTTP callers with different
+  keys never share a token. A token is refreshed once fewer than
+  `edi.token_refresh_margin_s` seconds remain (default one hour); a 401 to a
+  token triggers one re-exchange.
+* The token is sent to PASTA as a hand-set `Cookie: edi-token=…` header. If
+  the auth service is unreachable or failing, the key itself is sent as a
+  `?key=` query parameter for `edi.auth_fallback_s` seconds (default 300). If
+  the auth service rejects the key, the call fails.
+* Credentials are attached **only** to requests for the PASTA host. DataONE,
+  the member nodes and the citation service are always called anonymously.
+* The HTTP client's cookie jar accepts no cookies, so the `edi-token` cookie
+  PASTA sets (even on anonymous 403 responses) is never stored or replayed to
+  another caller.
+* Cached PASTA responses are keyed by the key's identity, so one caller's
+  cached results are never served to another caller.
+
+## What never leaves the server
+
+* `scrub_url()` removes the `key` query parameter and redacts every
+  registered secret from each URL that is surfaced: result `source` fields,
+  `_meta` upstream labels, log lines, cache keys and error details. Endpoint
+  labels (`GET host/path`) carry no query string at all.
+* HTTP transport errors are re-raised without the underlying exception, whose
+  message could contain a keyed URL.
+* Logs go to stderr (stdout is MCP framing on stdio). A structlog processor
+  masks values of credential-like keys (`token`, `authorization`, `api_key`,
+  `x-edi-key`, `cookie`, …) and replaces registered secrets anywhere in a
+  logged string.
+* Upstream error text is cleaned before it reaches a result: registered
+  secrets are redacted, EDI principals (`EDI-<40 hex>`) become `EDI-…`, and
+  PASTA's 403 wording `User '…' is not authorized`, which names the caller,
+  has the name removed.
+* MRTR continuations (`requestState`) refuse credential-like keys and are
+  capped at 16 KiB.
+
+## Outbound requests
+
+* Upstream hosts come from the `edi.*` URL settings: PASTA, the EDI auth
+  service, the DataONE coordinating node, the two GMN member nodes and the
+  citation service. Redirects are followed by hand, at most three, and only to
+  `https://` hosts on that allow-list; anything else fails with an error.
+* Response bodies are read with a byte cap (`edi.max_response_bytes`, default
+  20 MiB), and EML documents larger than `limits.max_eml_bytes` are refused.
+  Tool results are trimmed to `limits.max_result_bytes` and fail above
+  `limits.hard_max_result_bytes`.
+* Concurrency is bounded (`edi.max_concurrency`); 429 responses honour
+  `Retry-After`, and 5xx and network errors are retried with backoff.
+
+## Untrusted XML
+
+EML metadata and DataONE Solr responses are parsed with `defusedxml`[^defusedxml]
+only, which rejects entity expansion and external DTDs. Raw EML is not placed in
+tool results.
+
+## Test fixtures
+
+Hermetic tests replay recorded responses, so fixtures must never carry a
+secret. `scripts/record_fixtures.py record` never records auth-service traffic,
+keeps no response headers except `Content-Type` and `Location`, and scrubs every
+body before writing it: the key, every `edi-token` seen, anything JWT-shaped,
+and the identity claims decoded from the token. Recordings replace the committed
+set only if `check` passes; CI runs `check` on every push (no JWT-shaped string,
+no `edi-token=`, no `set-cookie`, no `key=` in a manifest URL). The test router
+fails a test if a credential reaches any host other than PASTA. See
+[Testing](../develop/testing.md).
+
+## Reporting a vulnerability
+
+Report a suspected vulnerability privately to the
+[idss-mesa](https://github.com/idss-mesa){target=_blank} maintainers rather than
+in a public issue, and never paste a key or token into an issue, log or
+fixture.
+
+[^edi-news]: EDI news: authentication required for PASTA (2026-07-27). <https://edirepository.org/news/news-20260727.00>
+[^edi-keys]: EDI — Working with access keys. <https://edirepository.org/resources/working-with-access-keys>
+[^mcp-security]: MCP 2026-07-28 — Security best practices. <https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices>
+[^defusedxml]: defusedxml. <https://github.com/tiran/defusedxml>
+
+---8<--- https://idss-mesa.github.io/edi-mcp/develop/adding-tools/
+
+---
+title: "Adding a tool"
+description: "The checklist for a new edi-mcp tool: input and output models, registration rules, backend calls, fixtures and tests, the conformance sets, and regenerating the docs."
+type: Guide
+tags:
+  - develop
+  - tools
+  - checklist
+generated:
+  by: "claude/opus-5.5"
+  at: "2026-10-19T00:00:00Z"
+sources:
+  - id: repo
+    resource: "https://github.com/idss-mesa/edi-mcp/blob/main/src/edi_mcp/tools/discovery.py"
+    title: "edi-mcp discovery tools (src/edi_mcp/tools/discovery.py)"
+    author: "team:idss-mesa"
+  - id: mcp-tools
+    resource: "https://modelcontextprotocol.io/specification/2026-07-28/server/tools"
+    title: "MCP 2026-07-28 — Tools"
+    author: "team:modelcontextprotocol"
+status: stable
+---
+
+# Adding a tool
+
+[`edi_list_scopes`](../tools/reference.md#edi_list_scopes) in
+`src/edi_mcp/tools/discovery.py` is a small real example; this is its shape.
+
+## 1. Models
+
+```python
+class ListScopesIn(EdiInput):             # snake_case fields; extras rejected
+    kind: ScopeKind | None = Field(
+        None, description="Only one kind: lter (LTER sites), edi (general EDI submissions), ..."
+    )
+
+
+class ListScopesResult(ToolResultBase):   # envelope: resolved, notes, nextSteps, source
+    budget_list: ClassVar[str | None] = "scopes"
+
+    scopes: list[ScopeInfo]
+    page: Page
+    live: bool = Field(description="True when PASTA listed the scopes just now; ...")
+    snapshot_as_of: str = Field(description="Date of the snapshot ...")   # dumped as snapshotAsOf
+```
+
+Inputs subclass `EdiInput` and use snake_case; outputs subclass
+`ToolResultBase` and are dumped in camelCase with `None` omitted. Every input
+field needs a `description`: it is what the model reads. A result with a long
+list declares `budget_list` so the registry can trim it to the size budget
+(see [Architecture](architecture.md#result-budget)).
+
+## 2. Register the handler
+
+```python
+@register_tool(
+    "edi_list_scopes",
+    title="List EDI scopes",
+    description=(
+        "List the repository's scopes (knb-lter-hbr, edi, ...) with name, kind, ... "
+        "Next: call edi_search_packages(scope=...) or edi_list_identifiers(scope=...)."
+    ),
+    input_model=ListScopesIn,
+    output_model=ListScopesResult,
+    surface="discovery",
+    endpoints=["GET pasta.lternet.edu/package/eml"],
+)
+async def edi_list_scopes(args: ListScopesIn, ctx: ToolContext) -> ListScopesResult:
+    backend = backend_for(ctx)
+    if isinstance(backend, PastaBackend):
+        names = await backend.list_scopes()
+    else:
+        ...   # DataONE has no scope listing: use the dated snapshot and say so in notes
+```
+
+The registry checks each declaration at import time:
+
+* the name matches `^edi_[a-z_]+$`;
+* the description is at most 600 characters and ends with a sentence starting
+  `Next:`;
+* the input model subclasses `EdiInput` and the output model `ToolResultBase`;
+* `surface` is a known family.
+
+Also:
+
+* keep the annotations honest (`read_only`, `destructive`, `idempotent`,
+  `open_world`);
+* list every upstream endpoint the handler can call, on both backends;
+* set `requires_key=True` for PASTA-only tools, so the registry fails fast with
+  `auth_required` when the call has no key;
+* restrict stdio-only tools with `transports=("stdio",)`.
+
+Handlers call `backend_for(ctx)` and `resolve_scope` / `resolve_reference` /
+`resolve_package`, never the HTTP client directly. Build `source` with
+`tools._common.source(ctx)`, and fill `notes` (backend caveats, what was
+assumed) and `nextSteps` (concrete follow-up calls). Finally, import the module
+in `tools/__init__.py`.
+
+## 3. Fixtures and tests
+
+* Add the tool's real calls to `TOOL_SCENARIOS` in
+  `scripts/record_fixtures.py` (on both backends where the tool supports both)
+  and re-record. Fixtures come only from the recorder; see
+  [Testing](testing.md).
+* Test through `tests.helpers.call_ok`, which asserts success and validates the
+  payload against the tool's `outputSchema`, and `call_err` for error codes.
+  Cover the happy path on both backends, each filter, paging, error mapping
+  and, for key-only tools, the `auth_required` fail-fast.
+* Update the `KEY_TOOLS` and `WRITE_TOOLS` sets in
+  `tests/test_spec_conformance_2026_07_28.py`, which check the
+  `readOnlyHint` and requires-key metadata of every tool.
+
+## 4. Regenerate the docs
+
+```bash
+uv run python scripts/gen_tools_reference.py   # docs/tools/reference.md
+uv run python scripts/gen_llms_txt.py          # docs/llms.txt, docs/llms-full.txt
+```
+
+Describe the tool on its family page under `docs/tools/` and add a dated entry
+to `docs/log.md`. The docs workflow fails when a generated file has drifted
+from its sources.
+
+---8<--- https://idss-mesa.github.io/edi-mcp/develop/architecture/
+
+---
+title: "Architecture"
+description: "The module map of edi-mcp: SDK adapter and tool registry, per-call context and backend choice, the PASTA and DataONE backends, the one upstream HTTP client, identifier and scope resolution, and the transports."
+type: Reference
+tags:
+  - develop
+  - architecture
+generated:
+  by: "claude/opus-5.5"
+  at: "2026-10-19T00:00:00Z"
+sources:
+  - id: repo
+    resource: "https://github.com/idss-mesa/edi-mcp/tree/main/src/edi_mcp"
+    title: "edi-mcp source (src/edi_mcp)"
+    author: "team:idss-mesa"
+  - id: neon-mcp
+    resource: "https://github.com/idss-mesa/neon-mcp"
+    title: "neon-mcp (the sibling server edi-mcp's core is ported from)"
+    author: "team:idss-mesa"
+status: stable
+---
+
+# Architecture
+
+edi-mcp copies the architecture of its sibling
+[neon-mcp](https://github.com/idss-mesa/neon-mcp){target=_blank}: one SDK-coupled
+adapter, an SDK-independent tool registry, handlers that return pydantic models,
+and one upstream HTTP client. What is new is the backend layer: every tool call
+is served by PASTA when it has an EDI API key and by DataONE when it does not.
+
+```mermaid
+flowchart LR
+  client[MCP client] -->|stdio / Streamable HTTP| transport[transport/]
+  transport --> adapter[server.py\nEdiServer]
+  adapter --> registry[registry.py\nvalidate · auth · budget]
+  registry --> ctx[context.py\nkey → backend]
+  registry --> tools[tools/*]
+  tools --> scopes[edi/scopes.py\nedi/pid.py]
+  tools --> backends[edi/backends/\nPasta · DataOne]
+  backends --> client2[edi/client.py]
+  client2 --> tokens[edi/tokens.py]
+  client2 --> cache[edi/cache.py]
+  client2 -->|edi-token cookie| pasta[(PASTA)]
+  client2 -->|anonymous| d1[(DataONE CN + GMN)]
+  client2 -->|anonymous| cite[(cite.edirepository.org)]
+```
+
+## Request flow
+
+1. **Transport.** stdio, or stateless Streamable HTTP at `/mcp`, where a raw ASGI
+   middleware assigns a request id and exposes the request headers (with
+   `X-EDI-Key` removed unless the TLS gate allows it) through context variables.
+2. **Adapter.** `server.py` is the only module that imports the MCP SDK. It
+   serves `tools/list` (sorted, JSON Schema 2020-12, cache hints) and turns a
+   `tools/call` into a registry invocation, returning compact JSON text,
+   `structuredContent` and `io.edi-mcp/*` `_meta`.
+3. **Context.** `build_tool_context` resolves the call's key (`resolve_key` in
+   `edi/auth.py`: the configured key on stdio; the caller's header key, or the
+   operator key when sharing is enabled, over HTTP). `ctx.backend` is `pasta`
+   with a key and `dataone` without.
+4. **Registry.** `invoke` validates the arguments against the tool's input
+   model, fails fast with `auth_required` for `requires_key` tools when there is
+   no key, runs the handler, dumps the output model (camelCase, `None`
+   omitted), stamps a default `source`, and enforces the result budget.
+5. **Tool.** A handler is `async (args, ctx) -> OutputModel`. It resolves scopes
+   and package references (`resolve_scope`, `resolve_reference`, or
+   `resolve_package`) and calls `backend_for(ctx)`; it never calls the HTTP
+   client directly.
+6. **Backend.** `PastaBackend` and `DataOneBackend` implement one contract and
+   return the same plain dataclasses, so tools do not branch on the backend.
+   Each records its upstream calls in the call's `UpstreamStats` and adds its
+   caveats to `notes`.
+7. **Client.** `EdiClient` attaches credentials to PASTA requests only, retries,
+   follows allow-listed redirects by hand, caps body sizes and caches responses.
+
+## Result budget
+
+Every tool result is measured as compact JSON. Above
+`limits.max_result_bytes` (default 50 000), `fit_to_budget` trims the output
+model's declared `budget_list` (eliding URL-like fields first, when the model
+names them), marks the page `truncated` with `truncatedReason: budget` and a
+`nextOffset`, and adds a note. A result still above
+`limits.hard_max_result_bytes` (default 200 000) fails with `result_too_large`.
+
+## Module map
+
+| Module | Role |
+| --- | --- |
+| `__main__.py` | CLI: flags → config → logging → serve; `--check` (offline config check and in-process `edi_ping`), `--print-config` (key redacted) |
+| `config.py` | pydantic settings; flag > `EDI_MCP_*` env > YAML > defaults; the key from `EDI_API_KEY` or `EDI_MCP_EDI__API_KEY` |
+| `server.py` | the SDK adapter: tools, resources, cache hints, MRTR, upstream `_meta` |
+| `registry.py` | `@register_tool` and its checks, argument validation, fail-fast `auth_required`, `fit_to_budget`, the `requestState` codec |
+| `context.py` | `ToolContext` (config, key, backend, stats); request-scoped context variables |
+| `errors.py` | `ToolError` codes and the upstream error mapping (`upstream_forbidden`, `access_restricted`, …) |
+| `logging.py` | structlog to stderr; credential masking and registered-secret redaction |
+| `instructions.py` | server instructions returned by `server/discover` |
+| `resources.py`, `resources_static/` | `edi://` guides (`api-key`, `package-identifiers`) and the dated scope snapshot `scopes.json` |
+| `models/common.py` | `EdiInput`, `ToolResultBase`, `Page`, `Resolved`, `Source` |
+| `edi/auth.py` | `ApiKey`, per-call key resolution, the HTTP TLS gate, `scrub_url` |
+| `edi/tokens.py` | key → `edi-token` exchange and refresh per key identity, `?key=` fallback |
+| `edi/client.py` | the one `httpx` client: PASTA-only credentials, cookie jar that stores nothing, retries, allow-listed redirects, byte caps, upstream error scrubbing |
+| `edi/cache.py` | per-family TTL cache with single-flight and stale-if-error; PASTA entries keyed by key identity |
+| `edi/backends/` | the `Backend` contract, `PastaBackend`, `DataOneBackend`, `backend_for`, `resolve_package` |
+| `edi/pid.py` | package identifier, DOI and URL parsing |
+| `edi/scopes.py` | scope snapshot, scope names, LTER site codes and `name.identifier` references |
+| `edi/xml.py`, `edi/eml.py` | defusedxml parsing; EML data-entity references |
+| `tools/` | one module per family (`core.py`, `discovery.py`), plus helpers in `_common.py` (`source`, `paginate`, `portal_url`) |
+| `transport/` | stdio; stateless Streamable HTTP with `/healthz`, `/readyz` and the request-context middleware |
+
+The package, metadata and entity tools with their EML projection
+(`projections/`, `tools/packages.py`) arrive in build step 5; preview, download,
+citation and the key-only tools in step 6 (see the [Roadmap](../tools/roadmap.md)).
+
+Design decisions and their reasons are recorded in `DESIGN.md` (the D-numbers)
+and verified API facts in `RESEARCH.md`, both at the repository root.
+
+---8<--- https://idss-mesa.github.io/edi-mcp/develop/contributing/
+
+---
+title: "Contributing"
+description: "Branch and pull-request rules, the checks to run before pushing, the design and research records, the two change logs, documentation updates and versioning for edi-mcp."
+type: Policy
+tags:
+  - develop
+  - contributing
+  - releases
+generated:
+  by: "claude/opus-5.5"
+  at: "2026-10-19T00:00:00Z"
+sources:
+  - id: keepachangelog
+    resource: "https://keepachangelog.com/en/1.1.0/"
+    title: "Keep a Changelog 1.1.0"
+    author: "team:keepachangelog"
+  - id: semver
+    resource: "https://semver.org/"
+    title: "Semantic Versioning"
+    author: "team:semver"
+  - id: okf-spec
+    resource: "https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md"
+    title: "Open Knowledge Format (OKF) v0.2 specification"
+    author: "team:google-cloud"
+status: stable
+---
+
+# Contributing
+
+1. Branch from `main` and open a pull request. One change per pull request;
+   CI must be green before it is merged.
+2. Before pushing, run the same checks CI runs:
+
+    ```bash
+    uv run ruff check src tests scripts && uv run ruff format --check src tests scripts
+    uv run mypy --strict src
+    uv run pytest
+    uv run python scripts/record_fixtures.py check
+    ```
+
+    If the change touches upstream behaviour, also run the live tests with a key
+    (see [Testing](testing.md)).
+3. Never commit `.env`, a key, an `edi-token`, or a fixture that did not come
+   from `scripts/record_fixtures.py record`.
+
+## Design and research records
+
+* `DESIGN.md` keeps the decision register. Each decision has a D-number (D1
+  hybrid backend, D2 bad keys, D4 credential form, D9 identifiers, …) with the
+  question, the decision and the reason. Changing behaviour that a decision
+  covers means updating that row in the same pull request; code comments cite
+  the D-number.
+* `RESEARCH.md` records verified EDI, DataONE and MCP facts with the date each
+  was checked. PASTA and DataONE change without notice, so a new upstream fact
+  goes in with its date, and a fact that stopped being true is corrected rather
+  than deleted silently.
+* `CLAUDE.md` and the code map summarise both for coding agents; keep them in
+  step.
+
+## Two change logs
+
+* `CHANGELOG.md` (repository root) is the package release log, in the Keep a
+  Changelog format[^keepachangelog]. Add user-visible changes under
+  `[Unreleased]`.
+* `docs/log.md` is the documentation bundle's log. Every docs change adds a
+  dated `## YYYY-MM-DD` entry naming the pages created or updated.
+
+## Documentation
+
+The `docs/` tree is an Open Knowledge Format (OKF v0.2)[^okf-spec] bundle built
+with Zensical. Content pages carry YAML frontmatter (`title`, `description`,
+`type`, `tags`, `generated`, `sources`, `status`); section `index.md` files carry
+none. After changing docs or tools:
+
+```bash
+uv run python scripts/gen_tools_reference.py    # when a tool changed
+uv run python scripts/gen_config_reference.py   # when a setting changed
+uv run python scripts/gen_llms_txt.py           # always: docs/llms.txt, docs/llms-full.txt
+uv run python scripts/okf_validate.py docs
+uv run zensical build --clean --strict
+```
+
+Commit the generated files; the docs workflow fails when they drift from their
+sources. Pages may only state what the code on `main` does; tools that are not
+merged yet belong on the [Roadmap](../tools/roadmap.md).
+
+## Versioning
+
+edi-mcp follows Semantic Versioning[^semver]. The version lives in
+`src/edi_mcp/__init__.py`. The first release, v0.1.0, and its release workflow
+are planned for build step 7.
+
+[^keepachangelog]: Keep a Changelog 1.1.0. <https://keepachangelog.com/en/1.1.0/>
+[^semver]: Semantic Versioning. <https://semver.org/>
+[^okf-spec]: Open Knowledge Format (OKF) v0.2 specification. <https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md>
+
+---8<--- https://idss-mesa.github.io/edi-mcp/develop/testing/
+
+---
+title: "Testing"
+description: "edi-mcp's hermetic test suite, the FixtureRouter that replays recorded PASTA and DataONE traffic, recording and checking fixtures, opt-in live tests, the coverage, type and lint gates, CI jobs and the documentation checks."
+type: Guide
+tags:
+  - develop
+  - testing
+  - fixtures
+  - ci
+generated:
+  by: "claude/opus-5.5"
+  at: "2026-10-19T00:00:00Z"
+sources:
+  - id: pytest
+    resource: "https://docs.pytest.org/"
+    title: "pytest documentation"
+    author: "team:pytest"
+  - id: ci
+    resource: "https://github.com/idss-mesa/edi-mcp/blob/main/.github/workflows/ci.yml"
+    title: "edi-mcp CI workflow"
+    author: "team:idss-mesa"
+status: stable
+---
+
+# Testing
+
+```bash
+uv sync --all-extras
+uv run pytest                                   # hermetic unit + conformance tests
+uv run ruff check src tests scripts && uv run ruff format --check src tests scripts
+uv run mypy --strict src
+uv run python scripts/record_fixtures.py check  # fixtures carry no secrets
+```
+
+## Hermetic tests
+
+`uv run pytest` makes no network calls: live tests are deselected by default
+(`-m 'not live'`). Every upstream request goes through
+`tests/fixture_router.py`, a stand-in for PASTA, the EDI auth service, DataONE
+and the citation service, driven by `tests/fixtures/manifest.json`. The router:
+
+* answers the auth service itself with fake JWTs for a test key, so no real
+  token is ever stored;
+* enforces PASTA's credential rules: no credential gets the recorded anonymous
+  403, an unknown token or a wrong `?key=` gets 401;
+* fails the test when a credential (cookie or `key`) reaches any host other
+  than PASTA;
+* records every request in `FixtureRouter.calls`, and fails the test on any
+  request it has no fixture for.
+
+Tool tests go through `tests.helpers.call_ok`, which asserts success and
+validates the payload against the tool's `outputSchema`, and `call_err`, which
+asserts an error code. The suite also covers the registry, config precedence,
+log redaction, error mapping, the identifier parser (with hypothesis), the
+cache, both backends, the transports (stdio in both protocol eras, Streamable
+HTTP, `X-EDI-Key` passthrough, health endpoints) and MCP 2026-07-28
+conformance (`tests/test_spec_conformance_2026_07_28.py`).
+
+The coverage gate is 85% (`fail_under` in `pyproject.toml`, branch coverage):
+
+```bash
+uv run pytest --cov=edi_mcp --cov-report=term
+```
+
+## Recording fixtures
+
+Fixtures come only from `scripts/record_fixtures.py`, never from hand edits.
+`record` drives the real backends (PASTA with `EDI_API_KEY`, DataONE without)
+and the scenarios in `TOOL_SCENARIOS` (real tool calls on both backends)
+through a recording transport, so fixtures match the exact requests edi-mcp
+makes:
+
+```bash
+set -a; . ./.env; set +a          # loads EDI_API_KEY without printing it
+uv run python scripts/record_fixtures.py record
+```
+
+It never records auth-service traffic, stores no response headers except
+`Content-Type` and `Location`, and scrubs every body before writing it: the
+key, every `edi-token` it saw, anything JWT-shaped, and the identity claims
+decoded from the token. Recordings land in the gitignored `tests/fixtures/_raw/`
+and replace the committed set only if `check` passes on them.
+
+`check` (run in CI on every push) fails on a JWT-shaped string, `edi-token=`,
+`set-cookie`, `key=` in a manifest URL, the API key itself when `EDI_API_KEY` is
+set, a missing manifest file, a fixture over 40 KB, or a total over 3 MB.
+
+## Live tests
+
+Live tests hit the real services and are opt-in. DataONE tests run anonymously;
+PASTA tests also need `EDI_API_KEY` and skip without it.
+
+```bash
+set -a; . ./.env; set +a
+EDI_MCP_LIVE=1 uv run pytest -m live tests/live
+```
+
+They assert behaviour that fixtures cannot: that sorted searches come back in
+order (PASTA silently ignores a malformed sort, so an HTTP 200 proves nothing),
+that bounding-box, author and temporal filters return the right region and
+records, and that the dated scope snapshot is current (a known scope leaving
+PASTA fails; new scopes only warn). DataONE's index changes without notice
+(see `RESEARCH.md`), so a failing live test can mean upstream drift rather than
+a regression.
+
+## CI
+
+`.github/workflows/ci.yml` runs on pushes to `main`, pull requests, manual
+dispatch and nightly:
+
+* **test** on Python 3.11, 3.12 and 3.13: ruff check and format, `mypy
+  --strict`, the fixture `check`, and the full suite with coverage;
+* **test (macOS)**: smoke and stdio transport tests on Python 3.12;
+* **MCP 2026-07-28 conformance**: asserts the SDK is `mcp` 2.x, runs the
+  conformance and transport tests, and fails on deprecated MCP features in
+  `src/` (sampling, roots, `logging/setLevel`, the legacy SSE transport,
+  session ids);
+* **live smoke (nightly)**: on schedule and manual dispatch, with
+  `EDI_MCP_LIVE=1` and the repository secret `EDI_API_KEY` (PASTA tests skip
+  when the secret is not set).
+
+## Documentation checks
+
+`.github/workflows/docs.yml` validates the docs on every pull request and
+deploys the site from `main`:
+
+```bash
+uv run python scripts/okf_validate.py docs      # OKF v0.2 frontmatter and reserved files
+uv run python scripts/gen_llms_txt.py           # docs/llms.txt, docs/llms-full.txt
+uv run python scripts/gen_tools_reference.py    # docs/tools/reference.md
+uv run python scripts/gen_config_reference.py   # settings table in configuration.md
+git diff --exit-code docs/                      # CI fails if a generated file drifted
+uv run zensical build --clean --strict          # broken links fail the build
+```
+
+---8<--- https://idss-mesa.github.io/edi-mcp/about/ai-agents/
+
+---
+title: "For AI agents"
+description: "How agents and harnesses should consume this documentation — llms.txt, per-page Markdown with OKF frontmatter, trust signals — and why they should connect to the edi-mcp server itself for EDI data."
+type: Reference
+tags:
+  - about
+  - ai-agents
+  - OKF
+  - llms.txt
+generated:
+  by: "claude/opus-5.5"
+  at: "2026-10-19T00:00:00Z"
+sources:
+  - id: okf-spec
+    resource: "https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md"
+    title: "Open Knowledge Format (OKF) v0.2 specification"
+    author: "team:google-cloud"
+  - id: llmstxt
+    resource: "https://llmstxt.org"
+    title: "The /llms.txt convention"
+    author: "team:answer-ai"
+  - id: mcp-spec
+    resource: "https://modelcontextprotocol.io/specification/2026-07-28"
+    title: "Model Context Protocol specification, 2026-07-28"
+    author: "team:modelcontextprotocol"
+status: stable
+---
+
+# For AI agents
+
+This site is published for people **and** for AI agents. The documentation
+source is an [Open Knowledge Format (OKF) v0.2](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md){target=_blank}
+knowledge bundle[^okf-spec], and the deployed site exposes that structure
+directly. If you are an agent (or you are wiring one up), consume the
+documentation through the endpoints below rather than scraping rendered HTML.
+
+## This site documents an MCP server
+
+edi-mcp *is* an agent tool. If what you actually want is EDI data —
+packages, scopes, revisions, metadata — do not scrape these pages: connect to
+the server and call its tools. Locally, run it over `stdio`
+(`claude mcp add edi -s user -- edi-mcp --transport stdio`); against a
+hosted instance, use Streamable HTTP at `https://<host>/mcp`
+(`claude mcp add --transport http edi https://<host>/mcp`). The server
+implements MCP 2026-07-28[^mcp-spec]: `server/discover` and `tools/list`
+return the live, authoritative tool catalogue with JSON Schema inputs and
+outputs, and every list result carries cache hints. Use this documentation
+to learn *how* to use the server; use the server to get the data.
+
+## Entry points
+
+All URLs are under `https://idss-mesa.github.io/edi-mcp/`.
+
+| Endpoint | What you get |
+| -------- | ------------ |
+| [`llms.txt`](../llms.txt) — `https://idss-mesa.github.io/edi-mcp/llms.txt` | Linked outline of every page with one-line descriptions ([llms.txt convention](https://llmstxt.org){target=_blank}[^llmstxt]) |
+| [`llms-full.txt`](../llms-full.txt) — `https://idss-mesa.github.io/edi-mcp/llms-full.txt` | The entire corpus in one file: every page's Markdown with frontmatter, each prefixed by its canonical URL |
+| Any page URL + `index.md` | That page's Markdown source with full OKF frontmatter, e.g. `https://idss-mesa.github.io/edi-mcp/getting-started/api-key/index.md` |
+| `https://idss-mesa.github.io/edi-mcp/sitemap.xml`, `https://idss-mesa.github.io/edi-mcp/robots.txt` | Standard crawl surface; `robots.txt` welcomes AI fetchers and repeats these pointers |
+| [`tools/reference/`](../tools/reference.md) — `https://idss-mesa.github.io/edi-mcp/tools/reference/` | The tool catalogue generated from the server's registry: every tool's inputs, result fields, endpoints and key requirement |
+| [Source repository](https://github.com/idss-mesa/edi-mcp){target=_blank} | The bundle itself under `docs/`, plus `CLAUDE.md` with the rules coding agents follow when editing the code |
+
+Every rendered page also declares its Markdown twin and OKF signals in its
+HTML `<head>`, as `okf:`-prefixed meta tags named after the frontmatter keys
+(`type`, `status`, `trust-tier`, `generated-at`, `generated-by`,
+`stale-after`) — for example:
+
+```html
+<link rel="alternate" type="text/markdown" href="index.md">
+<meta name="okf:status" content="stable">
+<meta name="okf:trust-tier" content="unverified">
+<meta name="okf:generated-at" content="2026-10-19T00:00:00Z">
+<meta name="okf:generated-by" content="claude/opus-5.5">
+<meta name="okf:stale-after" content="2027-04-19T00:00:00Z">
+```
+
+The page's `type` is exposed the same way, so a crawler can filter by kind of
+page (Guide, Reference, Policy, ...) without parsing frontmatter.
+
+## Reading the OKF frontmatter
+
+Each content page's YAML frontmatter answers the questions an agent should
+ask before relying on it[^okf-spec]:
+
+* **What is this?** — `type` (`Guide`, `Tutorial`, `Reference`, `Policy`,
+  `MCP Tool Reference`), `title`, `description`, `tags`.
+* **Where did it come from?** — `generated: { by, at }` records the actor
+  that produced the current text and when it last changed meaningfully;
+  `sources` lists the load-bearing external references (`id`, `resource`
+  URL, `title`, `author`). Footnotes in the body cite sources by their `id`.
+* **How much should I trust it?** — the `verified` key (see trust tiers
+  below). Its absence is meaningful: the page has not been confirmed by
+  anyone other than its generator.
+* **Is it still true?** — `status` (`stable` is the default; `draft` needs
+  review; `deprecated` is kept for history only) and `stale_after`, an
+  ISO 8601 instant after which the page should be re-checked. Pages that
+  state facts EDI, DataONE or the MCP project may change — key rules,
+  endpoints, SDK versions — carry one.
+
+Actors follow OKF §7: `<producer>/<version>` for agents and tools (for
+example `claude/opus-5.5`), `human:<id>` for a person, `process:<id>` for an
+automated job such as the generated tool reference.
+
+## Trust tiers
+
+| `verified` key | Tier | Meaning |
+| --- | --- | --- |
+| absent | **unverified** | Generated content nobody has confirmed against its sources. Most pages on this site start here. |
+| present, non-`human:` actors only | **machine-confirmed** | An automated check (a CI job, a live smoke test) confirmed the content. |
+| present with a `human:<id>` actor | **human-reviewed** | A maintainer read and confirmed the page. Prefer these when answers conflict. |
+
+Only humans add `verified:` entries; a generator never does. The
+`okf:trust-tier` meta tag carries the derived tier for quick filtering.
+
+## Answering user questions
+
+Ground answers in this documentation and cite the page URL (for example
+`https://idss-mesa.github.io/edi-mcp/getting-started/api-key/`). For
+anything about the *data* — package ids, scopes, revisions, DOIs, entity
+names — call the server or the
+[EDI repository](https://edirepository.org){target=_blank}
+rather than guessing from prose. When the corpus does not answer a question
+about edi-mcp itself, direct users to the
+[GitHub issue tracker](https://github.com/idss-mesa/edi-mcp/issues){target=_blank}.
+
+[^okf-spec]: Open Knowledge Format (OKF) v0.2 specification. <https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md>
+[^llmstxt]: The /llms.txt convention. <https://llmstxt.org>
+[^mcp-spec]: Model Context Protocol specification, 2026-07-28. <https://modelcontextprotocol.io/specification/2026-07-28>
+
+---8<--- https://idss-mesa.github.io/edi-mcp/about/citing-edi/
+
+---
+title: "Citing EDI data"
+description: "How to cite an EDI data package by its revision DOI (doi:10.6073/pasta/…), the ESIP, DRYAD and BibTeX styles of cite.edirepository.org, intellectual rights per package, and how to mention edi-mcp."
+type: Policy
+tags:
+  - about
+  - citation
+  - DOI
+  - data-policy
+generated:
+  by: "claude/opus-5.5"
+  at: "2026-10-19T00:00:00Z"
+sources:
+  - id: edi-policy
+    resource: "https://edirepository.org/about/edi-policy"
+    title: "EDI Policy — Data policy (version 2.0, updated 2026-04-01)"
+    author: "team:edi"
+  - id: edi-cite
+    resource: "https://cite.edirepository.org/cite/knb-lter-hbr.14.22?style=ESIP"
+    title: "EDI citation service (example: knb-lter-hbr.14.22)"
+    author: "team:edi"
+  - id: edi-mcp-license
+    resource: "https://github.com/idss-mesa/edi-mcp/blob/main/LICENSE"
+    title: "edi-mcp LICENSE file (MIT)"
+    author: "team:idss-mesa"
+status: stable
+stale_after: "2027-04-19T00:00:00Z"
+---
+
+# Citing EDI data
+
+edi-mcp is only a conduit. The data packages it finds belong to their creators and are
+published by the Environmental Data Initiative (EDI). The intellectual rights stated in
+each package, together with EDI's data policy[^edi-policy], govern how you may use and
+credit them; this project's license does not.
+
+## What to cite: one revision, one DOI
+
+An EDI data package is identified as `scope.identifier.revision`, for example
+`knb-lter-hbr.14.22` (scope `knb-lter-hbr`, the Hubbard Brook LTER; identifier `14`;
+revision `22`). Published revisions are immutable: changes to a package appear as a new
+revision, and each revision has its own DOI of the form `doi:10.6073/pasta/<md5>`.
+Cite the revision you actually used, by its DOI, so that others get the same data.
+[Package identifiers](../tools/identifiers.md) explains the formats edi-mcp accepts.
+
+## Citation styles
+
+EDI's citation service, `cite.edirepository.org`, formats a citation for any public
+package without a key[^edi-cite]. It offers the ESIP, DRYAD and BIBTEX styles, and JSON
+fields with `Accept: application/json`. For `knb-lter-hbr.14.22` on 2026-10-19:
+
+=== "ESIP"
+
+    > USDA Forest Service, Northern Research Station. 2026. Hubbard Brook Experimental
+    > Forest: Total Daily Precipitation by Watershed, 1956 - ongoing ver 22.
+    > Environmental Data Initiative.
+    > https://doi.org/10.6073/pasta/2017345f0977c0f7c46e1ad90ce1b062.
+
+=== "DRYAD"
+
+    > USDA Forest Service, Northern Research Station (2026) Hubbard Brook Experimental
+    > Forest: Total Daily Precipitation by Watershed, 1956 - ongoing. Environmental Data
+    > Initiative. https://doi.org/10.6073/pasta/2017345f0977c0f7c46e1ad90ce1b062
+
+=== "BIBTEX"
+
+    ```bibtex
+    @misc{knb-lter-hbr.14.22,
+        author={USDA Forest Service, Northern Research Station},
+        title={{Hubbard Brook Experimental Forest: Total Daily Precipitation by Watershed, 1956 - ongoing. ver 22}},
+        year={2026},
+        publisher={Environmental Data Initiative},
+        doi={10.6073/pasta/2017345f0977c0f7c46e1ad90ce1b062},
+        url={https://doi.org/10.6073/pasta/2017345f0977c0f7c46e1ad90ce1b062},
+        note = {Type: dataset}
+    }
+    ```
+
+You can request these yourself, for example
+`https://cite.edirepository.org/cite/knb-lter-hbr.14.22?style=ESIP`. The EDI Data
+Portal's landing page for each package shows the same citation.
+
+!!! note "edi_get_citation is planned"
+
+    A dedicated `edi_get_citation` tool that returns these styles is part of the next
+    build step and is not available yet (see the [Roadmap](../tools/roadmap.md)). Until
+    then, `edi_search_packages` returns each package's `doi` and `portalUrl`, from which
+    the citation above can be retrieved.
+
+## Intellectual rights
+
+EDI curates each package with the intellectual rights its provider declared in the EML
+metadata. EDI advocates open access without use restrictions but allows providers to
+declare more restrictive licenses. When a provider declares none, EDI adds a default
+statement based on the Creative Commons CC0 1.0 "No Rights Reserved" waiver, which also
+asks for attribution as professional etiquette[^edi-policy]. Check the rights stated in
+the package you use rather than assuming a license; some packages are also
+access-restricted and need permission from their contacts.
+
+## About edi-mcp itself
+
+If you retrieved data through edi-mcp you may mention the tool in your methods, but the
+citation of record is always the data package DOI. Never cite PASTA or DataONE download
+URLs. The edi-mcp server software is MIT-licensed by The Regents of the University of
+New Mexico[^edi-mcp-license] and is not affiliated with or endorsed by EDI, the LTER
+Network or DataONE. See [License](license.md).
+
+[^edi-policy]: EDI Policy — Data policy, version 2.0 (updated 2026-04-01). <https://edirepository.org/about/edi-policy>
+[^edi-cite]: EDI citation service. <https://cite.edirepository.org/cite/knb-lter-hbr.14.22?style=ESIP>
+[^edi-mcp-license]: edi-mcp `LICENSE` file. <https://github.com/idss-mesa/edi-mcp/blob/main/LICENSE>
+
+---8<--- https://idss-mesa.github.io/edi-mcp/about/license/
+
+---
+title: "License"
+description: "The edi-mcp server code is MIT-licensed by The Regents of the University of New Mexico; this documentation is CC-BY 4.0; EDI data packages carry their own intellectual rights, per package."
+type: Policy
+tags:
+  - about
+  - license
+  - MIT
+  - CC-BY
+generated:
+  by: "claude/opus-5.5"
+  at: "2026-10-19T00:00:00Z"
+sources:
+  - id: edi-mcp-license
+    resource: "https://github.com/idss-mesa/edi-mcp/blob/main/LICENSE"
+    title: "edi-mcp LICENSE file (MIT)"
+    author: "team:idss-mesa"
+  - id: mit
+    resource: "https://opensource.org/license/mit"
+    title: "The MIT License"
+    author: "team:opensource-org"
+  - id: cc-by-4
+    resource: "https://creativecommons.org/licenses/by/4.0/"
+    title: "Creative Commons Attribution 4.0 International (CC BY 4.0)"
+    author: "team:creativecommons"
+  - id: edi-policy
+    resource: "https://edirepository.org/about/edi-policy"
+    title: "EDI Policy — Data policy"
+    author: "team:edi"
+status: stable
+---
+
+# License
+
+Three things meet on this site: the server software, the documentation you are
+reading, and the EDI data packages the server gives access to. Each has its own license.
+
+## Server code — MIT
+
+The edi-mcp source code (the `edi_mcp` Python package, the `edi-mcp` command-line
+program, tests and build scripts) is released under the
+[MIT License](https://opensource.org/license/mit){target=_blank}[^mit]:
+
+> Copyright (c) 2026 The Regents of the University of New Mexico
+
+The full text is in the repository's
+[`LICENSE`](https://github.com/idss-mesa/edi-mcp/blob/main/LICENSE){target=_blank}
+file[^edi-mcp-license]. In short: you may use, copy, modify, merge, publish, distribute,
+sublicense and sell the software, provided the copyright notice and permission notice
+are included; the software is provided "as is", without warranty.
+
+## Documentation text — CC-BY 4.0
+
+The prose, tables and examples on this site (everything under `docs/` in the
+repository, including the OKF frontmatter) are licensed under
+[Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/){target=_blank}[^cc-by-4].
+You may share and adapt the material for any purpose, provided you give appropriate
+credit ("edi-mcp documentation, idss-mesa / The Regents of the University of New
+Mexico, CC-BY 4.0") and indicate whether changes were made. Code snippets embedded in
+the documentation may alternatively be used under the MIT terms above.
+
+## EDI data — per package
+
+Data packages retrieved from EDI through edi-mcp are not part of this project and are
+not covered by either license above. Each package states its own intellectual rights in
+its EML metadata. EDI advocates open access but lets providers declare more restrictive
+terms; when a provider declares none, EDI applies a default statement based on the
+CC0 1.0 waiver[^edi-policy]. Read the rights of each package you use, and cite it as
+described in [Citing EDI data](citing-edi.md).
+
+## Trademarks and affiliation
+
+edi-mcp is an independent project of
+[idss-mesa](https://github.com/idss-mesa){target=_blank} at the University of New
+Mexico. It is not developed, endorsed or supported by the Environmental Data
+Initiative, the LTER Network, DataONE or the U.S. National Science Foundation. Their
+names belong to their respective owners; this site uses its own original artwork.
+
+[^mit]: The MIT License. <https://opensource.org/license/mit>
+[^edi-mcp-license]: edi-mcp `LICENSE` file. <https://github.com/idss-mesa/edi-mcp/blob/main/LICENSE>
+[^cc-by-4]: Creative Commons Attribution 4.0 International. <https://creativecommons.org/licenses/by/4.0/>
+[^edi-policy]: EDI Policy — Data policy. <https://edirepository.org/about/edi-policy>
+
+---8<--- https://idss-mesa.github.io/edi-mcp/log/
+
+# Directory Update Log
+
+## 2026-10-19
+* **Creation**: Established the edi-mcp documentation bundle (OKF v0.2), ported from neon-mcp: root [index](index.md), this log, the Zensical site configuration, the OKF validator, the `llms.txt` generator and the post-build agent surface (Markdown mirror, `okf:*` head metadata, `robots.txt`), deployed to GitHub Pages.
+* **Creation**: [Getting started](getting-started/index.md) section: [Install](getting-started/install.md), [Quickstart](getting-started/quickstart.md), [EDI API key](getting-started/api-key.md), [Clients](getting-started/clients.md) and [Configuration](getting-started/configuration.md) (its settings table generated by `scripts/gen_config_reference.py`).
+* **Creation**: [Tools](tools/index.md) section: the generated [Tool reference](tools/reference.md) (`scripts/gen_tools_reference.py`), [Discovery](tools/discovery.md), [Package identifiers](tools/identifiers.md), [Backends](tools/backends.md), [Utilities and errors](tools/utilities.md) and the [Roadmap](tools/roadmap.md) of tools still to come.
+* **Creation**: [MCP protocol](mcp/index.md), [Deploy](deploy/index.md), [Develop](develop/index.md) and [About](about/index.md) sections.
