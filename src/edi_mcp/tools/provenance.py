@@ -13,7 +13,6 @@ from pydantic import Field
 from edi_mcp.context import ToolContext
 from edi_mcp.edi.backends import PastaBackend, backend_for, resolve_package
 from edi_mcp.edi.backends.pasta import LinkedPackage
-from edi_mcp.edi.scopes import load_scopes
 from edi_mcp.edi.xml import parse_xml
 from edi_mcp.errors import ToolError
 from edi_mcp.models.common import EdiOutput, Resolved, ToolResultBase
@@ -26,6 +25,7 @@ from edi_mcp.projections.report import (
 )
 from edi_mcp.registry import register_tool
 from edi_mcp.tools._common import merge_notes, source
+from edi_mcp.tools.data import require_replicated
 from edi_mcp.tools.packages import PackageArgs, RevisionFrom
 
 
@@ -76,17 +76,10 @@ class QualityResult(ToolResultBase):
 )
 async def edi_get_quality_report(args: QualityIn, ctx: ToolContext) -> QualityResult:
     backend = backend_for(ctx)
+    if backend.name == "dataone":
+        require_replicated(args, ctx)
     resolved = await resolve_package(backend, args.package, args.revision)
     package = resolved.package
-    if backend.name == "dataone":
-        record = load_scopes().get(package.scope)
-        if record is not None and not record.dataone_replicated:
-            raise ToolError(
-                "auth_required",
-                f"DataONE does not replicate scope {record.scope}; its reports need an EDI API key.",
-                details={"scope": record.scope},
-                hint="Set EDI_API_KEY to read the report from PASTA (see edi://guide/api-key).",
-            )
     body = await backend.read_report(package)
     root = parse_xml(
         body,

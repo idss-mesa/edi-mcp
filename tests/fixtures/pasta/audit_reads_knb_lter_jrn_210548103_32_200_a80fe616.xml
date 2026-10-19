@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resourceReads>
+    <resource>
+        <resourceId>https://pasta.lternet.edu/package/metadata/eml/knb-lter-jrn/210548103/32</resourceId>
+        <resourceType>metadata</resourceType>
+        <scope>knb-lter-jrn</scope>
+        <identifier>210548103</identifier>
+        <revision>32</revision>
+        <totalReads>146</totalReads>
+        <nonRobotReads>146</nonRobotReads>
+    </resource>
+    <resource>
+        <resourceId>https://pasta.lternet.edu/package/eml/knb-lter-jrn/210548103/32</resourceId>
+        <resourceType>dataPackage</resourceType>
+        <scope>knb-lter-jrn</scope>
+        <identifier>210548103</identifier>
+        <revision>32</revision>
+        <totalReads>68</totalReads>
+        <nonRobotReads>68</nonRobotReads>
+    </resource>
+    <resource>
+        <resourceId>https://pasta.lternet.edu/package/data/eml/knb-lter-jrn/210548103/32/9c680810940709cb17bf09e4c4785100</resourceId>
+        <resourceType>data</resourceType>
+        <scope>knb-lter-jrn</scope>
+        <identifier>210548103</identifier>
+        <revision>32</revision>
+        <totalReads>40</totalReads>
+        <nonRobotReads>40</nonRobotReads>
+    </resource>
+    <resource>
+        <resourceId>https://pasta.lternet.edu/package/report/eml/knb-lter-jrn/210548103/32</resourceId>
+        <resourceType>report</resourceType>
+        <scope>knb-lter-jrn</scope>
+        <identifier>210548103</identifier>
+        <revision>32</revision>
+        <totalReads>68</totalReads>
+        <nonRobotReads>68</nonRobotReads>
+    </resource>
+</resourceReads>

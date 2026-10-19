@@ -52,7 +52,8 @@ def unescape_delimiter(value: str | None) -> str | None:
 class Layout:
     field_delimiter: str = ","
     quote_character: str | None = '"'
-    header_lines: int = 0
+    #: None when the EML does not say: the header is then detected (see parse_preview).
+    header_lines: int | None = 0
     notes: list[str] = field(default_factory=list)
 
 
@@ -60,7 +61,7 @@ def layout(
     field_delimiter: str | None, quote_character: str | None, header_lines: int | None
 ) -> Layout:
     """The parsing layout from EML values (None when the EML is silent)."""
-    out = Layout(header_lines=max(header_lines or 0, 0))
+    out = Layout(header_lines=max(header_lines, 0) if header_lines is not None else None)
     delimiter = unescape_delimiter(field_delimiter)
     if delimiter is None:
         out.notes.append("The EML names no field delimiter; assumed a comma.")
@@ -96,7 +97,27 @@ def _cell(value: str, counter: list[int]) -> str:
     return value
 
 
-def parse_preview(data: bytes, *, eof: bool, fmt: Layout, rows: int) -> Preview:
+def _detect_header(first: list[str], text: str, attribute_names: list[str]) -> bool:
+    """Whether the first record is a header when the EML gives no header-line count:
+    it names at least half of the EML attributes, or csv.Sniffer thinks so."""
+    cells = {c.strip().lower() for c in first if c.strip()}
+    names = {n.strip().lower() for n in attribute_names if n and n.strip()}
+    if names and cells:
+        return len(cells & names) * 2 >= min(len(cells), len(names))
+    try:
+        return csv.Sniffer().has_header(text[:16384])
+    except csv.Error:
+        return False
+
+
+def parse_preview(
+    data: bytes,
+    *,
+    eof: bool,
+    fmt: Layout,
+    rows: int,
+    attribute_names: list[str] | None = None,
+) -> Preview:
     """Header (the last header line) and up to ``rows`` records of ``data``."""
     if looks_binary(data):
         raise ToolError(
@@ -121,9 +142,16 @@ def parse_preview(data: bytes, *, eof: bool, fmt: Layout, rows: int) -> Preview:
     cut_cells = [0]
     columns_cut = 0
     complete = eof
+    header_lines = fmt.header_lines
     try:
         for index, record in enumerate(reader):
-            if index < fmt.header_lines:
+            if header_lines is None:
+                header_lines = 1 if _detect_header(record, text, attribute_names or []) else 0
+                fmt.notes.append(
+                    "The EML gives no header-line count; the first line was "
+                    + ("taken as the header." if header_lines else "taken as data.")
+                )
+            if index < header_lines:
                 header = record
                 continue
             if not record or all(not c.strip() for c in record):

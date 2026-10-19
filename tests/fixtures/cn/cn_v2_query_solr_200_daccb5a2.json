@@ -2,7 +2,7 @@
   "responseHeader":{
     "zkConnected":true,
     "status":0,
-    "QTime":76,
+    "QTime":104,
     "params":{
       "q":"thiessen",
       "defType":"edismax",
@@ -19,16 +19,6 @@
     "start":0,
     "numFoundExact":true,
     "docs":[{
-      "id":"https://pasta.lternet.edu/package/metadata/eml/knb-lter-hbr/14/10",
-      "dateUploaded":"2019-02-08T19:04:40.590Z",
-      "keywords":["ecosystems","forests","gage","gauge","HBR","Hubbard Brook LTER","precipitation","rain","watersheds","disturbance"],
-      "title":"Hubbard Brook Experimental Forest (US Forest Service):\n    Total Daily Precipitation by Watershed, 1956 - present",
-      "beginDate":"1956-01-01T00:00:00Z",
-      "endDate":"2014-01-01T00:00:00Z",
-      "pubDate":"2016-01-01T00:00:00Z",
-      "origin":["USDA Forest Service, Northern Research Station"],
-      "resourceMap":["doi:10.6073/pasta/163e416fb108862dc6eb857360fa9c90"]
-    },{
       "id":"https://pasta.lternet.edu/package/metadata/eml/knb-lter-hbr/14/9",
       "dateUploaded":"2019-01-09T21:04:36.675Z",
       "keywords":["ecosystems","forests","gage","gauge","HBR","Hubbard Brook LTER","precipitation","rain","watersheds","disturbance"],
@@ -38,6 +28,16 @@
       "pubDate":"2016-01-01T00:00:00Z",
       "origin":["John Campbell"],
       "resourceMap":["doi:10.6073/pasta/f0200658259e86def0f8657f54396007"]
+    },{
+      "id":"https://pasta.lternet.edu/package/metadata/eml/knb-lter-hbr/14/10",
+      "dateUploaded":"2019-02-08T19:04:40.590Z",
+      "keywords":["ecosystems","forests","gage","gauge","HBR","Hubbard Brook LTER","precipitation","rain","watersheds","disturbance"],
+      "title":"Hubbard Brook Experimental Forest (US Forest Service):\n    Total Daily Precipitation by Watershed, 1956 - present",
+      "beginDate":"1956-01-01T00:00:00Z",
+      "endDate":"2014-01-01T00:00:00Z",
+      "pubDate":"2016-01-01T00:00:00Z",
+      "origin":["USDA Forest Service, Northern Research Station"],
+      "resourceMap":["doi:10.6073/pasta/163e416fb108862dc6eb857360fa9c90"]
     },{
       "id":"https://pasta.lternet.edu/package/metadata/eml/knb-lter-hbr/14/22",
       "dateUploaded":"2026-10-16T20:45:16.482Z",

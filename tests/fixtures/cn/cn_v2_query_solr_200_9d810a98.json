@@ -2,7 +2,7 @@
   "responseHeader":{
     "zkConnected":true,
     "status":0,
-    "QTime":17,
+    "QTime":53,
     "params":{
       "q":"*:*",
       "fq":"formatType:METADATA AND datasource:(\"urn:node:EDI\" OR \"urn:node:LTER\")",
@@ -11,7 +11,7 @@
     }
   },
   "response":{
-    "numFound":80325,
+    "numFound":80327,
     "start":0,
     "numFoundExact":true,
     "docs":[ ]

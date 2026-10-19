@@ -1,10 +1,31 @@
 [
  {
+  "key": "GET cite.edirepository.org/cite/icarus.13.1?style=ESIP",
+  "status": 400,
+  "contentType": "text/html",
+  "credential": false,
+  "file": "cite/cite_icarus_13_1_400_809fb774.txt"
+ },
+ {
   "key": "GET cite.edirepository.org/cite/knb-lter-hbr.14.22",
   "status": 200,
   "contentType": "application/json",
   "credential": false,
   "file": "cite/cite_knb_lter_hbr_14_22_200_bb08d70a.json"
+ },
+ {
+  "key": "GET cite.edirepository.org/cite/knb-lter-hbr.14.22?style=BIBTEX",
+  "status": 200,
+  "contentType": "text/plain",
+  "credential": false,
+  "file": "cite/cite_knb_lter_hbr_14_22_200_2a339bca.txt"
+ },
+ {
+  "key": "GET cite.edirepository.org/cite/knb-lter-hbr.14.22?style=ESIP",
+  "status": 200,
+  "contentType": "text/plain",
+  "credential": false,
+  "file": "cite/cite_knb_lter_hbr_14_22_200_5bcd8326.txt"
  },
  {
   "key": "GET cn.dataone.org/cn/v2/object/doi%3A10.6073%2Fpasta%2F2017345f0977c0f7c46e1ad90ce1b062",
@@ -147,11 +168,25 @@
   "file": "gmn/metadata_eml_edi_2081_1_200_47f8b370.txt"
  },
  {
+  "key": "GET gmn.edirepository.org/mn/v2/object/https%3A%2F%2Fpasta.lternet.edu%2Fpackage%2Freport%2Feml%2Fedi%2F2081%2F1",
+  "status": 200,
+  "contentType": "application/octet-stream",
+  "credential": false,
+  "file": "gmn/report_eml_edi_2081_1_200_dfa5c41f.txt"
+ },
+ {
   "key": "GET gmn.lternet.edu/mn/v2/meta/https%3A%2F%2Fpasta.lternet.edu%2Fpackage%2Fdata%2Feml%2Fknb-lter-hbr%2F14%2F22%2Fc4f72fa0cb155f1b61f1333bb67e3d00",
   "status": 200,
   "contentType": "text/xml",
   "credential": false,
   "file": "gmn/data_eml_knb_lter_hbr_14_22_c4f72fa0cb155f1b61f1333bb67e3d00_200_7d514062.xml"
+ },
+ {
+  "key": "GET gmn.lternet.edu/mn/v2/object/https%3A%2F%2Fpasta.lternet.edu%2Fpackage%2Fdata%2Feml%2Fknb-lter-hbr%2F14%2F22%2Fc4f72fa0cb155f1b61f1333bb67e3d00",
+  "status": 200,
+  "contentType": "application/octet-stream",
+  "credential": false,
+  "file": "gmn/data_eml_knb_lter_hbr_14_22_c4f72fa0cb155f1b61f1333bb67e3d00_200_b4c876f3.txt"
  },
  {
   "key": "GET gmn.lternet.edu/mn/v2/object/https%3A%2F%2Fpasta.lternet.edu%2Fpackage%2Fmetadata%2Feml%2Fknb-lter-hbr%2F14%2F22",
@@ -175,6 +210,27 @@
   "file": "gmn/metadata_eml_knb_lter_jrn_210548103_32_200_bc8b59c4.txt"
  },
  {
+  "key": "GET pasta.lternet.edu/audit/reads/edi/2081",
+  "status": 200,
+  "contentType": "application/xml",
+  "credential": true,
+  "file": "pasta/audit_reads_edi_2081_200_2c997a44.xml"
+ },
+ {
+  "key": "GET pasta.lternet.edu/audit/reads/knb-lter-jrn/210548103/32",
+  "status": 200,
+  "contentType": "application/xml",
+  "credential": true,
+  "file": "pasta/audit_reads_knb_lter_jrn_210548103_32_200_a80fe616.xml"
+ },
+ {
+  "key": "GET pasta.lternet.edu/package/changes/eml?fromDate=2026-10-12&scope=edi&toDate=2026-10-19",
+  "status": 200,
+  "contentType": "application/xml",
+  "credential": true,
+  "file": "pasta/package_changes_eml_200_62baa37d.xml"
+ },
+ {
   "key": "GET pasta.lternet.edu/package/data/checksum/eml/knb-lter-hbr/14/22/c4f72fa0cb155f1b61f1333bb67e3d00",
   "status": 200,
   "contentType": "text/plain",
@@ -189,6 +245,13 @@
   "file": "pasta/l_knb_lter_jrn_210548103_32_9c680810940709cb17bf09e4c4785100_200_c8cd3596.txt"
  },
  {
+  "key": "GET pasta.lternet.edu/package/data/eml/knb-lter-hbr/14/22/c4f72fa0cb155f1b61f1333bb67e3d00",
+  "status": 200,
+  "contentType": "text/csv",
+  "credential": true,
+  "file": "pasta/data_eml_knb_lter_hbr_14_22_c4f72fa0cb155f1b61f1333bb67e3d00_200_803a70c1.csv"
+ },
+ {
   "key": "GET pasta.lternet.edu/package/data/size/eml/knb-lter-hbr/14/22",
   "status": 200,
   "contentType": "text/csv",
@@ -201,6 +264,13 @@
   "contentType": "text/csv",
   "credential": true,
   "file": "pasta/package_data_size_eml_knb_lter_jrn_210548103_32_200_10e7e411.csv"
+ },
+ {
+  "key": "GET pasta.lternet.edu/package/descendants/eml/knb-lter-hbr/14/22",
+  "status": 200,
+  "contentType": "application/xml",
+  "credential": true,
+  "file": "pasta/package_descendants_eml_knb_lter_hbr_14_22_200_006997f1.xml"
  },
  {
   "key": "GET pasta.lternet.edu/package/doi/eml/knb-lter-hbr/14/22",
@@ -301,6 +371,13 @@
   "file": "pasta/package_name_eml_knb_lter_jrn_210548103_32_200_8211f16c.csv"
  },
  {
+  "key": "GET pasta.lternet.edu/package/report/eml/edi/2081/1",
+  "status": 200,
+  "contentType": "application/xml",
+  "credential": true,
+  "file": "pasta/package_report_eml_edi_2081_1_200_e4e18b00.xml"
+ },
+ {
   "key": "GET pasta.lternet.edu/package/search/eml?defType=edismax&fl=packageid%2Ctitle%2Cpubdate%2Cdoi%2Cbegindate%2Cenddate%2Cscope%2Ckeyword%2Cauthor&fq=-scope%3A%28ecotrends+lter-landsat+lter-landsat-ledaps%29&q=streamflow&rows=5&start=0",
   "status": 200,
   "contentType": "application/xml",
@@ -341,6 +418,13 @@
   "contentType": "application/xml",
   "credential": true,
   "file": "pasta/package_search_eml_200_59204593.xml"
+ },
+ {
+  "key": "GET pasta.lternet.edu/package/sources/eml/knb-lter-hbr/14/22",
+  "status": 200,
+  "contentType": "application/xml",
+  "credential": true,
+  "file": "pasta/package_sources_eml_knb_lter_hbr_14_22_200_637d0752.xml"
  },
  {
   "key": "GET pasta.lternet.edu/package/eml",

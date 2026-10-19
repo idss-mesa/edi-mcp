@@ -15,7 +15,7 @@ from edi_mcp.context import ToolContext
 from edi_mcp.edi.backends import PastaBackend
 from edi_mcp.edi.downloads import DownloadArea, FileStatus, safe_name, unique_names
 from edi_mcp.edi.preview import layout, parse_preview
-from edi_mcp.edi.scopes import load_scopes
+from edi_mcp.edi.scopes import load_scopes, resolve_reference
 from edi_mcp.errors import EdiApiError, ToolError
 from edi_mcp.models.common import EdiOutput, ToolResultBase
 from edi_mcp.registry import register_tool
@@ -35,17 +35,22 @@ MAX_ROWS = 200
 SHA1_HEADER = "dataone-checksum"
 
 
-def _not_replicated(loaded: Loaded) -> None:
-    """Without a key, data come from DataONE, which does not hold every scope."""
-    if loaded.backend.name != "dataone":
+def require_replicated(args: PackageArgs, ctx: ToolContext) -> None:
+    """Without a key, data come from DataONE, which does not hold every scope; say so
+    before DataONE answers with a misleading 404."""
+    if ctx.api_key is not None:
         return
-    record = load_scopes().get(loaded.resolved.package.scope)
+    try:
+        ref, _ = resolve_reference(args.package, args.revision)
+    except ToolError:
+        return  # load() reports the bad reference
+    record = load_scopes().get(ref.package.scope) if ref.package is not None else None
     if record is not None and not record.dataone_replicated:
         raise ToolError(
             "auth_required",
-            f"DataONE does not replicate scope {record.scope}, so its data need an EDI API key.",
+            f"DataONE does not replicate scope {record.scope}, so reading it needs an EDI API key.",
             details={"scope": record.scope},
-            hint="Set EDI_API_KEY to read the data from PASTA (see edi://guide/api-key).",
+            hint="Set EDI_API_KEY to read it from PASTA (see edi://guide/api-key).",
         )
 
 
@@ -99,8 +104,8 @@ class PreviewResult(ToolResultBase):
     ],
 )
 async def edi_preview_entity(args: PreviewIn, ctx: ToolContext) -> PreviewResult:
+    require_replicated(args, ctx)
     loaded = await load(args, ctx)
-    _not_replicated(loaded)
     backend, package = loaded.backend, loaded.resolved.package
     rows, notes = await entity_rows(loaded)
     row = pick_entities(rows, [args.entity], package.package_id)[0]
@@ -115,7 +120,7 @@ async def edi_preview_entity(args: PreviewIn, ctx: ToolContext) -> PreviewResult
     cap = min(
         args.max_bytes or ctx.config.limits.preview_max_bytes, ctx.config.limits.preview_max_bytes
     )
-    wanted_lines = plan.header_lines + args.rows + 1
+    wanted_lines = (plan.header_lines if plan.header_lines is not None else 1) + args.rows + 1
     data = bytearray()
     eof = True
     try:
@@ -129,8 +134,10 @@ async def edi_preview_entity(args: PreviewIn, ctx: ToolContext) -> PreviewResult
         raise backend.not_found(exc, "entity", f"{package}/{row.entity_id}") from None
     if not eof and len(data) > cap:
         del data[cap:]
-    preview = parse_preview(bytes(data), eof=eof, fmt=plan, rows=args.rows)
     attribute_names = [a.name for a in row.meta.attributes] if row.meta else []
+    preview = parse_preview(
+        bytes(data), eof=eof, fmt=plan, rows=args.rows, attribute_names=attribute_names
+    )
     columns_from: Literal["header", "eml", "none"]
     if preview.header:
         columns, columns_from = preview.header, "header"
@@ -254,8 +261,8 @@ async def _expected_sha1(loaded: Loaded, row: EntityRow) -> str | None:
 async def edi_download_entities(args: DownloadEntitiesIn, ctx: ToolContext) -> DownloadResult:
     area = _require_downloads(ctx)
     subdir = area.clean_subdir(args.dest_subdir)
+    require_replicated(args, ctx)
     loaded = await load(args, ctx)
-    _not_replicated(loaded)
     backend, package = loaded.backend, loaded.resolved.package
     rows, notes = await entity_rows(loaded)
     chosen = [r for r in pick_entities(rows, args.entities, package.package_id) if r.entity_id]
