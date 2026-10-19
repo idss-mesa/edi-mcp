@@ -29,6 +29,8 @@ uv run pytest                                   # hermetic unit + conformance te
 uv run ruff check src tests scripts && uv run ruff format --check src tests
 uv run mypy --strict src
 uv run python scripts/record_fixtures.py check  # fixtures carry no secrets (CI runs it)
+scripts/install.sh --agents all --dry-run       # register with agents (test only in a sandboxed HOME)
+uv run zensical build --clean --strict          # docs; then gen_tools_reference.py / gen_llms_txt.py
 set -a; . ./.env; set +a; uv run python scripts/record_fixtures.py record   # re-record live
 set -a; . ./.env; set +a; EDI_MCP_LIVE=1 uv run pytest -m live tests/live   # live smoke
 ```

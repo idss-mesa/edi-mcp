@@ -17,6 +17,72 @@ ecological data packages.
 > [DESIGN.md](DESIGN.md) for decisions and [RESEARCH.md](RESEARCH.md) for verified API
 > facts.
 
+## Installation
+
+Full instructions for macOS, Linux and Windows:
+<https://idss-mesa.github.io/edi-mcp/getting-started/install/>.
+
+### Install script
+
+`scripts/install.sh` registers the server with every supported agent it finds. It
+creates the server environment with `uv sync` if `.venv/bin/edi-mcp` is missing, prefers
+each agent's own CLI when one is installed (`claude mcp add`, `codex mcp add`,
+`gemini mcp add`) and otherwise merges an entry into the agent's config file, keeping
+everything else in the file and leaving a `.bak` copy. It needs bash and
+[uv](https://docs.astral.sh/uv/).
+
+```bash
+git clone https://github.com/idss-mesa/edi-mcp.git && cd edi-mcp
+scripts/install.sh                               # every agent detected on this machine
+scripts/install.sh --with-key                    # also store EDI_API_KEY (read from env or a hidden prompt)
+scripts/install.sh --agents all --dry-run        # preview the change for every agent
+scripts/install.sh --agents claude,goose         # just Claude Code and Goose
+scripts/install.sh --scope project               # project-level config (claude, codex, gemini, opencode)
+scripts/install.sh --env EDI_MCP_SERVER__LOG_LEVEL=debug   # any extra environment variable
+scripts/install.sh --uninstall                   # remove the registration everywhere
+```
+
+| Agent | What the script does |
+|---|---|
+| `claude` (Claude Code) | `claude mcp add --scope user edi -- /path/to/edi-mcp/.venv/bin/edi-mcp` |
+| `claude-desktop` | adds `mcpServers.edi` to `claude_desktop_config.json` |
+| `codex` (OpenAI Codex CLI) | `codex mcp add edi -- …`, or an `[mcp_servers.edi]` table in `~/.codex/config.toml` |
+| `gemini` (Gemini CLI) | `gemini mcp add --scope user edi …`, or `mcpServers.edi` in `~/.gemini/settings.json` |
+| `goose` | adds an `edi` stdio extension to `~/.config/goose/config.yaml` |
+| `opencode` | adds `mcp.servers.edi` (v2) or `mcp.edi` (v1) to `~/.config/opencode/opencode.json` |
+
+The script writes absolute paths, because desktop apps do not inherit your shell
+`PATH`. There is no option that takes the key itself; with `--with-key` the key is
+stored in plain text in each agent's config (written owner-only) and never printed. On
+Windows, run it from Git Bash or follow the manual steps; restart desktop apps after
+installing.
+
+### Manual
+
+```bash
+uv tool install git+https://github.com/idss-mesa/edi-mcp
+claude mcp add edi -s user -e EDI_API_KEY="$EDI_API_KEY" -- edi-mcp
+```
+
+Claude Desktop (`~/Library/Application Support/Claude/claude_desktop_config.json` on
+macOS, `%APPDATA%\Claude\claude_desktop_config.json` on Windows,
+`~/.config/Claude/claude_desktop_config.json` on Linux):
+
+```json
+{
+  "mcpServers": {
+    "edi": {
+      "command": "/ABSOLUTE/PATH/TO/edi-mcp",
+      "args": [],
+      "env": { "EDI_API_KEY": "paste-your-key-here" }
+    }
+  }
+}
+```
+
+Other clients (Codex CLI, Gemini CLI, Goose, OpenCode, VS Code, hosted HTTP):
+<https://idss-mesa.github.io/edi-mcp/getting-started/clients/>.
+
 ## Authentication
 
 Since 2026-07-30 EDI requires an API key for **every** PASTA REST call, including

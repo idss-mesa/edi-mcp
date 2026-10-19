@@ -1,6 +1,8 @@
 # Directory Update Log
 
 ## 2026-10-19
+* **Update**: [Install edi-mcp](getting-started/install.md) — rewritten for macOS, Linux and Windows after gbif-mcp's guide: uv prerequisites per platform, the new `scripts/install.sh` (registers the server with Claude Code, Claude Desktop, Codex CLI, Gemini CLI, Goose and OpenCode; `--with-key` stores the key without a key flag), manual registration with per-OS paths, stdio verification, troubleshooting, upgrades and removal.
+* **Update**: [Clients](getting-started/clients.md) — Gemini CLI and Goose entries, Claude Desktop paths for all three platforms, the Codex TOML table and the OpenCode 2.x layout.
 * **Creation**: [Packages, metadata and entities](tools/packages.md) — `edi_get_package`, `edi_get_metadata` and `edi_list_entities` (build step 5), now on `main`.
 * **Update**: [Tool reference](tools/reference.md) regenerated (8 tools); [Discovery](tools/discovery.md) — DataONE date sorting by upload date and legacy identifiers replace the known-issue box; [Roadmap](tools/roadmap.md), [Quickstart](getting-started/quickstart.md), [EDI API key](getting-started/api-key.md), [Architecture](develop/architecture.md), [MCP 2026-07-28 conformance](mcp/spec-2026-07-28.md) and the home page updated for step 5.
 * **Creation**: Established the edi-mcp documentation bundle (OKF v0.2), ported from neon-mcp: root [index](index.md), this log, the Zensical site configuration, the OKF validator, the `llms.txt` generator and the post-build agent surface (Markdown mirror, `okf:*` head metadata, `robots.txt`), deployed to GitHub Pages.
