@@ -1,1 +1,22 @@
-{"responseHeader":{"status":0,"QTime":7,"params":{"q":"id:\"https://pasta.lternet.edu/package/metadata/eml/edi/2081/1\"","fl":"id,resourceMap","rows":"1","wt":"json"}},"response":{"numFound":1,"start":0,"docs":[{"id":"https://pasta.lternet.edu/package/metadata/eml/edi/2081/1","resourceMap":["doi:10.6073/pasta/5100e60582808c66095e767be806109f"]}]}}
+{
+  "responseHeader":{
+    "zkConnected":true,
+    "status":0,
+    "QTime":0,
+    "params":{
+      "q":"id:\"https://pasta.lternet.edu/package/metadata/eml/edi/2081/1\"",
+      "fl":"id,resourceMap",
+      "rows":"1",
+      "wt":"json"
+    }
+  },
+  "response":{
+    "numFound":1,
+    "start":0,
+    "numFoundExact":true,
+    "docs":[{
+      "id":"https://pasta.lternet.edu/package/metadata/eml/edi/2081/1",
+      "resourceMap":["doi:10.6073/pasta/5100e60582808c66095e767be806109f"]
+    }]
+  }
+}

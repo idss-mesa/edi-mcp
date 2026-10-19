@@ -36,9 +36,14 @@ SCOPE_FIELD = (
 
 
 def _not_replicated_note(ctx: ToolContext, scope: str) -> list[str]:
-    record = load_scopes().get(scope)
+    """For an empty DataONE answer: the snapshot says whether DataONE replicated the scope."""
+    snapshot = load_scopes()
+    record = snapshot.get(scope)
     if ctx.backend == "dataone" and record is not None and not record.dataone_replicated:
-        return [f"DataONE does not replicate scope {scope}; set EDI_API_KEY to read it from PASTA."]
+        return [
+            f"DataONE held no replica of scope {scope} on {snapshot.as_of}; set EDI_API_KEY to "
+            "read it from PASTA."
+        ]
     return []
 
 
@@ -202,7 +207,7 @@ async def edi_search_packages(args: SearchPackagesIn, ctx: ToolContext) -> Searc
             "upper bound and a page can hold fewer than limit packages; a package can recur on a "
             "later page at a higher revision."
         )
-    if scope:
+    if scope and not items:
         notes += _not_replicated_note(ctx, scope)
     if args.sort == "oldest":
         notes.append("sort=oldest lists packages without a publication date first.")
@@ -394,7 +399,7 @@ async def edi_list_identifiers(args: ListIdentifiersIn, ctx: ToolContext) -> Lis
         identifiers=page_items,
         page=page,
         resolved=[res] if res else [],
-        notes=merge_notes(backend.notes, _not_replicated_note(ctx, scope)),
+        notes=list(backend.notes),
         next_steps=steps,
         source=source(ctx),
     )
@@ -471,7 +476,7 @@ async def edi_list_revisions(args: ListRevisionsIn, ctx: ToolContext) -> ListRev
             details={"identifier": package.series, "backend": backend.name},
             hint=hint,
         )
-    notes = merge_notes(backend.notes, _not_replicated_note(ctx, package.scope))
+    notes = list(backend.notes)
     if package.revision is not None and package.revision not in revisions:
         notes.append(f"Revision {package.revision} is not among the listed revisions.")
     newest_id = package.with_revision(newest).package_id

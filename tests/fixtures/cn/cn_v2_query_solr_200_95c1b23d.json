@@ -1,1 +1,20 @@
-{"responseHeader":{"status":0,"QTime":11,"params":{"q":"id:https\\:\\/\\/pasta.lternet.edu\\/package\\/metadata\\/eml\\/no\\-such\\-scope\\/*","fl":"id","fq":"formatType:METADATA AND datasource:(\"urn:node:EDI\" OR \"urn:node:LTER\") AND -obsoletedBy:*","rows":"10000","wt":"json"}},"response":{"numFound":0,"start":0,"docs":[]}}
+{
+  "responseHeader":{
+    "zkConnected":true,
+    "status":0,
+    "QTime":2,
+    "params":{
+      "q":"id:https\\:\\/\\/pasta.lternet.edu\\/package\\/metadata\\/eml\\/no\\-such\\-scope\\/*",
+      "fl":"id",
+      "fq":"formatType:METADATA AND datasource:(\"urn:node:EDI\" OR \"urn:node:LTER\") AND -obsoletedBy:*",
+      "rows":"10000",
+      "wt":"json"
+    }
+  },
+  "response":{
+    "numFound":0,
+    "start":0,
+    "numFoundExact":true,
+    "docs":[ ]
+  }
+}

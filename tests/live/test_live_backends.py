@@ -14,7 +14,13 @@ import pytest
 from edi_mcp.config import Config
 from edi_mcp.context import UpstreamStats
 from edi_mcp.edi.auth import ApiKey
-from edi_mcp.edi.backends import DataOneBackend, PastaBackend, SearchQuery, resolve_package
+from edi_mcp.edi.backends import (
+    DataOneBackend,
+    PastaBackend,
+    SearchHit,
+    SearchQuery,
+    resolve_package,
+)
 from edi_mcp.edi.client import EdiClient
 from edi_mcp.edi.pid import PackageId
 
@@ -76,25 +82,35 @@ def either(request: pytest.FixtureRequest, client: EdiClient) -> PastaBackend | 
     return PastaBackend(client, cfg, UpstreamStats(), ApiKey(key, "config"))
 
 
-async def test_live_sort_orders_by_publication_date(either: PastaBackend | DataOneBackend) -> None:
+def _sort_key(hit: SearchHit, backend: PastaBackend | DataOneBackend) -> str | None:
+    # PASTA sorts by publication date; DataONE by upload date (pubDate is unsortable there).
+    value = hit.uploaded if isinstance(backend, DataOneBackend) else hit.pub_date
+    return value[:4] if value else None
+
+
+async def test_live_sort_orders_by_date(either: PastaBackend | DataOneBackend) -> None:
     newest = await either.search(SearchQuery(text="streamflow", sort="newest", limit=10))
-    dates = [h.pub_date[:4] for h in newest.hits if h.pub_date]
+    dates = [k for h in newest.hits if (k := _sort_key(h, either))]
     assert len(dates) >= 5 and dates == sorted(dates, reverse=True)
     oldest = await either.search(SearchQuery(text="streamflow", sort="oldest", limit=50))
-    dated = [h.pub_date[:4] for h in oldest.hits if h.pub_date]
+    dated = [k for h in oldest.hits if (k := _sort_key(h, either))]
     assert dated == sorted(dated)
 
 
 async def test_live_bbox_finds_the_region(either: PastaBackend | DataOneBackend) -> None:
+    """Order is arbitrary without query text, so compare counts within one scope: Jornada's
+    packages sit inside the Jornada box, and not inside its eastern-hemisphere mirror (which a
+    sign or axis-order error would match instead)."""
     from edi_mcp.edi.backends import BoundingBox
 
     jornada = BoundingBox(-107, 32.4, -106.5, 32.8)
-    page = await either.search(SearchQuery(bbox=jornada, limit=10))
-    scopes = [h.package.scope for h in page.hits]
-    assert scopes.count("knb-lter-jrn") >= 5, scopes
-    # The same box mirrored to the eastern hemisphere (a sign error) holds no Jornada data.
-    mirrored = await either.search(SearchQuery(bbox=BoundingBox(106.5, 32.4, 107, 32.8)))
-    assert not any(h.package.scope == "knb-lter-jrn" for h in mirrored.hits)
+    mirrored = BoundingBox(106.5, 32.4, 107, 32.8)
+    scope = "knb-lter-jrn"
+    everything = (await either.search(SearchQuery(scope=scope, limit=1))).total or 0
+    inside = (await either.search(SearchQuery(scope=scope, bbox=jornada, limit=1))).total or 0
+    outside = (await either.search(SearchQuery(scope=scope, bbox=mirrored, limit=1))).total or 0
+    assert everything > 50 and inside >= everything // 2, (everything, inside)
+    assert outside <= everything // 20, (everything, outside)
 
 
 async def test_live_author_ignores_case(either: PastaBackend | DataOneBackend) -> None:
@@ -121,3 +137,25 @@ async def test_live_scope_snapshot_is_current(pasta: PastaBackend) -> None:
     assert known <= live, f"refresh scopes.json: gone from PASTA {sorted(known - live)}"
     if live - known:
         warnings.warn(f"scopes.json lacks new scopes {sorted(live - known)}", stacklevel=1)
+
+
+@pytest.mark.parametrize(
+    ("package", "scope_host"),
+    [(HBR, "gmn.lternet.edu"), (PackageId("edi", 2081, 1), "gmn.edirepository.org")],
+)
+async def test_live_member_nodes_serve_data_without_a_key(
+    client: EdiClient, package: PackageId, scope_host: str
+) -> None:
+    """edi_list_entities offers anonymousUrl on the member node (verified 2026-10-19; GMN
+    ignores Range, so read only the first chunk)."""
+    import httpx
+
+    backend = DataOneBackend(client, Config.model_validate({}), UpstreamStats())
+    entity = (await backend.list_entities(package))[0]
+    url = backend.anonymous_data_url(package, entity.entity_id)
+    assert scope_host in url
+    async with httpx.AsyncClient(timeout=60) as http, http.stream("GET", url) as response:
+        assert response.status_code == 200
+        async for chunk in response.aiter_bytes():
+            assert chunk
+            break

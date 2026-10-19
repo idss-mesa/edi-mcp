@@ -43,7 +43,10 @@ def children(element: Element, name: str) -> Iterator[Element]:
     return (c for c in element if local(c.tag) == name)
 
 
-def child(element: Element, name: str) -> Element | None:
+def child(element: Element | None, name: str) -> Element | None:
+    """First direct child named ``name``; ``None`` (never a falsy Element test) if absent."""
+    if element is None:
+        return None
     return next(children(element, name), None)
 
 
@@ -63,4 +66,49 @@ def text_of(element: Element | None, *path: str) -> str | None:
     return " ".join(current.text.split()) or None
 
 
-__all__ = ["child", "children", "descendants", "local", "parse_xml", "text_of"]
+#: EML TextType blocks whose whole text (inline markup included) is one paragraph.
+_PROSE_BLOCKS = frozenset({"para", "title", "markdown", "literalLayout"})
+
+
+def squash(text: str) -> str:
+    return " ".join(text.split())
+
+
+def prose(element: Element | None) -> str | None:
+    """The readable text of an EML TextType element (abstract, methods, rights, …).
+
+    ``para``/``title``/``markdown`` blocks become paragraphs joined by blank lines, with
+    inline markup (``emphasis``, ``ulink``, ``subscript``, …) kept as text via
+    ``itertext()``; sections and lists are walked in document order. An element
+    without such blocks (EML 2.0 plain text) yields all of its text.
+    """
+    if element is None:
+        return None
+    blocks: list[str] = []
+
+    def visit(node: Element) -> None:
+        if local(node.tag) in _PROSE_BLOCKS:
+            text = squash("".join(node.itertext()))
+            if text:
+                blocks.append(text)
+            return
+        for sub in node:
+            visit(sub)
+
+    visit(element)
+    if not blocks:
+        text = squash("".join(element.itertext()))
+        return text or None
+    return "\n\n".join(blocks)
+
+
+__all__ = [
+    "child",
+    "children",
+    "descendants",
+    "local",
+    "parse_xml",
+    "prose",
+    "squash",
+    "text_of",
+]

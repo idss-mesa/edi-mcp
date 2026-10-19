@@ -34,7 +34,7 @@ from edi_mcp.edi.backends.base import (
     year_end,
     year_start,
 )
-from edi_mcp.edi.eml import entity_refs
+from edi_mcp.edi.eml import EmlEntity, entity_refs
 from edi_mcp.edi.pid import Doi, PackageId
 from edi_mcp.edi.xml import descendants, parse_xml
 from edi_mcp.errors import EdiApiError, ToolError
@@ -44,7 +44,7 @@ if TYPE_CHECKING:
     from edi_mcp.edi.client import Fetched
 
 SOURCE_FILTER = 'formatType:METADATA AND datasource:("urn:node:EDI" OR "urn:node:LTER")'
-SEARCH_FIELDS = "id,title,pubDate,beginDate,endDate,keywords,origin,resourceMap"
+SEARCH_FIELDS = "id,title,pubDate,dateUploaded,beginDate,endDate,keywords,origin,resourceMap"
 SEARCH_QF = "title^5 keywords^3 abstract^2 text"
 ENTITY_FIELDS = "id,fileName,size,checksum,checksumAlgorithm,formatId"
 MAX_LIST_ROWS = 10_000
@@ -55,6 +55,10 @@ _METADATA_ID = (
 _METADATA_ID_RE = re.compile(f"^{_METADATA_ID}$")
 #: Resource maps reference the EML through URL-encoded CN ``/resolve/`` links.
 _EMBEDDED_ID_RE = re.compile(f"{_METADATA_ID}(?:$|[^/0-9])")
+_LEGACY_ID_RE = re.compile(
+    r"^(?P<scope>[A-Za-z][A-Za-z0-9_-]*)\.(?P<identifier>\d+)\.(?P<revision>\d+)$"
+)
+_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}")
 _CITE_DOI_RE = re.compile(r"10\.6073/pasta/([0-9a-f]{32})", re.IGNORECASE)
 _SOLR_SPECIAL = re.compile(r'([+\-&|!(){}\[\]^"~*?:\\/])')
 LAG_NOTE = (
@@ -68,17 +72,23 @@ def solr_escape(value: str) -> str:
 
 
 def _package_from_id(pid: str, *, embedded: bool = False) -> PackageId | None:
+    """The package of a DataONE metadata identifier: a PASTA metadata URL, or (records the
+    old LTER node registered, ~15% of the index on 2026-10-19) ``scope.identifier.revision``."""
     m = _EMBEDDED_ID_RE.search(unquote(pid)) if embedded else _METADATA_ID_RE.match(pid)
+    if not m and not embedded:
+        m = _LEGACY_ID_RE.match(pid)
     if not m:
         return None
     return PackageId(m.group("scope"), int(m.group("identifier")), int(m.group("revision")))
 
 
 def _date(value: Any) -> str | None:
-    """Solr dates are ``YYYY-MM-DDT00:00:00Z``; keep the date part."""
-    if not isinstance(value, str) or not value:
+    """Solr dates are ``YYYY-MM-DDT00:00:00Z``; keep the date part. Malformed values
+    (``+20071203-01-01T…`` on some legacy records) are dropped."""
+    if not isinstance(value, str):
         return None
-    return value.split("T", 1)[0]
+    m = _DATE_RE.match(value)
+    return m.group(0) if m else None
 
 
 def _strs(value: Any) -> list[str]:
@@ -93,10 +103,6 @@ class DataOneBackend(BackendBase):
     @property
     def solr_url(self) -> str:
         return self.config.edi.dataone_cn_url.rstrip("/") + "/query/solr/"
-
-    def member_node(self, scope: str) -> str:
-        edi = self.config.edi
-        return (edi.gmn_edi_url if scope == "edi" else edi.gmn_lter_url).rstrip("/")
 
     def not_found_hint(self) -> str | None:
         return (
@@ -182,7 +188,13 @@ class DataOneBackend(BackendBase):
             "start": str(query.offset),
         }
         if query.sort != "relevance":
-            params["sort"] = "pubDate desc" if query.sort == "newest" else "pubDate asc"
+            # pubDate became an unsortable range field on 2026-10-19 ("Sorting not supported
+            # on SpatialField"); dateUploaded (when this revision reached DataONE) still sorts.
+            params["sort"] = "dateUploaded desc" if query.sort == "newest" else "dateUploaded asc"
+            self.note(
+                "DataONE sorts by upload date (when each revision reached DataONE); its "
+                "publication-date field is not sortable."
+            )
         response = await self._solr(params, cache="search")
         best: dict[str, SearchHit] = {}
         for doc in response.get("docs") or []:
@@ -202,6 +214,7 @@ class DataOneBackend(BackendBase):
                 end_date=_date(doc.get("endDate")),
                 keywords=_strs(doc.get("keywords")),
                 authors=_strs(doc.get("origin")),
+                uploaded=_date(doc.get("dateUploaded")),
             )
         self.note(LAG_NOTE)
         found = response.get("numFound")
@@ -261,10 +274,15 @@ class DataOneBackend(BackendBase):
             raise self.not_found(exc, "package", str(package)) from None
         return fetched.body
 
-    async def list_entities(self, package: PackageId) -> list[EntityInfo]:
-        refs = entity_refs(
-            await self.read_eml(package), source=self.metadata_pid(package), service="DataONE"
-        )
+    async def list_entities(
+        self, package: PackageId, refs: list[EmlEntity] | None = None
+    ) -> list[EntityInfo]:
+        """Entities from the EML (``refs`` when the caller already parsed it), enriched
+        with size, SHA-1 and format from DataONE's index."""
+        if refs is None:
+            refs = entity_refs(
+                await self.read_eml(package), source=self.metadata_pid(package), service="DataONE"
+            )
         response = await self._solr(
             {
                 "q": f'isDocumentedBy:"{self.metadata_pid(package)}"',

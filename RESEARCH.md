@@ -182,3 +182,36 @@ Probed live with a profile key (PASTA) and anonymously (DataONE CN Solr).
   authorized to read '…'". A bad key or token gets 401, so a credentialed 403 means the
   package is restricted, not that the key is wrong. The 403 text carries the caller's
   display name; the client removes the whole `User '…'` quote from upstream error text.
+
+## 6. Package reads, EML and DataONE drift (verified 2026-10-19)
+
+- **DataONE changed its index between 2026-10-18 and 2026-10-19.**
+  - `pubDate` and `datePublished` became range fields: `sort=pubDate desc` now fails with
+    400 "Sorting not supported on SpatialField". `dateUploaded` still sorts, so edi-mcp sorts
+    DataONE results by upload date and says so in `notes`.
+  - About 15% of EDI/LTER metadata records (12 616 of 80 325) carry legacy ids registered
+    by the old LTER node (`knb-lter-pie.454.1`) instead of PASTA URLs; filter-only queries
+    now rank them first. edi-mcp parses both forms. Some carry malformed `pubDate`
+    (`+20071203-01-01T…`), which is dropped.
+  - `cos-spu` gained 7 DataONE records (0 the day before), and `knb-lter-hbr.14.22` is now
+    indexed (its DOI comes from Solr, not the citation service). The scope snapshot stays
+    dated; the "no replica" note is shown only when a DataONE search comes back empty.
+  - Lesson: assertions about DataONE ranking are not stable. Live tests compare counts
+    within one scope instead (Jornada box vs. its eastern-hemisphere mirror).
+- **Anonymous data.** Both member nodes serve data entities without credentials:
+  `gmn.lternet.edu/mn/v2/object/<url-encoded PASTA data URL>` (knb-lter-hbr.14.22) and
+  `gmn.edirepository.org/mn/v2/object/…` (edi.2081.1). The CN `/object` returns 404 for data
+  entities. GMN **ignores `Range`** (200, no `Content-Range`), so previews must stream and
+  stop reading.
+- **GMN serves EML DataONE has not indexed.** `knb-lter-jrn.210548103.33` (PASTA's newest)
+  is missing from Solr (newest there: 32, and 3, 4, 29 and 30 are absent), yet its EML
+  resolves on `gmn.lternet.edu` and its entity is listed without a SHA-1 (no index record).
+- **EML at scale.** `knb-lter-mcr.6.65` is 3.4 MB (1 144 taxa, 4 tables of up to 26
+  columns); it downloads in ~1.8 s and parses in 0.05 s with defusedxml, so projections are
+  cheap and every list is capped with a total.
+- **EML conventions seen.** `recordDelimiter` is written as the literal text `\r\n`;
+  `physical/size` may carry `unit`; roles of referenced parties sit beside `<references>`
+  (`<personnel><references>id</references><role>…</role>`); EML 2.1 uses free-text
+  `funding`, EML 2.2 `award` and `licensed`.
+- **Entity ids.** The MD5-of-`entityName` rule matched PASTA's `/name` list for every
+  entity of `knb-lter-hbr.14.22` (5) and `knb-lter-jrn.210548103.32` (1).

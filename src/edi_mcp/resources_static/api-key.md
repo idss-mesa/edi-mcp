@@ -48,10 +48,13 @@ edi-mcp falls back to the anonymous DataONE replicas of EDI content:
 | Citations (cite.edirepository.org) | Read counts |
 | | Whole-package zip download |
 
-Caveats of the fallback: the DataONE index can lag new EDI uploads by a day or more, it
-indexes only the newest revision of each package, and the DataONE member nodes proxy
-PASTA, so EDI could restrict them too. `source.backend` in every result says which
-backend answered.
+Caveats of the fallback: the DataONE index can lag new EDI uploads by a day or more and
+misses some revisions (its newest revision of a package can be older than PASTA's), a few
+scopes are not replicated, and the DataONE member nodes proxy PASTA, so EDI could restrict
+them too. `source.backend` in every result says which backend answered.
+
+Data URLs: each entity from `edi_list_entities` has a `dataUrl` on PASTA, which needs a
+key, and an `anonymousUrl` on its DataONE member node, which does not.
 
 ## Errors
 

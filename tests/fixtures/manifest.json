@@ -28,46 +28,46 @@
   "file": "cn/metadata_eml_knb_lter_hbr_2_20_404_5c88bea3.xml"
  },
  {
-  "key": "GET cn.dataone.org/cn/v2/query/solr/?defType=edismax&fl=id%2Ctitle%2CpubDate%2CbeginDate%2CendDate%2Ckeywords%2Corigin%2CresourceMap&fq=formatType%3AMETADATA+AND+datasource%3A%28%22urn%3Anode%3AEDI%22+OR+%22urn%3Anode%3ALTER%22%29+AND+-obsoletedBy%3A%2A+AND+-id%3Ahttps%5C%3A%5C%2F%5C%2Fpasta.lternet.edu%5C%2Fpackage%5C%2Fmetadata%5C%2Feml%5C%2Fecotrends%5C%2F%2A+AND+-id%3Ahttps%5C%3A%5C%2F%5C%2Fpasta.lternet.edu%5C%2Fpackage%5C%2Fmetadata%5C%2Feml%5C%2Flter%5C-landsat%5C%2F%2A+AND+-id%3Ahttps%5C%3A%5C%2F%5C%2Fpasta.lternet.edu%5C%2Fpackage%5C%2Fmetadata%5C%2Feml%5C%2Flter%5C-landsat%5C-ledaps%5C%2F%2A&q=streamflow&qf=title%5E5+keywords%5E3+abstract%5E2+text&rows=5&start=0&wt=json",
+  "key": "GET cn.dataone.org/cn/v2/query/solr/?defType=edismax&fl=id%2Ctitle%2CpubDate%2CdateUploaded%2CbeginDate%2CendDate%2Ckeywords%2Corigin%2CresourceMap&fq=formatType%3AMETADATA+AND+datasource%3A%28%22urn%3Anode%3AEDI%22+OR+%22urn%3Anode%3ALTER%22%29+AND+-obsoletedBy%3A%2A+AND+-id%3Ahttps%5C%3A%5C%2F%5C%2Fpasta.lternet.edu%5C%2Fpackage%5C%2Fmetadata%5C%2Feml%5C%2Fecotrends%5C%2F%2A+AND+-id%3Ahttps%5C%3A%5C%2F%5C%2Fpasta.lternet.edu%5C%2Fpackage%5C%2Fmetadata%5C%2Feml%5C%2Flter%5C-landsat%5C%2F%2A+AND+-id%3Ahttps%5C%3A%5C%2F%5C%2Fpasta.lternet.edu%5C%2Fpackage%5C%2Fmetadata%5C%2Feml%5C%2Flter%5C-landsat%5C-ledaps%5C%2F%2A&q=streamflow&qf=title%5E5+keywords%5E3+abstract%5E2+text&rows=5&start=0&wt=json",
   "status": 200,
   "contentType": "application/json",
   "credential": false,
-  "file": "cn/cn_v2_query_solr_200_5a79bb4a.json"
+  "file": "cn/cn_v2_query_solr_200_c809dabd.json"
  },
  {
-  "key": "GET cn.dataone.org/cn/v2/query/solr/?defType=edismax&fl=id%2Ctitle%2CpubDate%2CbeginDate%2CendDate%2Ckeywords%2Corigin%2CresourceMap&fq=formatType%3AMETADATA+AND+datasource%3A%28%22urn%3Anode%3AEDI%22+OR+%22urn%3Anode%3ALTER%22%29+AND+-obsoletedBy%3A%2A+AND+id%3Ahttps%5C%3A%5C%2F%5C%2Fpasta.lternet.edu%5C%2Fpackage%5C%2Fmetadata%5C%2Feml%5C%2Fcos%5C-spu%5C%2F%2A&q=%2A%3A%2A&qf=title%5E5+keywords%5E3+abstract%5E2+text&rows=3&start=0&wt=json",
+  "key": "GET cn.dataone.org/cn/v2/query/solr/?defType=edismax&fl=id%2Ctitle%2CpubDate%2CdateUploaded%2CbeginDate%2CendDate%2Ckeywords%2Corigin%2CresourceMap&fq=formatType%3AMETADATA+AND+datasource%3A%28%22urn%3Anode%3AEDI%22+OR+%22urn%3Anode%3ALTER%22%29+AND+-obsoletedBy%3A%2A+AND+id%3Ahttps%5C%3A%5C%2F%5C%2Fpasta.lternet.edu%5C%2Fpackage%5C%2Fmetadata%5C%2Feml%5C%2Ficarus%5C%2F%2A&q=%2A%3A%2A&qf=title%5E5+keywords%5E3+abstract%5E2+text&rows=3&start=0&wt=json",
   "status": 200,
   "contentType": "application/json",
   "credential": false,
-  "file": "cn/cn_v2_query_solr_200_e06f9e56.json"
+  "file": "cn/cn_v2_query_solr_200_fbee970a.json"
  },
  {
-  "key": "GET cn.dataone.org/cn/v2/query/solr/?defType=edismax&fl=id%2Ctitle%2CpubDate%2CbeginDate%2CendDate%2Ckeywords%2Corigin%2CresourceMap&fq=formatType%3AMETADATA+AND+datasource%3A%28%22urn%3Anode%3AEDI%22+OR+%22urn%3Anode%3ALTER%22%29+AND+-obsoletedBy%3A%2A+AND+id%3Ahttps%5C%3A%5C%2F%5C%2Fpasta.lternet.edu%5C%2Fpackage%5C%2Fmetadata%5C%2Feml%5C%2Fknb%5C-lter%5C-hbr%5C%2F%2A&q=precipitation&qf=title%5E5+keywords%5E3+abstract%5E2+text&rows=3&start=0&wt=json",
+  "key": "GET cn.dataone.org/cn/v2/query/solr/?defType=edismax&fl=id%2Ctitle%2CpubDate%2CdateUploaded%2CbeginDate%2CendDate%2Ckeywords%2Corigin%2CresourceMap&fq=formatType%3AMETADATA+AND+datasource%3A%28%22urn%3Anode%3AEDI%22+OR+%22urn%3Anode%3ALTER%22%29+AND+-obsoletedBy%3A%2A+AND+id%3Ahttps%5C%3A%5C%2F%5C%2Fpasta.lternet.edu%5C%2Fpackage%5C%2Fmetadata%5C%2Feml%5C%2Fknb%5C-lter%5C-hbr%5C%2F%2A&q=precipitation&qf=title%5E5+keywords%5E3+abstract%5E2+text&rows=3&start=0&wt=json",
   "status": 200,
   "contentType": "application/json",
   "credential": false,
-  "file": "cn/cn_v2_query_solr_200_a011ca97.json"
+  "file": "cn/cn_v2_query_solr_200_3a804e96.json"
  },
  {
-  "key": "GET cn.dataone.org/cn/v2/query/solr/?defType=edismax&fl=id%2Ctitle%2CpubDate%2CbeginDate%2CendDate%2Ckeywords%2Corigin%2CresourceMap&fq=formatType%3AMETADATA+AND+datasource%3A%28%22urn%3Anode%3AEDI%22+OR+%22urn%3Anode%3ALTER%22%29+AND+-obsoletedBy%3A%2A+AND+id%3Ahttps%5C%3A%5C%2F%5C%2Fpasta.lternet.edu%5C%2Fpackage%5C%2Fmetadata%5C%2Feml%5C%2Fknb%5C-lter%5C-hbr%5C%2F%2A&q=thiessen&qf=title%5E5+keywords%5E3+abstract%5E2+text&rows=3&start=0&wt=json",
+  "key": "GET cn.dataone.org/cn/v2/query/solr/?defType=edismax&fl=id%2Ctitle%2CpubDate%2CdateUploaded%2CbeginDate%2CendDate%2Ckeywords%2Corigin%2CresourceMap&fq=formatType%3AMETADATA+AND+datasource%3A%28%22urn%3Anode%3AEDI%22+OR+%22urn%3Anode%3ALTER%22%29+AND+-obsoletedBy%3A%2A+AND+id%3Ahttps%5C%3A%5C%2F%5C%2Fpasta.lternet.edu%5C%2Fpackage%5C%2Fmetadata%5C%2Feml%5C%2Fknb%5C-lter%5C-hbr%5C%2F%2A&q=thiessen&qf=title%5E5+keywords%5E3+abstract%5E2+text&rows=3&start=0&wt=json",
   "status": 200,
   "contentType": "application/json",
   "credential": false,
-  "file": "cn/cn_v2_query_solr_200_2c12d0b0.json"
+  "file": "cn/cn_v2_query_solr_200_daccb5a2.json"
  },
  {
-  "key": "GET cn.dataone.org/cn/v2/query/solr/?defType=edismax&fl=id%2Ctitle%2CpubDate%2CbeginDate%2CendDate%2Ckeywords%2Corigin%2CresourceMap&fq=formatType%3AMETADATA+AND+datasource%3A%28%22urn%3Anode%3AEDI%22+OR+%22urn%3Anode%3ALTER%22%29+AND+-obsoletedBy%3A%2A+AND+investigatorText%3A%22likens%22+AND+beginDate%3A%5B%2A+TO+1970-12-31T23%3A59%3A59Z%5D+AND+endDate%3A%5B1960-01-01T00%3A00%3A00Z+TO+%2A%5D+AND+-id%3Ahttps%5C%3A%5C%2F%5C%2Fpasta.lternet.edu%5C%2Fpackage%5C%2Fmetadata%5C%2Feml%5C%2Fecotrends%5C%2F%2A+AND+-id%3Ahttps%5C%3A%5C%2F%5C%2Fpasta.lternet.edu%5C%2Fpackage%5C%2Fmetadata%5C%2Feml%5C%2Flter%5C-landsat%5C%2F%2A+AND+-id%3Ahttps%5C%3A%5C%2F%5C%2Fpasta.lternet.edu%5C%2Fpackage%5C%2Fmetadata%5C%2Feml%5C%2Flter%5C-landsat%5C-ledaps%5C%2F%2A&q=%2A%3A%2A&qf=title%5E5+keywords%5E3+abstract%5E2+text&rows=5&sort=pubDate+desc&start=0&wt=json",
+  "key": "GET cn.dataone.org/cn/v2/query/solr/?defType=edismax&fl=id%2Ctitle%2CpubDate%2CdateUploaded%2CbeginDate%2CendDate%2Ckeywords%2Corigin%2CresourceMap&fq=formatType%3AMETADATA+AND+datasource%3A%28%22urn%3Anode%3AEDI%22+OR+%22urn%3Anode%3ALTER%22%29+AND+-obsoletedBy%3A%2A+AND+investigatorText%3A%22likens%22+AND+beginDate%3A%5B%2A+TO+1970-12-31T23%3A59%3A59Z%5D+AND+endDate%3A%5B1960-01-01T00%3A00%3A00Z+TO+%2A%5D+AND+-id%3Ahttps%5C%3A%5C%2F%5C%2Fpasta.lternet.edu%5C%2Fpackage%5C%2Fmetadata%5C%2Feml%5C%2Fecotrends%5C%2F%2A+AND+-id%3Ahttps%5C%3A%5C%2F%5C%2Fpasta.lternet.edu%5C%2Fpackage%5C%2Fmetadata%5C%2Feml%5C%2Flter%5C-landsat%5C%2F%2A+AND+-id%3Ahttps%5C%3A%5C%2F%5C%2Fpasta.lternet.edu%5C%2Fpackage%5C%2Fmetadata%5C%2Feml%5C%2Flter%5C-landsat%5C-ledaps%5C%2F%2A&q=%2A%3A%2A&qf=title%5E5+keywords%5E3+abstract%5E2+text&rows=5&sort=dateUploaded+desc&start=0&wt=json",
   "status": 200,
   "contentType": "application/json",
   "credential": false,
-  "file": "cn/cn_v2_query_solr_200_352d4ae3.json"
+  "file": "cn/cn_v2_query_solr_200_d5aabdef.json"
  },
  {
-  "key": "GET cn.dataone.org/cn/v2/query/solr/?defType=edismax&fl=id%2Ctitle%2CpubDate%2CbeginDate%2CendDate%2Ckeywords%2Corigin%2CresourceMap&fq=formatType%3AMETADATA+AND+datasource%3A%28%22urn%3Anode%3AEDI%22+OR+%22urn%3Anode%3ALTER%22%29+AND+-obsoletedBy%3A%2A+AND+northBoundCoord%3A%5B32.4+TO+%2A%5D+AND+southBoundCoord%3A%5B%2A+TO+32.8%5D+AND+eastBoundCoord%3A%5B-107.0+TO+%2A%5D+AND+westBoundCoord%3A%5B%2A+TO+-106.5%5D+AND+-id%3Ahttps%5C%3A%5C%2F%5C%2Fpasta.lternet.edu%5C%2Fpackage%5C%2Fmetadata%5C%2Feml%5C%2Fecotrends%5C%2F%2A+AND+-id%3Ahttps%5C%3A%5C%2F%5C%2Fpasta.lternet.edu%5C%2Fpackage%5C%2Fmetadata%5C%2Feml%5C%2Flter%5C-landsat%5C%2F%2A+AND+-id%3Ahttps%5C%3A%5C%2F%5C%2Fpasta.lternet.edu%5C%2Fpackage%5C%2Fmetadata%5C%2Feml%5C%2Flter%5C-landsat%5C-ledaps%5C%2F%2A&q=%2A%3A%2A&qf=title%5E5+keywords%5E3+abstract%5E2+text&rows=5&start=0&wt=json",
+  "key": "GET cn.dataone.org/cn/v2/query/solr/?defType=edismax&fl=id%2Ctitle%2CpubDate%2CdateUploaded%2CbeginDate%2CendDate%2Ckeywords%2Corigin%2CresourceMap&fq=formatType%3AMETADATA+AND+datasource%3A%28%22urn%3Anode%3AEDI%22+OR+%22urn%3Anode%3ALTER%22%29+AND+-obsoletedBy%3A%2A+AND+northBoundCoord%3A%5B32.4+TO+%2A%5D+AND+southBoundCoord%3A%5B%2A+TO+32.8%5D+AND+eastBoundCoord%3A%5B-107.0+TO+%2A%5D+AND+westBoundCoord%3A%5B%2A+TO+-106.5%5D+AND+-id%3Ahttps%5C%3A%5C%2F%5C%2Fpasta.lternet.edu%5C%2Fpackage%5C%2Fmetadata%5C%2Feml%5C%2Fecotrends%5C%2F%2A+AND+-id%3Ahttps%5C%3A%5C%2F%5C%2Fpasta.lternet.edu%5C%2Fpackage%5C%2Fmetadata%5C%2Feml%5C%2Flter%5C-landsat%5C%2F%2A+AND+-id%3Ahttps%5C%3A%5C%2F%5C%2Fpasta.lternet.edu%5C%2Fpackage%5C%2Fmetadata%5C%2Feml%5C%2Flter%5C-landsat%5C-ledaps%5C%2F%2A&q=%2A%3A%2A&qf=title%5E5+keywords%5E3+abstract%5E2+text&rows=5&start=0&wt=json",
   "status": 200,
   "contentType": "application/json",
   "credential": false,
-  "file": "cn/cn_v2_query_solr_200_ffe94e90.json"
+  "file": "cn/cn_v2_query_solr_200_686075f9.json"
  },
  {
   "key": "GET cn.dataone.org/cn/v2/query/solr/?fl=id%2CfileName%2Csize%2Cchecksum%2CchecksumAlgorithm%2CformatId&q=isDocumentedBy%3A%22https%3A%2F%2Fpasta.lternet.edu%2Fpackage%2Fmetadata%2Feml%2Fedi%2F2081%2F1%22&rows=1000&wt=json",
@@ -82,6 +82,13 @@
   "contentType": "application/json",
   "credential": false,
   "file": "cn/cn_v2_query_solr_200_e29085c6.json"
+ },
+ {
+  "key": "GET cn.dataone.org/cn/v2/query/solr/?fl=id%2CfileName%2Csize%2Cchecksum%2CchecksumAlgorithm%2CformatId&q=isDocumentedBy%3A%22https%3A%2F%2Fpasta.lternet.edu%2Fpackage%2Fmetadata%2Feml%2Fknb-lter-jrn%2F210548103%2F32%22&rows=1000&wt=json",
+  "status": 200,
+  "contentType": "application/json",
+  "credential": false,
+  "file": "cn/cn_v2_query_solr_200_f7dd2135.json"
  },
  {
   "key": "GET cn.dataone.org/cn/v2/query/solr/?fl=id%2CresourceMap&q=id%3A%22https%3A%2F%2Fpasta.lternet.edu%2Fpackage%2Fmetadata%2Feml%2Fedi%2F2081%2F1%22&rows=1&wt=json",
@@ -161,6 +168,13 @@
   "file": "gmn/metadata_eml_knb_lter_hbr_2_20_404_7b7bdbbe.xml"
  },
  {
+  "key": "GET gmn.lternet.edu/mn/v2/object/https%3A%2F%2Fpasta.lternet.edu%2Fpackage%2Fmetadata%2Feml%2Fknb-lter-jrn%2F210548103%2F32",
+  "status": 200,
+  "contentType": "application/octet-stream",
+  "credential": false,
+  "file": "gmn/metadata_eml_knb_lter_jrn_210548103_32_200_bc8b59c4.txt"
+ },
+ {
   "key": "GET pasta.lternet.edu/package/data/checksum/eml/knb-lter-hbr/14/22/c4f72fa0cb155f1b61f1333bb67e3d00",
   "status": 200,
   "contentType": "text/plain",
@@ -168,11 +182,25 @@
   "file": "pasta/ksum_eml_knb_lter_hbr_14_22_c4f72fa0cb155f1b61f1333bb67e3d00_200_276571de.txt"
  },
  {
+  "key": "GET pasta.lternet.edu/package/data/checksum/eml/knb-lter-jrn/210548103/32/9c680810940709cb17bf09e4c4785100",
+  "status": 200,
+  "contentType": "text/plain",
+  "credential": true,
+  "file": "pasta/l_knb_lter_jrn_210548103_32_9c680810940709cb17bf09e4c4785100_200_c8cd3596.txt"
+ },
+ {
   "key": "GET pasta.lternet.edu/package/data/size/eml/knb-lter-hbr/14/22",
   "status": 200,
   "contentType": "text/csv",
   "credential": true,
   "file": "pasta/package_data_size_eml_knb_lter_hbr_14_22_200_9631153c.csv"
+ },
+ {
+  "key": "GET pasta.lternet.edu/package/data/size/eml/knb-lter-jrn/210548103/32",
+  "status": 200,
+  "contentType": "text/csv",
+  "credential": true,
+  "file": "pasta/package_data_size_eml_knb_lter_jrn_210548103_32_200_10e7e411.csv"
  },
  {
   "key": "GET pasta.lternet.edu/package/doi/eml/knb-lter-hbr/14/22",
@@ -224,6 +252,20 @@
   "file": "pasta/package_eml_knb_lter_zzz_404_a54990d5.txt"
  },
  {
+  "key": "GET pasta.lternet.edu/package/metadata/eml/edi/2081/1",
+  "status": 200,
+  "contentType": "application/xml",
+  "credential": true,
+  "file": "pasta/package_metadata_eml_edi_2081_1_200_4a0e1307.xml"
+ },
+ {
+  "key": "GET pasta.lternet.edu/package/metadata/eml/icarus/13/1",
+  "status": 403,
+  "contentType": "text/plain",
+  "credential": true,
+  "file": "pasta/package_metadata_eml_icarus_13_1_403_37200ff3.txt"
+ },
+ {
   "key": "GET pasta.lternet.edu/package/metadata/eml/knb-lter-hbr/14/22",
   "status": 200,
   "contentType": "application/xml",
@@ -238,11 +280,25 @@
   "file": "pasta/package_metadata_eml_knb_lter_hbr_2_999_404_21acba82.txt"
  },
  {
+  "key": "GET pasta.lternet.edu/package/metadata/eml/knb-lter-jrn/210548103/32",
+  "status": 200,
+  "contentType": "application/xml",
+  "credential": true,
+  "file": "pasta/package_metadata_eml_knb_lter_jrn_210548103_32_200_642104d4.xml"
+ },
+ {
   "key": "GET pasta.lternet.edu/package/name/eml/knb-lter-hbr/14/22",
   "status": 200,
   "contentType": "text/csv",
   "credential": true,
   "file": "pasta/package_name_eml_knb_lter_hbr_14_22_200_3ad2d31e.csv"
+ },
+ {
+  "key": "GET pasta.lternet.edu/package/name/eml/knb-lter-jrn/210548103/32",
+  "status": 200,
+  "contentType": "text/csv",
+  "credential": true,
+  "file": "pasta/package_name_eml_knb_lter_jrn_210548103_32_200_8211f16c.csv"
  },
  {
   "key": "GET pasta.lternet.edu/package/search/eml?defType=edismax&fl=packageid%2Ctitle%2Cpubdate%2Cdoi%2Cbegindate%2Cenddate%2Cscope%2Ckeyword%2Cauthor&fq=-scope%3A%28ecotrends+lter-landsat+lter-landsat-ledaps%29&q=streamflow&rows=5&start=0",

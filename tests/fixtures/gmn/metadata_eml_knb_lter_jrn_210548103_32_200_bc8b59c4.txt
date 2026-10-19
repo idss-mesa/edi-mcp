@@ -1,0 +1,510 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<eml:eml packageId="knb-lter-jrn.210548103.32"
+  system="https://pasta.edirepository.org"
+  xmlns:ds="eml://ecoinformatics.org/dataset-2.1.0"
+  xmlns:eml="eml://ecoinformatics.org/eml-2.1.0"
+  xmlns:stmml="http://www.xml-cml.org/schema/stmml-1.1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="eml://ecoinformatics.org/eml-2.1.0 http://gce-lter.marsci.uga.edu/public/files/schemas/eml-210/eml.xsd">
+   <access
+    authSystem="https://pasta.edirepository.org/authentication"
+    order="allowFirst" scope="document"
+      system="https://pasta.edirepository.org">
+      <allow>
+         <principal>public</principal>
+         <permission>read</permission>
+      </allow>
+   </access>
+   <dataset>
+      <alternateIdentifier
+      system="https://doi.org">doi:10.6073/pasta/f53957b3317e865a17ca9c1cafa4d75e</alternateIdentifier><title>Jornada Basin LTER Cross-scale Interactions Study (CSIS) Block 15 meteorological station: 1-second summary precipitation data: 2017 - ongoing</title>
+      <creator>
+         <individualName>
+            <givenName>John</givenName>
+            <surName>Anderson</surName>
+         </individualName>
+         <organizationName>JRN LTER</organizationName>
+         <positionName>Research Site Manager</positionName>
+         <address>
+            <deliveryPoint>Jornada Experimental Range, P.O. Box 30003, MSC 3JER, NMSU</deliveryPoint>
+            <city>Las Cruces</city>
+            <administrativeArea>NM</administrativeArea>
+            <postalCode>88003-8003</postalCode>
+         </address>
+         <electronicMailAddress>janderso@jornada-vmail.nmsu.edu</electronicMailAddress>
+      </creator>
+      <pubDate>2024-12-18</pubDate>
+      <abstract>
+         <para>1-second summary precipitation data at CSIS Block-15 met station.  Total precipitation per second is recorded only if there is measurable precipitation. This is recorded at an automated meteorological station installed at Jornada LTER CSIS Block-15 site..  This climate station is operated by the Jornada LTER Program.  This is an ONGOING dataset.  IMPORTANT:  Rainfall is only recorded when a bucket tip occurs on the tipping bucket rain gauge.  If there is missing data due to equipment or other problems, there will be no indication of this within this dataset.  The user needs to review precipitation values in the 30 minute or hourly summary datasets to determine if there are missing data in this 1 second detailed precipitation dataset.</para>
+      </abstract>
+      <keywordSet>
+         <keyword>detailed precipitation</keyword>
+         <keywordThesaurus>(No thesaurus)</keywordThesaurus>
+      </keywordSet>
+      <keywordSet>
+         <keyword>meteorology</keyword>
+         <keyword>precipitation</keyword>
+         <keyword>rain</keyword>
+         <keywordThesaurus>LTER Controlled Vocabulary</keywordThesaurus>
+      </keywordSet>
+      <keywordSet>
+         <keyword>long-term</keyword>
+         <keywordThesaurus>JRN Dataset Keywords</keywordThesaurus>
+      </keywordSet>
+      <keywordSet>
+         <keyword>CSIS</keyword>
+         <keyword>study 548</keyword>
+         <keywordThesaurus>Jornada Project Names</keywordThesaurus>
+      </keywordSet>
+      <keywordSet>
+         <keyword>CSIS locations</keyword>
+         <keyword>Block 15</keyword>
+         <keywordThesaurus>Jornada Place Names</keywordThesaurus>
+      </keywordSet>
+      <keywordSet>
+         <keyword>Disturbance</keyword>
+         <keywordThesaurus>LTER Core Area</keywordThesaurus>
+      </keywordSet>
+      <keywordSet>
+         <keyword>weather station</keyword>
+         <keywordThesaurus>(No thesaurus)</keywordThesaurus>
+      </keywordSet>
+      <intellectualRights>
+         <para>This information is released under the Creative Commons license - Attribution - CC BY (https://creativecommons.org/licenses/by/4.0/). The consumer of these data ("Data User" herein) is required to cite it appropriately in any publication that results from its use. The Data User should realize that these data may be actively used by others for ongoing research and that coordination may be necessary to prevent duplicate publication. The Data User is urged to contact the authors of these data if any questions about methodology or results occur. Where appropriate, the Data User is encouraged to consider collaboration or co-authorship with the authors. The Data User should realize that misinterpretation of data may occur if used out of context of the original study. While substantial efforts are made to ensure the accuracy of data and associated documentation, complete accuracy of data sets cannot be guaranteed. All data are made available "as is." The Data User should be aware, however, that data are updated periodically and it is the responsibility of the Data User to check for new versions of the data. The data authors and the repository where these data were obtained shall not be liable for damages resulting from any use or misinterpretation of the data. Thank you.</para>
+      </intellectualRights>
+      <distribution
+      id="10.6073/pasta/f53957b3317e865a17ca9c1cafa4d75e" scope="system"
+          system="https://pasta.edirepository.org"><online><url
+        function="information">https://doi.org/10.6073/pasta/f53957b3317e865a17ca9c1cafa4d75e</url></online></distribution><coverage>
+         <geographicCoverage>
+            <geographicDescription>Precise geographic coordinates of the meteorological station are available upon request; please contact the Data Manager.</geographicDescription>
+            <boundingCoordinates>
+               <westBoundingCoordinate>-106.848000</westBoundingCoordinate>
+               <eastBoundingCoordinate>-106.764000</eastBoundingCoordinate>
+               <northBoundingCoordinate>32.605000</northBoundingCoordinate>
+               <southBoundingCoordinate>32.561000</southBoundingCoordinate>
+            </boundingCoordinates>
+         </geographicCoverage>
+         <temporalCoverage>
+            <rangeOfDates>
+               <beginDate>
+                  <calendarDate>2017-08-11</calendarDate>
+               </beginDate>
+               <endDate>
+                  <calendarDate>2024-11-18</calendarDate>
+               </endDate>
+            </rangeOfDates>
+         </temporalCoverage>
+      </coverage>
+      <maintenance>
+         <description>ongoing</description>
+         <maintenanceUpdateFrequency>monthly</maintenanceUpdateFrequency>
+      </maintenance>
+      <contact>
+         <individualName>
+            <surName>Data Manager</surName>
+         </individualName>
+         <positionName>JRN-LTER Information Manager</positionName>
+         <address>
+            <deliveryPoint>Jornada Experimental Range, P.O. Box 30003, MSC 3JER, New Mexico State University, Las Cruces, NM</deliveryPoint>
+            <postalCode>88003-8003</postalCode>
+         </address>
+         <electronicMailAddress>jornada.data@nmsu.edu</electronicMailAddress>
+      </contact>
+      <publisher>
+         <organizationName>Environmental Data Initiative</organizationName>
+         <electronicMailAddress>info@edirepository.org</electronicMailAddress>
+         <onlineUrl>https://edirepository.org</onlineUrl>
+         <userId
+      directory="https://ror.org">0330j0z60</userId>
+      </publisher>
+      <pubPlace>Environmental Data Initiative</pubPlace>
+      <methods>
+         <methodStep>
+            <description>
+               <section>
+                  <para>Summary: A met station consisting of a 3-meter mast is installed on the east side of the site between plots B and C. Air temperature, relative humidity, wind direction and wind speed sensors are mounted on the mast. A vertical wind profile is measured at most sites with anemometers at 0.37m, 0.75m, 1.5m and 3m on the mast.</para>
+               </section>
+            </description>
+            <instrumentation>Rain Gauge; Manufacturer: Qualimetrics. (Model: 6011-B Tipping Bucket Rain Gauge); Parameter: Precipitation (Accuracy: 0.5% at &lt;0.5 in/hr)</instrumentation>
+         </methodStep>
+         <methodStep>
+            <description>
+               <section>
+                  <para>Method - Sensor readings are taken at 1 second intervals by a Campbell Scientific Instruments (CSI) CR1000 data logger and converted from analog voltage to calibrated digital data, if necessary, by the CR1000 data logger program (e.g., Xscale_Block_#_yyyy-mm-dd.cr1). Minimum, average, and maximum air temperature and relative humidity; average and maximum wind speed; average and standard deviation of wind direction, and total precipitation are calculated by the CR1000 datalogger program and stored in tables in the datalogger storage module at intervals of 5, 30, and 60 minutes and daily. One minute precipitation totals are calculated during precipitation events. These data are downloaded hourly from each remote site via a 900 MHz spread spectrum wireless radio network using CSI LoggerNet software. The data are parsed, quality-checked, documented and archived in the JRN-LTER Information Management office using data retrieval and parsing functions in the GCE Data Toolbox for MATLAB (https://gce-lter.marsci.uga.edu/lter/research/tools/data_toolbox.htm).</para>
+               </section>
+            </description>
+         </methodStep>
+         <sampling>
+            <studyExtent>
+               <coverage>
+                  <temporalCoverage>
+                     <rangeOfDates>
+                        <beginDate>
+                           <calendarDate>2017-08-11</calendarDate>
+                        </beginDate>
+                        <endDate>
+                           <calendarDate>2024-11-18</calendarDate>
+                        </endDate>
+                     </rangeOfDates>
+                  </temporalCoverage>
+               </coverage>
+               <coverage>
+                  <geographicCoverage>
+                     <geographicDescription>Precise geographic coordinates of the meteorological station are available upon request; please contact the Data Manager.</geographicDescription>
+                     <boundingCoordinates>
+                        <westBoundingCoordinate>-106.848000</westBoundingCoordinate>
+                        <eastBoundingCoordinate>-106.764000</eastBoundingCoordinate>
+                        <northBoundingCoordinate>32.605000</northBoundingCoordinate>
+                        <southBoundingCoordinate>32.561000</southBoundingCoordinate>
+                     </boundingCoordinates>
+                  </geographicCoverage>
+               </coverage>
+            </studyExtent>
+            <samplingDescription>
+               <section>
+                  <para>Sensor readings are taken at 1 second intervals and aggregated into 5, 30, and 60 minute, and daily data tables.</para>
+               </section>
+            </samplingDescription>
+         </sampling>
+      </methods>
+      <project>
+         <title>Jornada Basin LTER</title>
+         <personnel>
+            <individualName>
+               <givenName>Debra P. C.</givenName>
+               <surName>Peters</surName>
+            </individualName>
+            <organizationName>USDA-ARS Jornada Experimental Range</organizationName>
+            <address>
+               <deliveryPoint>Jornada Experimental Range, P.O. Box 30003, MSC 3JER, NMSU</deliveryPoint>
+               <city>Las Cruces</city>
+               <administrativeArea>NM</administrativeArea>
+               <postalCode>88003-8003</postalCode>
+            </address>
+            <electronicMailAddress>janderso@jornada-vmail.nmsu.edu</electronicMailAddress>
+            <role>project leader</role>
+         </personnel>
+         <funding>
+            <para>NSF: DEB-1832194</para>
+         </funding>
+      </project>
+      <dataTable
+      id="9c680810940709cb17bf09e4c4785100" scope="document"
+          system="https://pasta.edirepository.org">
+         <entityName>csis-15_ppt_detailed_L2_rev_32.csv</entityName>
+         <entityDescription>Main data table from Jornada Basin LTER Cross-scale Interactions Study (CSIS) Block 15 meteorological station: 1-second summary precipitation data: 2017 - ongoing</entityDescription>
+         <physical>
+            <objectName>csis-15_ppt_detailed_L2_rev_32.csv</objectName>
+            <size
+          unit="byte">359545</size>
+            <authentication
+              method="MD5">6962139e4325e4c9d18e382a6b17becb</authentication>
+            <characterEncoding>ASCII</characterEncoding>
+            <dataFormat>
+               <textFormat>
+                  <numHeaderLines>4</numHeaderLines>
+                  <numFooterLines>0</numFooterLines>
+                  <recordDelimiter>\r\n</recordDelimiter>
+                  <numPhysicalLinesPerRecord>1</numPhysicalLinesPerRecord>
+                  <attributeOrientation>column</attributeOrientation>
+                  <simpleDelimited>
+                     <fieldDelimiter>,</fieldDelimiter>
+                     <quoteCharacter>"</quoteCharacter>
+                  </simpleDelimited>
+               </textFormat>
+            </dataFormat>
+            <distribution>
+               <online>
+                  <url
+                    function="download">https://pasta.lternet.edu/package/data/eml/knb-lter-jrn/210548103/32/9c680810940709cb17bf09e4c4785100</url>
+               </online>
+            </distribution>
+         </physical>
+         <methods>
+            <methodStep>
+               <description>
+                  <para>Data processing using the GCE Data Toolbox for MATLAB</para>
+               </description>
+               <software>
+                  <title>GCE Data Toolbox for MATLAB</title>
+                  <creator>
+                     <organizationName>Georgia Coastal Ecosystems LTER</organizationName>
+                     <electronicMailAddress>gcelter@uga.edu</electronicMailAddress>
+                  </creator>
+                  <abstract>
+                     <para>The GCE Data Toolbox is a comprehensive library of functions for metadata-based analysis quality control, transformation and management of ecological data sets. The toolbox is based on the GCE Data Structure, a MATLAB specification for storing tabular data along with all information required to interpret the data and generate formatted metadata (documentation). Metadata fields in the structure are queried by toolbox functions for all operations, allowing functions to process and format values appropriately based on the type of information they represent. This semantic processing approach supports highly automated and intelligent data analysis and ensures data set validity throughout all processing steps.</para>
+                  </abstract>
+                  <implementation>
+                     <distribution>
+                        <online>
+                           <url
+                    function="information">https://gce-svn.marsci.uga.edu/trac/GCE_Toolbox</url>
+                        </online>
+                     </distribution>
+                  </implementation>
+                  <version>Toolbox Version 3.9.9b (06-Mar-2019)</version>
+               </software>
+            </methodStep>
+            <qualityControl>
+               <description>
+                  <para>Quality control analysis was performed using the GCE Data Toolbox for MATLAB software. Column data types are validated upon importing the table into MATLAB, and qualifier flags are automatically generated for data values based on QA/QC criteria for each data column pre-defined in metadata templates (e.g. value range checks, sanity checks, pattern checks). Automatically-assigned qualifier flags are reviewed graphically and revised or augmented as deemed appropriate by JRN information management staff, based on metadata information from the contributor, values of other measured variables, or statistical tests. Qualifier flags are also assigned to values that are imputed or derived, revised, or otherwise differ from values in the original data submission. A column of coded qualifier flags is generated and included in the data table if flags are assigned to any value in a data column.</para>
+               </description>
+            </qualityControl>
+         </methods>
+         <attributeList>
+            <attribute>
+               <attributeName>Date</attributeName>
+               <attributeDefinition>Date and time of observation. Time is in Mountain Standard Time (MST) or UTC/GMT -7</attributeDefinition>
+               <storageType>string</storageType>
+               <measurementScale>
+                  <dateTime>
+                     <formatString>yyyy-MM-dd HH:mm:ss</formatString>
+                  </dateTime>
+               </measurementScale>
+            </attribute>
+            <attribute>
+               <attributeName>Year</attributeName>
+               <attributeDefinition>Calendar year</attributeDefinition>
+               <storageType>integer</storageType>
+               <measurementScale>
+                  <interval>
+                     <unit>
+                        <standardUnit>nominalYear</standardUnit>
+                     </unit>
+                     <precision>1</precision>
+                     <numericDomain>
+                        <numberType>real</numberType>
+                     </numericDomain>
+                  </interval>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NaN</code>
+                  <codeExplanation>value not recorded or censored based on quality control analysis (see methods)</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>YearDay</attributeName>
+               <attributeDefinition>Numerical year day (day number within the current year)</attributeDefinition>
+               <storageType>integer</storageType>
+               <measurementScale>
+                  <interval>
+                     <unit>
+                        <standardUnit>nominalYear</standardUnit>
+                     </unit>
+                     <precision>1</precision>
+                     <numericDomain>
+                        <numberType>real</numberType>
+                        <bounds>
+                           <minimum
+                    exclusive="true">1</minimum>
+                           <maximum
+                    exclusive="true">366</maximum>
+                        </bounds>
+                     </numericDomain>
+                  </interval>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NaN</code>
+                  <codeExplanation>value not recorded or censored based on quality control analysis (see methods)</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>Hours</attributeName>
+               <attributeDefinition>Time of day in fractional hours</attributeDefinition>
+               <storageType>float</storageType>
+               <measurementScale>
+                  <interval>
+                     <unit>
+                        <standardUnit>hour</standardUnit>
+                     </unit>
+                     <precision>0.0001</precision>
+                     <numericDomain>
+                        <numberType>real</numberType>
+                        <bounds>
+                           <minimum
+                    exclusive="true">0</minimum>
+                           <maximum
+                    exclusive="true">24</maximum>
+                        </bounds>
+                     </numericDomain>
+                  </interval>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NaN</code>
+                  <codeExplanation>value not recorded or censored based on quality control analysis (see methods)</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>RECORD</attributeName>
+               <attributeDefinition>Record number generated by datalogger program</attributeDefinition>
+               <storageType>integer</storageType>
+               <measurementScale>
+                  <ratio>
+                     <unit>
+                        <customUnit>none</customUnit>
+                     </unit>
+                     <precision>1</precision>
+                     <numericDomain>
+                        <numberType>real</numberType>
+                        <bounds>
+                           <minimum
+                    exclusive="true">0</minimum>
+                        </bounds>
+                     </numericDomain>
+                  </ratio>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NaN</code>
+                  <codeExplanation>value not recorded or censored based on quality control analysis (see methods)</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>Flag_RECORD</attributeName>
+               <attributeDefinition>QA/QC flags for Record number generated by datalogger program (flagging criteria, where "x" is RECORD: x&lt;0="I")</attributeDefinition>
+               <storageType>string</storageType>
+               <measurementScale>
+                  <nominal>
+                     <nonNumericDomain>
+                        <enumeratedDomain>
+                           <codeDefinition>
+                              <code>A</code>
+                              <definition>Accepted value</definition>
+                           </codeDefinition>
+                        </enumeratedDomain>
+                     </nonNumericDomain>
+                  </nominal>
+               </measurementScale>
+            </attribute>
+            <attribute>
+               <attributeName>SiteID</attributeName>
+               <attributeDefinition>Site identifier</attributeDefinition>
+               <storageType>integer</storageType>
+               <measurementScale>
+                  <ordinal>
+                     <nonNumericDomain>
+                        <enumeratedDomain>
+                           <codeDefinition>
+                              <code>1</code>
+                              <definition>Block-1 site</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>2</code>
+                              <definition>Block-2 site</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>3</code>
+                              <definition>Block-3 site</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>4</code>
+                              <definition>Block-4 site</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>5</code>
+                              <definition>Block-5 site</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>6</code>
+                              <definition>Block-6 site</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>7</code>
+                              <definition>Block-7 site</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>8</code>
+                              <definition>Block-8 site</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>9</code>
+                              <definition>Block-9 site</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>10</code>
+                              <definition>Block-10 site</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>11</code>
+                              <definition>Block-11 site</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>12</code>
+                              <definition>Block-12 site</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>13</code>
+                              <definition>Block-13 site</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>14</code>
+                              <definition>Block-14 site</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>15</code>
+                              <definition>Block-15 site</definition>
+                           </codeDefinition>
+                        </enumeratedDomain>
+                     </nonNumericDomain>
+                  </ordinal>
+               </measurementScale>
+            </attribute>
+            <attribute>
+               <attributeName>Ppt_mm_Tot</attributeName>
+               <attributeDefinition>Precipitation: 1 second Total during precipitation event</attributeDefinition>
+               <storageType>floating-point</storageType>
+               <measurementScale>
+                  <ratio>
+                     <unit>
+                        <standardUnit>millimeter</standardUnit>
+                     </unit>
+                     <precision>0.001</precision>
+                     <numericDomain>
+                        <numberType>real</numberType>
+                        <bounds>
+                           <minimum
+                    exclusive="true">0.254</minimum>
+                           <maximum
+        exclusive="true">0.508</maximum>
+                        </bounds>
+                     </numericDomain>
+                  </ratio>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NaN</code>
+                  <codeExplanation>value not recorded or censored based on quality control analysis (see methods)</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>Flag_Ppt_mm_Tot</attributeName>
+               <attributeDefinition>QA/QC flags for Precipitation: 1 second Total during precipitation event (flagging criteria, where "x" is Ppt_mm_Tot: x&lt;0.254="I", x&gt;0.508="I")</attributeDefinition>
+               <storageType>string</storageType>
+               <measurementScale>
+                  <nominal>
+                     <nonNumericDomain>
+                        <enumeratedDomain>
+                           <codeDefinition>
+                              <code>A</code>
+                              <definition>Accepted value</definition>
+                           </codeDefinition>
+                        </enumeratedDomain>
+                     </nonNumericDomain>
+                  </nominal>
+               </measurementScale>
+            </attribute>
+         </attributeList>
+         <numberOfRecords>6550</numberOfRecords>
+      </dataTable>
+   </dataset>
+   <additionalMetadata>
+      <metadata>
+         <stmml:unitList
+          xsi:schemaLocation="http://www.xml-cml.org/schema/stmml-1.1 http://gce-lter.marsci.uga.edu/public/files/schemas/eml-210/stmml.xsd">
+            <stmml:unit
+          id="none" name="none">
+               <stmml:description>user defined unit none</stmml:description>
+            </stmml:unit>
+         </stmml:unitList>
+      </metadata>
+   </additionalMetadata>
+</eml:eml>

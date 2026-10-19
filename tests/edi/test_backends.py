@@ -172,8 +172,9 @@ async def test_dataone_checksum_and_dois(dataone: DataOneBackend) -> None:
         await dataone.entity_checksum(HBR, THIESSEN) == "17fb97e8e14b7fc9f2037927e18224af5c8403c0"
     )
     assert await dataone.package_doi(EDI) == "doi:10.6073/pasta/5100e60582808c66095e767be806109f"
-    # Not indexed in DataONE yet: the citation service supplies it.
     assert await dataone.package_doi(HBR) == HBR_DOI.pid
+    # When DataONE has not indexed a package yet, the citation service supplies the DOI.
+    assert await dataone._doi_from_citation(HBR) == HBR_DOI.pid
     assert any("citation service" in n for n in dataone.notes)
     assert await dataone.resolve_doi(HBR_DOI) == HBR
 
@@ -312,3 +313,17 @@ def test_author_cannot_break_out_of_its_phrase(hostile: str, dataone: DataOneBac
 )
 def test_query_text_drops_leading_local_params(text: str | None, q: str) -> None:
     assert SearchQuery(text=text).query_text == q
+
+
+def test_dataone_ids_and_dates() -> None:
+    from edi_mcp.edi.backends.dataone import _date, _package_from_id
+
+    pasta = "https://pasta.lternet.edu/package/metadata/eml/knb-lter-hbr/14/22"
+    assert _package_from_id(pasta) == HBR
+    # Records the old LTER node registered use the package id itself.
+    assert _package_from_id("knb-lter-pie.454.1") == PackageId("knb-lter-pie", 454, 1)
+    assert _package_from_id("doi:10.6073/pasta/abc") is None
+    assert _package_from_id("knb-lter-pie.454") is None
+    assert _date("2015-01-14T00:00:00Z") == "2015-01-14"
+    assert _date("+20071203-01-01T00:00:00Z") is None
+    assert _date(None) is None and _date(20) is None

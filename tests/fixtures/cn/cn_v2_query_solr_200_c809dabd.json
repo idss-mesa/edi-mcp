@@ -1,0 +1,70 @@
+{
+  "responseHeader":{
+    "zkConnected":true,
+    "status":0,
+    "QTime":58,
+    "params":{
+      "q":"streamflow",
+      "defType":"edismax",
+      "qf":"title^5 keywords^3 abstract^2 text",
+      "fl":"id,title,pubDate,dateUploaded,beginDate,endDate,keywords,origin,resourceMap",
+      "start":"0",
+      "fq":"formatType:METADATA AND datasource:(\"urn:node:EDI\" OR \"urn:node:LTER\") AND -obsoletedBy:* AND -id:https\\:\\/\\/pasta.lternet.edu\\/package\\/metadata\\/eml\\/ecotrends\\/* AND -id:https\\:\\/\\/pasta.lternet.edu\\/package\\/metadata\\/eml\\/lter\\-landsat\\/* AND -id:https\\:\\/\\/pasta.lternet.edu\\/package\\/metadata\\/eml\\/lter\\-landsat\\-ledaps\\/*",
+      "rows":"5",
+      "wt":"json"
+    }
+  },
+  "response":{
+    "numFound":733,
+    "start":0,
+    "numFoundExact":true,
+    "docs":[{
+      "id":"knb-lter-nwt.111.7",
+      "dateUploaded":"2005-07-27T23:00:00Z",
+      "keywords":["streamflow","water level","daily discharge volume","hydrology","starlogger","easylogger","cr21x","cr1000","sensor data","outlet","alpine","Martinelli","Green Lakes Valley","Niwot Ridge LTER","NWT"],
+      "title":"Streamflow for Martinelli basin, 1982 - ongoing.",
+      "beginDate":"1982-07-06T00:00:00Z",
+      "endDate":"2012-08-21T00:00:00Z",
+      "pubDate":"1993-01-01T00:00:00Z",
+      "origin":["Nel Caine"]
+    },{
+      "id":"knb-lter-nwt.102.11",
+      "dateUploaded":"2005-07-27T23:00:00Z",
+      "keywords":["NWT","Colorado","daily discharge","hydrology","streamflow","water level","Albion","Green Lakes Valley","daily discharge volume","cr10x","global water logger","Niwot Ridge LTER"],
+      "title":"Streamflow for Albion camp, 1981 - ongoing.",
+      "beginDate":"1981-07-16T00:00:00Z",
+      "endDate":"2012-09-30T00:00:00Z",
+      "pubDate":"1993-01-01T00:00:00Z",
+      "origin":["Nel Caine"]
+    },{
+      "id":"https://pasta.lternet.edu/package/metadata/eml/knb-lter-nwt/102/12",
+      "dateUploaded":"2015-02-28T00:07:03.409Z",
+      "keywords":["NWT","Colorado","daily discharge","hydrology","streamflow","water level","Albion","Green Lakes Valley","daily discharge volume","cr10x","global water logger","Niwot Ridge LTER"],
+      "title":"Streamflow for Albion camp, 1981 - ongoing.",
+      "beginDate":"1981-07-16T00:00:00Z",
+      "endDate":"2012-09-30T00:00:00Z",
+      "pubDate":"1993-01-01T00:00:00Z",
+      "origin":["Nel Caine"],
+      "resourceMap":["doi:10.6073/pasta/aea81bfc226577e72703afca0591e335"]
+    },{
+      "id":"https://pasta.lternet.edu/package/metadata/eml/knb-lter-nwt/111/17",
+      "dateUploaded":"2026-01-27T01:45:14.400Z",
+      "keywords":["streamflow","water level","temperature","hydrology","alpine","inorganic nutrients","daily discharge volume","starlogger","easylogger","cr21x","cr1000","sensor data","outlet","Martinelli","Green Lakes Valley","Niwot Ridge LTER","NWT","NWT signature dataset"],
+      "title":"Streamflow for Martinelli basin, 1982 - ongoing.",
+      "beginDate":"1982-07-06T00:00:00Z",
+      "endDate":"2025-08-25T00:00:00Z",
+      "pubDate":"2026-01-27T00:00:00Z",
+      "origin":["T. Nelson (Nel) Caine","Jennifer F. Morse","Niwot Ridge LTER"],
+      "resourceMap":["doi:10.6073/pasta/44b350d46f371082b2cc98490cf36959"]
+    },{
+      "id":"knb-lter-nwt.105.7",
+      "dateUploaded":"2005-07-27T23:00:00Z",
+      "keywords":["streamflow","water level","daily discharge volume","hydrology","starlogger","sensor data","outlet","alpine","Green Lake 4","Green Lakes Valley","Niwot Ridge LTER","NWT"],
+      "title":"Streamflow for Green Lake 4, 1981 - ongoing.",
+      "beginDate":"1981-06-12T00:00:00Z",
+      "endDate":"2012-09-30T00:00:00Z",
+      "pubDate":"1993-01-01T00:00:00Z",
+      "origin":["Nel Caine"]
+    }]
+  }
+}
