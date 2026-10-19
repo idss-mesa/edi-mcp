@@ -208,7 +208,7 @@ claude mcp add --transport http edi https://edi-mcp.example.org/mcp \
 
 Each user sends their own key in `X-EDI-Key`; the server honours it only when its
 `public_base_url` is `https://` (see [Transports](../mcp/transports.md)). Over HTTP the
-planned download tools are not offered.
+download tools are not offered.
 
 [^claude-code-mcp]: Claude Code — MCP. <https://docs.claude.com/en/docs/claude-code/mcp>
 [^codex-mcp]: OpenAI Codex CLI. <https://developers.openai.com/codex/cli/>

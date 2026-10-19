@@ -146,7 +146,7 @@ install the package into a virtual environment as above.
 ## Not available over HTTP
 
 Downloads exist only on stdio, confined to `downloads.directory`: the
-download tools (planned for build step 6) are never listed over HTTP. Each instance keeps its own
+download tools (`edi_download_entities`, `edi_download_package`) are never listed over HTTP. Each instance keeps its own
 in-memory response cache (`cache.*` settings), so instances do not share state.
 
 [^mcp-transports]: MCP 2026-07-28 — Transports. <https://modelcontextprotocol.io/specification/2026-07-28/basic/transports>

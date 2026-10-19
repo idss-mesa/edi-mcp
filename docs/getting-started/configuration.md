@@ -92,9 +92,8 @@ Never put the API key in a YAML file you share or commit; use `EDI_API_KEY`.
 A few settings default to "unset" and resolve per transport:
 
 * `downloads.enabled`: downloads exist only on stdio; over HTTP the download tools are
-  never listed, whatever this says. `--no-downloads` turns them off on stdio too. (The
-  download tools themselves are still being built; see the
-  [Roadmap](../tools/roadmap.md).)
+  never listed, whatever this says. `--no-downloads` turns them off on stdio too. See
+  [Previews and downloads](../tools/data.md).
 * `server.dns_rebinding_protection`: unset follows the MCP SDK default, which is on for
   loopback binds or when `allowed_hosts` / `allowed_origins` are set.
 * `server.public_base_url`: when set, its host and origin join the allow-lists, and an

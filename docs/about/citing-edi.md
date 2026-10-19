@@ -80,12 +80,12 @@ You can request these yourself, for example
 `https://cite.edirepository.org/cite/knb-lter-hbr.14.22?style=ESIP`. The EDI Data
 Portal's landing page for each package shows the same citation.
 
-!!! note "edi_get_citation is planned"
+!!! tip "Ask edi-mcp for the citation"
 
-    A dedicated `edi_get_citation` tool that returns these styles is part of the next
-    build step and is not available yet (see the [Roadmap](../tools/roadmap.md)). Until
-    then, `edi_search_packages` returns each package's `doi` and `portalUrl`, from which
-    the citation above can be retrieved.
+    [`edi_get_citation`](../tools/reference.md#edi_get_citation) returns these styles
+    (`ESIP`, `DRYAD`, `BIBTEX`) and the citation's parts, including the DOI, from the
+    same service and without a key; see
+    [Citations, quality reports and lineage](../tools/citation-and-quality.md).
 
 ## Intellectual rights
 

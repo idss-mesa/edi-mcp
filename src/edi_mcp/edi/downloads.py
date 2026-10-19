@@ -1,4 +1,4 @@
-"""Confined, plan-before-transfer downloads (stdio only; DESIGN.md D17).
+"""Confined, plan-before-transfer downloads (stdio only; DESIGN.md D10).
 
 Ported from neon-mcp. Every destination resolves (symlinks included) under the
 configured download directory; saved names match ``^[A-Za-z0-9._-]+$`` (EML

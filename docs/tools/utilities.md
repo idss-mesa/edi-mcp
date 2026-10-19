@@ -77,9 +77,11 @@ machine-readable; `message` is safe to show a user and never contains a key or t
 | `result_too_large` | A result stayed above the hard size limit after trimming, or an upstream response exceeded the byte cap. | Narrow the request: a smaller `limit` or a narrower search. |
 | `unknown_tool` | No tool has that name. | `details.available` lists the tools. |
 | `internal_error` | A bug in edi-mcp. | Report it with the request id. |
-| `feature_unavailable` | Reserved: a feature disabled by configuration. | — |
-| `not_available_in_http_mode` | Reserved for the stdio-only download tools ([Roadmap](roadmap.md)). | Use a stdio deployment. |
-| `download_limit_exceeded`, `download_denied`, `checksum_mismatch` | Reserved for the download tools ([Roadmap](roadmap.md)): a per-call limit, a path or host outside what is allowed, and a file whose SHA-1 differs from the one EDI publishes. | — |
+| `feature_unavailable` | A download tool was called while downloads are disabled (`downloads.enabled: false`, or not stdio). | Use a stdio deployment with downloads enabled. |
+| `not_available_in_http_mode` | Reserved; not raised today. Over HTTP the download tools are not listed, so calling one returns `unknown_tool`. | Use a stdio deployment. |
+| `download_limit_exceeded` | A download plan or stream exceeds `downloads.max_files_per_call`, `max_bytes_per_call`, `max_file_bytes` or the call's `max_bytes`. | Download fewer entities, or raise the limit. |
+| `download_denied` | A `dest_subdir` or file name outside the download directory, or a file that appeared while downloading. | Use a plain relative `dest_subdir`. |
+| `checksum_mismatch` | Not raised as an error: a file whose SHA-1 differs from EDI's is removed and reported with status `failed` and this code in its `error` text. | Download it again. |
 
 Results that are merely large are not errors: lists are trimmed to fit the result
 budget (50,000 bytes by default) and report `page.truncatedReason: budget` with a

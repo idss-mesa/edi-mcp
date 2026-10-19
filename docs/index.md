@@ -12,9 +12,9 @@ server for the [Environmental Data Initiative](https://edirepository.org/){targe
 packages from the Long Term Ecological Research (LTER) network and many other
 projects, each described by EML metadata and published under a DOI. edi-mcp
 lets AI agents and coding assistants search those packages and walk the
-repository's scopes, identifiers and revisions, and read a package's EML
-metadata and data-entity descriptions, through compact, size-bounded tool
-results.
+repository's scopes, identifiers and revisions, read a package's EML
+metadata, preview and download its data, and cite it, through compact,
+size-bounded tool results.
 
 The server implements the **MCP 2026-07-28** specification (stateless core)
 on the Python `mcp` 2.x SDK. It speaks `stdio` for local clients such as
@@ -24,11 +24,10 @@ at the University of New Mexico and released under the MIT license.
 
 !!! warning "Under construction"
 
-    edi-mcp is being built in seven steps, one pull request each. The
-    discovery, package, metadata and entity tools are available now;
-    preview, download and citation tools follow. See the [Roadmap](tools/roadmap.md)
-    for what is planned and the [Tool reference](tools/reference.md) for
-    what is available today. There is no PyPI release yet.
+    edi-mcp is being built in seven steps, one pull request each. All
+    sixteen tools are available (see the [Tool reference](tools/reference.md));
+    the last step adds more resources, prompts, a Docker image and the
+    first release (see the [Roadmap](tools/roadmap.md)). There is no PyPI release yet.
 
 ## Install in one minute
 
@@ -58,7 +57,7 @@ provenance and lifecycle fields, and the whole corpus is available to agents
 at [`llms.txt`](llms.txt) and [`llms-full.txt`](llms-full.txt).
 
 * [Getting started](getting-started/index.md) - Install edi-mcp, connect an MCP client, add your EDI API key and tune the configuration.
-* [Tools](tools/index.md) - The available tools with the generated reference, package identifiers, the PASTA and DataONE backends, error codes and the roadmap.
+* [Tools](tools/index.md) - The sixteen tools with the generated reference, package inspection, previews and downloads, citations and quality reports, feeds, identifiers, the PASTA and DataONE backends, error codes and the roadmap.
 * [MCP protocol](mcp/index.md) - How edi-mcp implements the MCP 2026-07-28 stateless core and its stdio and Streamable HTTP transports.
 * [Deploy](deploy/index.md) - Run edi-mcp as a hosted, stateless HTTP service behind TLS, and the security model operators rely on.
 * [Develop](develop/index.md) - Architecture, adding a tool, the hermetic test suite with recorded fixtures, and how to contribute.

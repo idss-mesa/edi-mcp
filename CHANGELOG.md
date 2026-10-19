@@ -8,6 +8,15 @@ All notable changes to edi-mcp are documented here. The format follows
 
 ### Added
 
+- Build step 6: `edi_preview_entity` (first rows of a delimited entity, streamed and
+  stopped early; EML layout, header detection, binary refused), `edi_download_entities`
+  and `edi_download_package` (stdio only; caps checked first, SHA-1 verified, EML saved,
+  safe file names, never overwrites), `edi_get_citation` (ESIP, DRYAD, BibTeX and parts
+  from cite.edirepository.org), `edi_get_quality_report` (counts and non-valid checks;
+  works without a key via the DataONE member nodes, D18), and the key-only
+  `edi_get_lineage`, `edi_recent_changes` (uploader principals dropped) and
+  `edi_get_read_counts`. The client gains one streaming path (`stream()`); tool schemas
+  fold nullable `anyOf` so `tools/list` stays under 60 KB with 16 tools (D20).
 - `scripts/install.sh` registers edi-mcp with Claude Code, Claude Desktop, Codex CLI,
   Gemini CLI, Goose and OpenCode (detects installed agents; `--dry-run`, `--scope`,
   `--uninstall`, Git Bash path conversion on Windows). `--with-key` stores the EDI API

@@ -42,11 +42,11 @@ edi-mcp falls back to the anonymous DataONE replicas of EDI content:
 
 | Works without a key | Needs a key |
 |---|---|
-| Search (DataONE index) | Quality reports |
-| Package metadata (EML) | Provenance / lineage |
-| Data entities: list, preview, download | Change and upload feeds |
-| Citations (cite.edirepository.org) | Read counts |
-| | Whole-package zip download |
+| Search (DataONE index) | Provenance / lineage (`edi_get_lineage`) |
+| Package metadata (EML) | Change feed (`edi_recent_changes`) |
+| Data entities: list, preview, download | Read counts (`edi_get_read_counts`) |
+| Quality reports (DataONE member nodes) | Whole-package zip (`edi_download_package`) |
+| Citations (cite.edirepository.org) | Anything in a scope DataONE does not replicate |
 
 Caveats of the fallback: the DataONE index can lag new EDI uploads by a day or more and
 misses some revisions (its newest revision of a package can be older than PASTA's), a few

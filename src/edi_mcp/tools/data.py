@@ -1,7 +1,7 @@
 """Data tools: ``edi_preview_entity``, ``edi_download_entities`` and ``edi_download_package``.
 
 Previews stream an entity and stop reading after a few rows (GMN ignores
-``Range``), on both backends. Downloads exist only on stdio (DESIGN.md D17):
+``Range``), on both backends. Downloads exist only on stdio (DESIGN.md D10):
 they plan before transferring, verify SHA-1 checksums and never overwrite.
 """
 

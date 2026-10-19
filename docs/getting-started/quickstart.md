@@ -28,8 +28,9 @@ This walks through a first session in Claude Code[^claude-code-mcp]; other clien
 work the same way once connected ([Clients](clients.md)). It uses the tools available
 today: `edi_ping`, the discovery tools (`edi_search_packages`, `edi_list_scopes`,
 `edi_list_identifiers`, `edi_list_revisions`) and the package tools (`edi_get_package`,
-`edi_get_metadata`, `edi_list_entities`). Preview, download and citation tools are still
-being built; see the [Roadmap](../tools/roadmap.md).
+`edi_get_metadata`, `edi_list_entities`), then preview, download and cite with
+`edi_preview_entity`, `edi_download_entities` (stdio) and `edi_get_citation`. The
+[Tool reference](../tools/reference.md) lists all sixteen tools.
 
 ## 1. Register the server
 
@@ -113,6 +114,18 @@ depends on the backend and on what EDI holds at the time.
     `edi_list_entities` gives each table's columns, units and missing-value codes,
     with a PASTA `dataUrl` and, where DataONE replicates the scope, a keyless
     `anonymousUrl`. See [Packages, metadata and entities](../tools/packages.md).
+
+5. **Preview, save and cite**
+
+    ```json
+    {"tool": "edi_preview_entity", "arguments": {"package": "knb-lter-hbr.14.22", "entity": "thiessen_weights", "rows": 5}}
+    ```
+
+    → `columns` and the first `rows` of the table. Then
+    `edi_download_entities(package=…, entities=["thiessen_weights"])` saves the CSV and
+    the EML under the download directory with its SHA-1 verified (stdio only), and
+    `edi_get_citation(package="knb-lter-hbr.14.22")` returns the ESIP citation with its
+    DOI. See [Previews and downloads](../tools/data.md).
 
 Every result also carries `notes` (caveats such as DataONE lag) and `nextSteps`
 (concrete follow-up calls). The [Tool reference](../tools/reference.md) lists every

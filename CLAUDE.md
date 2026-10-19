@@ -14,12 +14,11 @@ Build order (one PR each): 1 scaffold + auth probe ✅ → 2 core port from neon
 (registry, adapter, config, errors, key resolution, transports, `edi_ping`, conformance
 tests, CI) → 3 client/token exchange/PID resolver/backends + fixtures ✅ → 4 discovery tools
 (search, list scopes/identifiers/revisions, D9 scope names) ✅ → 5 package, metadata and
-entity tools (EML projection) ✅ → 6 preview/download/citation/PASTA-only tools → 7 resources, prompts, docs, server.json, Docker, v0.1.0.
-`--check` stays offline (the live check is `edi_ping(check_api=true)`). Tool descriptions
-and `nextSteps` already name step-6 tools (`edi_preview_entity`, `edi_download_entities`,
-`edi_get_citation`). `resources_static/scopes.json` is a dated snapshot; the live test
+entity tools (EML projection) ✅ → 6 preview/download/citation/report/PASTA-only tools ✅ → 7 resources, prompts, server.json, Docker, v0.1.0. The docs site (Zensical, `docs/`, deployed from `main`) fails its drift check unless `scripts/gen_tools_reference.py` and `scripts/gen_llms_txt.py` are re-run after tool changes.
+`--check` stays offline (the live check is `edi_ping(check_api=true)`). `resources_static/scopes.json` is a dated snapshot; the live test
 `test_live_scope_snapshot_is_current` fails when a known scope leaves PASTA (new ones warn).
-tools/list is 38 KB with 8 of 16 tools (bound 60 KB): re-measure in step 7.
+tools/list is 57.7 KB with all 16 tools (bound 60 KB; schemas fold nullable `anyOf`, D20):
+keep new descriptions and output models lean.
 
 ## Commands
 
@@ -63,7 +62,12 @@ parses identifiers; `edi/scopes.py` loads the scope snapshot and resolves scope 
 site codes and `name.identifier` references (D9) — tools call `resolve_scope` /
 `resolve_reference` (or `resolve_package`, which uses it); `edi/xml.py` (defusedxml; `prose()` for EML text) and
 `edi/eml.py` (entity refs); `projections/eml.py` projects a parsed EML into compact capped
-models (D15); package tools in `tools/packages.py` fetch and parse the EML once (`load()`). Tests replay `tests/fixtures/` through `tests/fixture_router.py`
+models (D15); package tools in `tools/packages.py` fetch and parse the EML once (`load()`,
+`entity_rows`, `pick_entities`); `edi/preview.py` parses streamed rows (D17),
+`edi/downloads.py` confines and writes downloads (D10), `projections/report.py` summarises
+quality reports (D18); data/citation/provenance/feeds tools live in `tools/data.py`,
+`citation.py`, `provenance.py`, `feeds.py`. `EdiClient.stream()` is the one streaming path
+(previews, downloads); backends expose `stream_entity`. Tests replay `tests/fixtures/` through `tests/fixture_router.py`
 (any unrecorded request fails); `scripts/record_fixtures.py` records
 backend scenarios and `TOOL_SCENARIOS` (real tool calls on both backends); transports in
 `transport/`; static guides and `scopes.json` in `resources_static/`; tool helpers
@@ -91,7 +95,9 @@ annotations, every upstream endpoint listed, `requires_key=True` for PASTA-only 
   so live tests assert result order, not just HTTP 200. Malformed spatial `fq` is a 500.
 - DataONE drifts: on 2026-10-19 its `pubDate` became unsortable (sort by `dateUploaded`)
   and legacy `scope.id.rev` ids surfaced. Never assert DataONE ranking in tests.
-- Both GMN member nodes serve data anonymously (`anonymousUrl`); GMN ignores `Range`.
+- Both GMN member nodes serve data **and quality reports** anonymously (`anonymousUrl`,
+  D18); GMN ignores `Range`, so previews stop reading. PASTA's change feed names other
+  uploaders' `EDI-<hex>` principals: never return them (the fixture scrubber removes them).
 - Bulk scopes `ecotrends`, `lter-landsat`, `lter-landsat-ledaps` (~36k records) are
   excluded from search unless asked for. Revision 0 exists (`msb-paleon.31.0`).
 - A credentialed PASTA 403 means an access-restricted package (a bad key gets 401); the

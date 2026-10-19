@@ -94,8 +94,8 @@ fallback was used). A refused key shows up as an `error` with code
 
 ## Without a key
 
-Without a key, edi-mcp answers from DataONE. The tools available today all work that
-way; several planned tools will need a key. Entity listings carry a keyless
+Without a key, edi-mcp answers from DataONE and the citation service. Twelve of the
+sixteen tools work that way; four need a key. Entity listings carry a keyless
 `anonymousUrl` (a DataONE member node) beside PASTA's `dataUrl`.
 
 | Operation | Without a key (DataONE) | With a key (PASTA) |
@@ -104,12 +104,14 @@ way; several planned tools will need a key. Entity listings carry a keyless
 | Scope list (`edi_list_scopes`) | dated snapshot | live |
 | Identifiers and revisions (`edi_list_identifiers`, `edi_list_revisions`) | yes | yes |
 | Package overview, metadata and data entities (`edi_get_package`, `edi_get_metadata`, `edi_list_entities`) | yes | yes |
-| Data preview and download *(planned)* | yes | yes |
-| Citations *(planned; cite.edirepository.org)* | yes | yes |
-| Quality reports, lineage, change feeds, read counts *(planned)* | no | yes |
-| Whole-package zip download *(planned)* | no | yes |
+| Data preview and entity download (`edi_preview_entity`, `edi_download_entities`; downloads on stdio only) | yes | yes |
+| Citations (`edi_get_citation`, cite.edirepository.org) | yes | yes |
+| Quality reports (`edi_get_quality_report`; DataONE member nodes) | yes | yes |
+| Lineage, change feed, read counts (`edi_get_lineage`, `edi_recent_changes`, `edi_get_read_counts`) | no | yes |
+| Whole-package zip download (`edi_download_package`, stdio only) | no | yes |
 
-See the [Roadmap](../tools/roadmap.md) for the planned tools.
+Without a key, data and quality reports of scopes DataONE does not replicate (such as
+`cos-spu` and `icarus`) need a key too.
 
 Caveats of the fallback: the DataONE index can lag new EDI uploads by a day or more and
 may not hold every scope or revision PASTA has; the DataONE member nodes proxy PASTA, so

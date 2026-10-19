@@ -120,5 +120,6 @@ ask for fewer entities or one `entity` to get them back.
 4. `edi_list_entities` with `entity=…` → which columns, units and missing-value
    codes, and where to fetch the file.
 
-Previewing rows, downloading files and formatted citations come with the next
-build step; see the [Roadmap](roadmap.md).
+Then preview rows, download files and cite the revision: see
+[Previews and downloads](data.md) and
+[Citations, quality reports and lineage](citation-and-quality.md).

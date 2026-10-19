@@ -98,17 +98,20 @@ names them), marks the page `truncated` with `truncatedReason: budget` and a
 | `models/common.py` | `EdiInput`, `ToolResultBase`, `Page`, `Resolved`, `Source` |
 | `edi/auth.py` | `ApiKey`, per-call key resolution, the HTTP TLS gate, `scrub_url` |
 | `edi/tokens.py` | key → `edi-token` exchange and refresh per key identity, `?key=` fallback |
-| `edi/client.py` | the one `httpx` client: PASTA-only credentials, cookie jar that stores nothing, retries, allow-listed redirects, byte caps, upstream error scrubbing |
+| `edi/client.py` | the one `httpx` client: PASTA-only credentials, cookie jar that stores nothing, retries, allow-listed redirects, byte caps, upstream error scrubbing; `get()` for cached bodies and `stream()` for previews and downloads, both through one redirect loop (`_open`) |
 | `edi/cache.py` | per-family TTL cache with single-flight and stale-if-error; PASTA entries keyed by key identity |
 | `edi/backends/` | the `Backend` contract, `PastaBackend`, `DataOneBackend`, `backend_for`, `resolve_package` |
 | `edi/pid.py` | package identifier, DOI and URL parsing |
 | `edi/scopes.py` | scope snapshot, scope names, LTER site codes and `name.identifier` references |
 | `edi/xml.py`, `edi/eml.py` | defusedxml parsing and EML prose; EML data-entity references and sizes |
+| `edi/preview.py` | delimited-text preview: EML delimiter unescaping, header detection, early-stop record handling |
+| `edi/downloads.py` | the download area: confined destinations, safe names, plan caps, `.part` streaming with SHA-1 and exclusive (never-overwrite) placement |
 | `projections/eml.py` | parsed EML → compact, capped models (people, coverage, methods, license, project, entities and attributes), with `<references>` resolution |
-| `tools/` | one module per family (`core.py`, `discovery.py`, `packages.py`, which fetches and parses the EML once per call via `load()`), plus helpers in `_common.py` (`source`, `paginate`, `portal_url`) |
+| `projections/report.py` | PASTA quality report → counts by status and the capped non-valid checks |
+| `tools/` | one module per family (`core.py`, `discovery.py`, `packages.py`, which fetches and parses the EML once per call via `load()`; `data.py` for previews and downloads, `citation.py`, `provenance.py` for quality reports and lineage, `feeds.py` for the change feed and read counts), plus helpers in `_common.py` (`source`, `paginate`, `portal_url`) |
 | `transport/` | stdio; stateless Streamable HTTP with `/healthz`, `/readyz` and the request-context middleware |
 
-Preview, download, citation and the key-only tools arrive in build step 6 (see the
+Resources, prompts and packaging arrive in build step 7 (see the
 [Roadmap](../tools/roadmap.md)).
 
 Design decisions and their reasons are recorded in `DESIGN.md` (the D-numbers)

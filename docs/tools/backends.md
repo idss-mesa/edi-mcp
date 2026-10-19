@@ -61,10 +61,16 @@ say so.
 
 ## Key-only operations
 
-Some EDI services have no DataONE counterpart: quality reports, provenance
-(lineage), change and upload feeds, read counts and whole-package zip downloads. The
-tools planned for them (see the [Roadmap](roadmap.md)) will return `auth_required`
-without a key. [`edi_list_scopes`](reference.md#edi_list_scopes) needs PASTA for a
+Some EDI services have no DataONE counterpart: provenance (lineage), the change
+feed, read counts and whole-package zip downloads. Their tools
+([`edi_get_lineage`](reference.md#edi_get_lineage),
+[`edi_recent_changes`](reference.md#edi_recent_changes),
+[`edi_get_read_counts`](reference.md#edi_get_read_counts) and
+[`edi_download_package`](reference.md#edi_download_package)) return `auth_required`
+without a key. Quality reports are the exception the original plan did not expect:
+the member nodes serve PASTA's reports anonymously, so
+[`edi_get_quality_report`](reference.md#edi_get_quality_report) works on both
+backends. [`edi_list_scopes`](reference.md#edi_list_scopes) needs PASTA for a
 live list and falls back to edi-mcp's dated scope snapshot without a key.
 
 ## Caveats of the DataONE fallback
