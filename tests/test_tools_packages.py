@@ -230,3 +230,68 @@ async def test_dataone_fetches_the_eml_once(
     await call_ok(make_server(config=uncached), tool, {"package": HBR})
     eml_calls = [c for c in router.calls if c.host == "gmn.lternet.edu" and "/object/" in c.url]
     assert len(eml_calls) == 1
+
+
+async def test_get_package_with_many_entities_points_to_list_entities(
+    key_server: EdiServer, router: FixtureRouter
+) -> None:
+    from tests.fixture_router import Reply
+
+    ids = [f"{i:032x}" for i in range(150)]
+    router.add(
+        "GET pasta.lternet.edu/package/name/eml/knb-lter-hbr/14/22",
+        Reply(200, "".join(f"{e},file {n}\n" for n, e in enumerate(ids)).encode(), "text/csv"),
+    )
+    router.add(
+        "GET pasta.lternet.edu/package/data/size/eml/knb-lter-hbr/14/22",
+        Reply(200, "".join(f"{e},10\n" for e in ids).encode(), "text/csv"),
+    )
+    p = await call_ok(key_server, "edi_get_package", {"package": HBR})
+    assert len(p["entities"]) == 100 and p["entityCount"] > 150 and "page" not in p
+    assert any("first 100 of" in n for n in p["notes"])
+    step = p["nextSteps"][0]
+    assert step.startswith("edi_list_entities(") and "offset=100" in step
+    # The suggested call is valid.
+    rest = await call_ok(
+        key_server,
+        "edi_list_entities",
+        {"package": HBR, "offset": 100, "include_attributes": False},
+    )
+    assert rest["page"]["offset"] == 100 and rest["entities"]
+
+
+async def test_get_metadata_trims_entities_with_a_usable_next_step(
+    make_server: Any, config: Any
+) -> None:
+    small = config.model_copy(deep=True)
+    small.limits.max_result_bytes = 1000
+    server = make_server(key=TEST_KEY, config=small)
+    p = await call_ok(server, "edi_get_metadata", {"package": HBR, "include": ["entities"]})
+    assert len(p["entities"]) < 5
+    step = p["nextSteps"][-1]
+    assert "edi_list_entities(package=..., offset=" in step and "call again" not in step
+
+
+async def test_dataone_newest_revision_is_qualified(server: EdiServer) -> None:
+    p = await call_ok(server, "edi_get_package", {"package": HBR})
+    assert any("newest DataONE holds" in n for n in p["notes"])
+
+
+async def test_no_anonymous_url_for_unreplicated_scopes(
+    key_server: EdiServer, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from dataclasses import replace
+
+    from edi_mcp.edi import scopes
+    from edi_mcp.tools import packages
+
+    real = scopes.load_scopes()
+    unreplicated = replace(
+        real,
+        records=tuple(
+            replace(r, dataone_packages=0) if r.scope == "knb-lter-hbr" else r for r in real.records
+        ),
+    )
+    monkeypatch.setattr(packages, "load_scopes", lambda: unreplicated)
+    p = await call_ok(key_server, "edi_list_entities", {"package": HBR, "entity": THIESSEN})
+    assert "anonymousUrl" not in p["entities"][0] and p["entities"][0]["dataUrl"]

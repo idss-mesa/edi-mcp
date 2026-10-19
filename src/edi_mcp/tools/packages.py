@@ -25,6 +25,7 @@ from edi_mcp.edi.backends import (
 )
 from edi_mcp.edi.eml import entity_refs
 from edi_mcp.edi.pid import Doi
+from edi_mcp.edi.scopes import load_scopes
 from edi_mcp.edi.xml import parse_xml
 from edi_mcp.errors import ToolError
 from edi_mcp.models.common import EdiInput, EdiOutput, Page, Resolved, ToolResultBase
@@ -202,7 +203,9 @@ class EntityDetail(EntitySummary):
     attributes_total: int = 0
     data_url: str | None = Field(None, description="PASTA data URL (needs an EDI API key).")
     anonymous_url: str | None = Field(
-        None, description="The same object on its DataONE member node, readable without a key."
+        None,
+        description="The same object on its DataONE member node, usually readable without a "
+        "key; absent for scopes DataONE does not replicate, and DataONE may lag new revisions.",
     )
 
 
@@ -215,8 +218,14 @@ class GetPackageIn(PackageArgs):
     pass
 
 
+ENTITIES_NEXT_STEP = (
+    "call edi_list_entities(package=..., offset={next_offset}) for the remaining entities."
+)
+
+
 class PackageResult(ToolResultBase):
     budget_list: ClassVar[str | None] = "entities"
+    budget_next_step: ClassVar[str | None] = ENTITIES_NEXT_STEP
 
     package_id: str
     series: str = Field(description="scope.identifier")
@@ -224,8 +233,10 @@ class PackageResult(ToolResultBase):
     revision_from: RevisionFrom = Field(
         description="How the revision was chosen: given, newest, oldest, or the DOI's."
     )
-    newest_revision: int | None = None
-    is_newest: bool | None = None
+    newest_revision: int | None = Field(
+        None, description="Newest revision on the serving backend (DataONE can lag PASTA)."
+    )
+    is_newest: bool | None = Field(None, description="revision == newestRevision.")
     title: str | None = None
     pub_date: str | None = None
     doi: str | None = None
@@ -235,10 +246,11 @@ class PackageResult(ToolResultBase):
     creators: list[str] = Field(default_factory=list)
     creators_total: int = 0
     license: License | None = None
-    entity_count: int
-    total_bytes: int | None = Field(None, description="Sum of known entity sizes.")
-    entities: list[EntitySummary]
-    page: Page
+    entity_count: int = Field(description="All entities, including any not listed below.")
+    total_bytes: int | None = Field(None, description="Sum of known entity sizes (all entities).")
+    entities: list[EntitySummary] = Field(
+        description=f"The first {MAX_PACKAGE_ENTITIES}; edi_list_entities pages through all."
+    )
 
 
 @register_tool(
@@ -288,11 +300,24 @@ async def edi_get_package(args: GetPackageIn, ctx: ToolContext) -> PackageResult
     notes = merge_notes(loaded.notes, backend.notes, merge_notes_)
     if newest is not None and revision < newest:
         notes.append(f"A newer revision exists: {package.with_revision(newest).package_id}.")
+    if isinstance(backend, DataOneBackend) and loaded.resolved.revision_from != "newest":
+        notes.append("newestRevision is the newest DataONE holds; PASTA can hold newer ones.")
+    steps = [
+        f"edi_get_metadata(package='{package.package_id}') for abstract, coverage and methods",
+        f"edi_list_entities(package='{package.package_id}') for columns, units and checksums",
+        f"edi_get_citation(package='{package.package_id}') to cite it",
+    ]
+    if len(entities) > MAX_PACKAGE_ENTITIES:
+        notes.append(f"Listing the first {MAX_PACKAGE_ENTITIES} of {len(entities)} entities.")
+        steps.insert(
+            0,
+            f"edi_list_entities(package='{package.package_id}', offset={MAX_PACKAGE_ENTITIES}, "
+            "include_attributes=false) for the remaining entities",
+        )
     lic = eml.license
     if lic is not None and lic.text:
         text, truncated = cut(lic.text, 300)
         lic = lic.model_copy(update={"text": text, "truncated": truncated or lic.truncated})
-    page_items, page = paginate(entities, offset=0, limit=MAX_PACKAGE_ENTITIES)
     doi_md5 = doi.rsplit("/", 1)[-1] if doi else None
     return PackageResult(
         package_id=package.package_id,
@@ -312,15 +337,10 @@ async def edi_get_package(args: GetPackageIn, ctx: ToolContext) -> PackageResult
         license=lic,
         entity_count=len(entities),
         total_bytes=sum(sizes) if sizes else None,
-        entities=page_items,
-        page=page,
+        entities=entities[:MAX_PACKAGE_ENTITIES],
         resolved=loaded.echoes,
         notes=notes,
-        next_steps=[
-            f"edi_get_metadata(package='{package.package_id}') for abstract, coverage and methods",
-            f"edi_list_entities(package='{package.package_id}') for columns, units and checksums",
-            f"edi_get_citation(package='{package.package_id}') to cite it",
-        ],
+        next_steps=steps,
         source=source(ctx, derived=["portalUrl", "totalBytes", "isNewest"]),
     )
 
@@ -344,6 +364,9 @@ class GetMetadataIn(PackageArgs):
 
 
 class MetadataResult(ToolResultBase):
+    budget_list: ClassVar[str | None] = "entities"
+    budget_next_step: ClassVar[str | None] = ENTITIES_NEXT_STEP
+
     package_id: str
     revision_from: RevisionFrom
     eml_version: str | None = None
@@ -520,6 +543,8 @@ async def edi_list_entities(args: ListEntitiesIn, ctx: ToolContext) -> ListEntit
     refs = entity_refs(loaded.root, source=backend.metadata_pid(package))
     infos = await backend.list_entities(package, refs)
     pairs, notes = merge_entities(infos, eml.entities)
+    record = load_scopes().get(package.scope)
+    replicated = record is None or record.dataone_replicated
     details: list[EntityDetail] = []
     for meta, info in pairs:
         base = (
@@ -540,7 +565,11 @@ async def edi_list_entities(args: ListEntitiesIn, ctx: ToolContext) -> ListEntit
                 attributes=(meta.attributes if meta and args.include_attributes else None),
                 attributes_total=meta.attributes_total if meta else 0,
                 data_url=backend.data_url(package, entity_id) if entity_id else None,
-                anonymous_url=backend.anonymous_data_url(package, entity_id) if entity_id else None,
+                anonymous_url=(
+                    backend.anonymous_data_url(package, entity_id)
+                    if entity_id and replicated
+                    else None
+                ),
             )
         )
     if args.entity:
