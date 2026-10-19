@@ -50,7 +50,7 @@ its title, DOI, publication date, temporal coverage, the first five creators
 | `author` | A creator's last name, any case (`Likens`). |
 | `start_year`, `end_year` | Temporal overlap: coverage reaches `start_year` or later and starts in `end_year` or earlier. |
 | `bbox` | `[west, south, east, north]` in decimal degrees; geographic coverage must intersect it. `west <= east`: split a box that crosses the antimeridian into two searches. |
-| `sort` | `relevance` (default), `newest` or `oldest` by publication date. `oldest` lists undated packages first. |
+| `sort` | `relevance` (default), `newest` or `oldest` by publication date (by DataONE upload date without a key). `oldest` lists undated packages first. |
 | `include_bulk` | Include the generated bulk scopes `ecotrends`, `lter-landsat` and `lter-landsat-ledaps` (about 36,000 records), which are left out of unscoped searches by default. |
 | `limit`, `offset` | Page size (1–50, default 10) and the index of the first result. |
 
@@ -76,15 +76,13 @@ The same filters are sent to both backends, but the two indexes are not identica
 * **Freshness.** The DataONE index can lag new EDI uploads by days; results say so
   in `notes`.
 * **Publication date.** PASTA returns a year, DataONE a date.
-
-!!! warning "Known issue: date sorting without a key"
-
-    Since 2026-10-19 DataONE refuses to sort on publication date, so
-    `sort=newest` or `sort=oldest` currently fails without an EDI API key
-    (relevance sorting is unaffected). A fix that sorts DataONE results by the date
-    each revision reached DataONE is in review. DataONE also began returning some
-    records under an older identifier form, which can shorten filter-only result
-    pages; the same fix handles them. With a key, PASTA sorts and pages normally.
+* **Date sorting.** Since 2026-10-19 DataONE refuses to sort on publication date,
+  so without a key `sort=newest` and `sort=oldest` order results by the date each
+  revision reached DataONE (`uploaded` on each hit), and a note says so. PASTA sorts
+  by publication date.
+* **Identifier forms.** DataONE returns some records under an older
+  `scope.identifier.revision` id form; edi-mcp reads both and de-duplicates per
+  package series.
 
 ## List scopes
 

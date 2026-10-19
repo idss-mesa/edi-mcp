@@ -26,8 +26,9 @@ stale_after: "2027-04-19T00:00:00Z"
 
 This walks through a first session in Claude Code[^claude-code-mcp]; other clients
 work the same way once connected ([Clients](clients.md)). It uses the tools available
-today: `edi_ping`, `edi_search_packages`, `edi_list_scopes`, `edi_list_identifiers` and
-`edi_list_revisions`. Package, metadata, preview, download and citation tools are still
+today: `edi_ping`, the discovery tools (`edi_search_packages`, `edi_list_scopes`,
+`edi_list_identifiers`, `edi_list_revisions`) and the package tools (`edi_get_package`,
+`edi_get_metadata`, `edi_list_entities`). Preview, download and citation tools are still
 being built; see the [Roadmap](../tools/roadmap.md).
 
 ## 1. Register the server
@@ -99,6 +100,19 @@ depends on the backend and on what EDI holds at the time.
     ```
 
     → the package identifiers in `knb-lter-hbr`, ascending and paged.
+
+4. **Read one package**
+
+    ```json
+    {"tool": "edi_get_package", "arguments": {"package": "knb-lter-hbr.14.22"}}
+    ```
+
+    → `title`, `doi`, `license`, `isNewest`, and `entities` with sizes and
+    `totalBytes`. Then `edi_get_metadata` (with `include` such as
+    `["overview", "coverage"]`) gives the abstract, keywords and coverage, and
+    `edi_list_entities` gives each table's columns, units and missing-value codes,
+    with a PASTA `dataUrl` and, where DataONE replicates the scope, a keyless
+    `anonymousUrl`. See [Packages, metadata and entities](../tools/packages.md).
 
 Every result also carries `notes` (caveats such as DataONE lag) and `nextSteps`
 (concrete follow-up calls). The [Tool reference](../tools/reference.md) lists every
