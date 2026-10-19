@@ -11,9 +11,9 @@ If you want EDI data rather than documentation, connect to the edi-mcp server it
 ## Getting started
 
 - [EDI API key](https://idss-mesa.github.io/edi-mcp/getting-started/api-key/): Why EDI's PASTA+ API needs a key since 2026-07-30, how to create one, how to give it to edi-mcp as EDI_API_KEY, how to check that EDI accepts it, what works without a key, and the errors a missing or refused key produces.
-- [Clients](https://idss-mesa.github.io/edi-mcp/getting-started/clients/): Register edi-mcp with Claude Code, Claude Desktop, Codex CLI, OpenCode and VS Code over stdio, or connect to a hosted server over HTTP, with the EDI API key passed through the environment.
+- [Clients](https://idss-mesa.github.io/edi-mcp/getting-started/clients/): Register edi-mcp with Claude Code, Claude Desktop, Codex CLI, Gemini CLI, Goose, OpenCode and VS Code over stdio, by hand or with the install script, or connect to a hosted server over HTTP, with the EDI API key passed through the environment.
 - [Configuration](https://idss-mesa.github.io/edi-mcp/getting-started/configuration/): Configure edi-mcp with a YAML file, EDI_MCP_ environment variables or command-line flags; precedence rules, the EDI API key, and every setting with its default.
-- [Install edi-mcp](https://idss-mesa.github.io/edi-mcp/getting-started/install/): Install the edi-mcp server with uv or pip from GitHub, verify it with --version and --check, and run it from source.
+- [Install edi-mcp](https://idss-mesa.github.io/edi-mcp/getting-started/install/): Install edi-mcp on macOS, Linux or Windows: prerequisites, the install script that registers the server with Claude Code, Claude Desktop, Codex, Gemini CLI, Goose and OpenCode, manual registration, verification, troubleshooting, upgrades and removal.
 - [Quickstart](https://idss-mesa.github.io/edi-mcp/getting-started/quickstart/): A first session with edi-mcp: register it with Claude Code with or without an EDI API key, check it with edi_ping, search for packages and list a package's revisions.
 
 ## Tools

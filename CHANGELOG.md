@@ -8,6 +8,15 @@ All notable changes to edi-mcp are documented here. The format follows
 
 ### Added
 
+- `scripts/install.sh` registers edi-mcp with Claude Code, Claude Desktop, Codex CLI,
+  Gemini CLI, Goose and OpenCode (detects installed agents; `--dry-run`, `--scope`,
+  `--uninstall`, Git Bash path conversion on Windows). `--with-key` stores the EDI API
+  key from the environment or a hidden prompt; there is no key flag, `--env` refuses the
+  key, output masks it and key-bearing config files are written owner-only. Hermetic
+  tests run it in a sandboxed HOME.
+- Documentation site at https://idss-mesa.github.io/edi-mcp/ (Zensical, OKF v0.2,
+  generated tool and configuration references, `llms.txt`), with installation
+  instructions for macOS, Linux and Windows.
 - Core server ported from neon-mcp: tool registry with result-size budget and MRTR
   continuations, MCP 2026-07-28 adapter (structured results, cache hints,
   `server/discover`), config loader (`EDI_MCP_*`, `EDI_API_KEY`), structured errors
