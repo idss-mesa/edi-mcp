@@ -2,13 +2,17 @@
 
 [![MCP 2026-07-28](https://img.shields.io/badge/MCP-2026--07--28-blue)](https://modelcontextprotocol.io/specification/2026-07-28)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Docs](https://img.shields.io/badge/docs-idss--mesa.github.io%2Fedi--mcp-indigo)](https://idss-mesa.github.io/edi-mcp/)
 
 A [Model Context Protocol](https://modelcontextprotocol.io) server (spec **2026-07-28**)
 for the [Environmental Data Initiative](https://edirepository.org) (EDI) PASTA+ data
 repository. It lets agents search, inspect, preview, download and cite LTER and EDI
 ecological data packages.
 
-> **Status: under construction.** The repository holds the scaffold and design. See
+> Documentation: <https://idss-mesa.github.io/edi-mcp/>
+
+> **Status: under construction.** The discovery tools (`edi_ping`, search, list
+> scopes/identifiers/revisions) work; the rest of the tools below are planned. See
 > [DESIGN.md](DESIGN.md) for decisions and [RESEARCH.md](RESEARCH.md) for verified API
 > facts.
 

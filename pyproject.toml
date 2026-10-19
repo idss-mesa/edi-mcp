@@ -72,7 +72,14 @@ include = ["src/edi_mcp", "tests", "README.md", "CHANGELOG.md", "LICENSE"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
-extend-exclude = ["site", "docs"]
+extend-exclude = [
+    "site",
+    "docs",
+    # vendored unchanged from UNM-CARC/docs via neon-mcp (keep identical to upstream)
+    "scripts/okf_validate.py",
+    "scripts/gen_llms_txt.py",
+    "scripts/postbuild_agent_surface.py",
+]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "S", "RUF"]

@@ -1,0 +1,109 @@
+[project]
+site_name = "edi-mcp"
+site_url = "https://idss-mesa.github.io/edi-mcp/"
+site_description = "edi-mcp is a Model Context Protocol (MCP 2026-07-28) server that gives AI agents compact, size-bounded access to the Environmental Data Initiative (EDI) PASTA+ repository of LTER and EDI ecological data packages."
+site_author = "idss-mesa"
+copyright = "Copyright &copy; 2026 The Regents of the University of New Mexico"
+
+repo_url = "https://github.com/idss-mesa/edi-mcp"
+repo_name = "idss-mesa/edi-mcp"
+edit_uri = "edit/main/docs/"
+
+extra_css = ["stylesheets/extra.css"]
+
+nav = [
+  { "Home" = "index.md" },
+  { "Getting started" = [ { "Contents" = "getting-started/index.md" }, "getting-started/install.md", "getting-started/quickstart.md", "getting-started/api-key.md", "getting-started/clients.md", "getting-started/configuration.md" ] },
+  { "Tools" = [ { "Contents" = "tools/index.md" }, "tools/reference.md", "tools/discovery.md", "tools/identifiers.md", "tools/backends.md", "tools/utilities.md", "tools/roadmap.md" ] },
+  { "MCP protocol" = [ { "Contents" = "mcp/index.md" }, "mcp/spec-2026-07-28.md", "mcp/transports.md" ] },
+  { "Deploy" = [ { "Contents" = "deploy/index.md" }, "deploy/hosted-http.md", "deploy/security.md" ] },
+  { "Develop" = [ { "Contents" = "develop/index.md" }, "develop/architecture.md", "develop/adding-tools.md", "develop/testing.md", "develop/contributing.md" ] },
+  { "About" = [ { "Contents" = "about/index.md" }, "about/ai-agents.md", "about/citing-edi.md", "about/license.md", { "Changelog" = "log.md" } ] },
+]
+
+[project.theme]
+favicon = "assets/favicon.svg"
+logo = "assets/logo.svg"
+language = "en"
+features = [
+  "announce.dismiss",
+  "content.action.edit",
+  "content.action.view",
+  "content.code.annotate",
+  "content.code.copy",
+  "content.code.select",
+  "content.footnote.tooltips",
+  "content.tabs.link",
+  "content.tooltips",
+  "navigation.footer",
+  "navigation.instant",
+  "navigation.instant.prefetch",
+  "navigation.instant.progress",
+  "navigation.path",
+  "navigation.tabs",
+  "navigation.tabs.sticky",
+  "navigation.top",
+  "navigation.tracking",
+  "search.highlight",
+  "search.suggest",
+  "toc.follow",
+  "toc.integrate",
+]
+
+[project.theme.icon]
+repo = "fontawesome/brands/github"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme)"
+toggle.icon = "lucide/sun-moon"
+toggle.name = "Switch to light mode"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: light)"
+scheme = "default"
+primary = "indigo"
+accent = "light blue"
+toggle.icon = "lucide/sun"
+toggle.name = "Switch to dark mode"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: dark)"
+scheme = "slate"
+primary = "indigo"
+accent = "light blue"
+toggle.icon = "lucide/moon"
+toggle.name = "Switch to system preference"
+
+[[project.extra.social]]
+icon = "fontawesome/brands/github"
+link = "https://github.com/idss-mesa"
+
+[project.markdown_extensions]
+abbr = {}
+admonition = {}
+attr_list = {}
+def_list = {}
+footnotes = {}
+md_in_html = {}
+toc.permalink = true
+pymdownx.arithmatex.generic = true
+pymdownx.betterem = {}
+pymdownx.caret = {}
+pymdownx.details = {}
+pymdownx.emoji.emoji_generator = "zensical.extensions.emoji.to_svg"
+pymdownx.emoji.emoji_index = "zensical.extensions.emoji.twemoji"
+pymdownx.highlight.anchor_linenums = true
+pymdownx.highlight.line_spans = "__span"
+pymdownx.highlight.pygments_lang_class = true
+pymdownx.inlinehilite = {}
+pymdownx.keys = {}
+pymdownx.magiclink = {}
+pymdownx.mark = {}
+pymdownx.smartsymbols = {}
+pymdownx.superfences.custom_fences = [
+  { name = "mermaid", class = "mermaid", format = "pymdownx.superfences.fence_code_format" },
+]
+pymdownx.tabbed.alternate_style = true
+pymdownx.tabbed.combine_header_slug = true
+pymdownx.tasklist.custom_checkbox = true
+pymdownx.tilde = {}
