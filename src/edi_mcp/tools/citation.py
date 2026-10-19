@@ -10,7 +10,7 @@ from edi_mcp.edi.backends.base import CitationStyle
 from edi_mcp.models.common import EdiOutput, Resolved, ToolResultBase
 from edi_mcp.registry import register_tool
 from edi_mcp.tools._common import merge_notes, portal_url, source
-from edi_mcp.tools.packages import PackageArgs, RevisionFrom
+from edi_mcp.tools.packages import PackageArgs, RevisionFrom, dataone_newest_note
 
 DATA_POLICY = (
     "Cite the exact revision you used, by its DOI. EDI data carry their own terms in each "
@@ -95,7 +95,9 @@ async def edi_get_citation(args: CitationIn, ctx: ToolContext) -> CitationResult
         doi_url=doi_url,
         portal_url=portal_url(ctx, package),
         resolved=echoes,
-        notes=merge_notes(backend.notes, [DATA_POLICY]),
+        notes=merge_notes(
+            dataone_newest_note(backend.name, resolved), backend.notes, [DATA_POLICY]
+        ),
         next_steps=[f"edi_get_metadata(package='{package.package_id}', include=['rights'])"],
         source=src,
     )

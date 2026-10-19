@@ -17,7 +17,7 @@ tests, CI) → 3 client/token exchange/PID resolver/backends + fixtures ✅ → 
 entity tools (EML projection) ✅ → 6 preview/download/citation/report/PASTA-only tools ✅ → 7 resources, prompts, server.json, Docker, v0.1.0. The docs site (Zensical, `docs/`, deployed from `main`) fails its drift check unless `scripts/gen_tools_reference.py` and `scripts/gen_llms_txt.py` are re-run after tool changes.
 `--check` stays offline (the live check is `edi_ping(check_api=true)`). `resources_static/scopes.json` is a dated snapshot; the live test
 `test_live_scope_snapshot_is_current` fails when a known scope leaves PASTA (new ones warn).
-tools/list is 57.7 KB with all 16 tools (bound 60 KB; schemas fold nullable `anyOf`, D20):
+tools/list is 58.0 KB with all 16 tools (bound 60 KB; output schemas fold nullable `anyOf`, D20):
 keep new descriptions and output models lean.
 
 ## Commands

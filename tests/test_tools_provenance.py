@@ -168,3 +168,23 @@ async def test_read_counts_of_one_revision(key_server: EdiServer) -> None:
     assert p["series"] == "knb-lter-jrn.210548103" and p["revision"] == 32
     assert [r["revision"] for r in p["revisions"]] == [32]
     assert p["nextSteps"] == ["edi_get_citation(package='knb-lter-jrn.210548103.32')"]
+
+
+async def test_dataone_newest_is_qualified_in_citations(server: EdiServer) -> None:
+    p = await call_ok(server, "edi_get_citation", {"package": "knb-lter-hbr.14"})
+    assert p["packageId"] == HBR and p["revisionFrom"] == "newest"
+    assert any("newest DataONE holds" in n for n in p["notes"])
+    assert p["source"]["backend"] == "mixed"
+
+
+async def test_dataone_newest_is_qualified_in_quality_reports(
+    server: EdiServer, router: FixtureRouter
+) -> None:
+    router.add(
+        "GET gmn.lternet.edu/mn/v2/object/"
+        "https%3A%2F%2Fpasta.lternet.edu%2Fpackage%2Freport%2Feml%2Fknb-lter-hbr%2F14%2F22",
+        Reply(200, b"<qualityReport><packageId>knb-lter-hbr.14.22</packageId></qualityReport>"),
+    )
+    p = await call_ok(server, "edi_get_quality_report", {"package": "knb-lter-hbr.14"})
+    assert p["packageId"] == HBR and p["revisionFrom"] == "newest"
+    assert any("newest DataONE holds" in n for n in p["notes"])

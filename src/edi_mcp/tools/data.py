@@ -71,6 +71,11 @@ class PreviewIn(PackageArgs):
 
 class PreviewResult(ToolResultBase):
     budget_list: ClassVar[str | None] = "rows"
+    budget_incomplete_flag: ClassVar[str | None] = "complete"
+    budget_next_step: ClassVar[str | None] = (
+        "only {next_offset} rows fit; call edi_preview_entity(..., rows={next_offset}), or "
+        "fetch the whole entity with edi_download_entities."
+    )
 
     package_id: str
     revision_from: RevisionFrom

@@ -52,6 +52,8 @@ class EdiOutput(BaseModel):
     #: Next step added when ``budget_list`` is trimmed, for tools without offset/limit;
     #: ``{next_offset}`` is filled in. ``None`` = "call again with offset=…".
     budget_next_step: ClassVar[str | None] = None
+    #: A boolean output field set to false when ``budget_list`` is trimmed (e.g. ``complete``).
+    budget_incomplete_flag: ClassVar[str | None] = None
 
 
 class Page(EdiOutput):

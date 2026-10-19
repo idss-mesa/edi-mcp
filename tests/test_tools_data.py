@@ -239,3 +239,20 @@ def test_sha1_fixture_matches_the_recorded_entity() -> None:
     body = (root / data["file"]).read_bytes()
     expected = (root / checksum["file"]).read_text().strip()
     assert hashlib.sha1(body, usedforsecurity=False).hexdigest() == expected
+
+
+async def test_wide_preview_is_trimmed_to_the_budget(
+    key_server: EdiServer, router: FixtureRouter
+) -> None:
+    header = ",".join(f"column_{i:02d}" for i in range(40))
+    row = ",".join(f"{i * 1.234567:.6f}xyz" for i in range(40))
+    body = (header + "\n" + "\n".join(row for _ in range(200)) + "\n").encode()
+    router.add(PASTA_DATA, Reply(200, body, "text/csv"))
+    p = await call_ok(
+        key_server, "edi_preview_entity", {"package": HBR, "entity": THIESSEN, "rows": 200}
+    )
+    kept = len(p["rows"])
+    assert 0 < kept < 200 and p["complete"] is False
+    assert len(json.dumps(p, separators=(",", ":"), ensure_ascii=False)) <= 50_000 + 1000
+    step = next(s for s in p["nextSteps"] if s.startswith("Result trimmed"))
+    assert f"rows={kept}" in step and "offset" not in step

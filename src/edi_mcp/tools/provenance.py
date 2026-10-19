@@ -26,7 +26,7 @@ from edi_mcp.projections.report import (
 from edi_mcp.registry import register_tool
 from edi_mcp.tools._common import merge_notes, source
 from edi_mcp.tools.data import require_replicated
-from edi_mcp.tools.packages import PackageArgs, RevisionFrom
+from edi_mcp.tools.packages import PackageArgs, RevisionFrom, dataone_newest_note
 
 
 def _echo(resolved_raw: str, package_id: str, given: str, extra: list[Resolved]) -> list[Resolved]:
@@ -87,7 +87,7 @@ async def edi_get_quality_report(args: QualityIn, ctx: ToolContext) -> QualityRe
         service="PASTA" if backend.name == "pasta" else "DataONE",
     )
     report = project_report(root, include_info=args.include_info)
-    notes = []
+    notes = dataone_newest_note(backend.name, resolved)
     if report.issues_total > len(report.issues):
         notes.append(
             f"Showing {len(report.issues)} of {report.issues_total} issues (cap {MAX_ISSUES})."

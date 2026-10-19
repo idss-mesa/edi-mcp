@@ -120,12 +120,18 @@ async def load(
     projection = project_eml(
         root, max_text_chars=max_text_chars, entity_attributes=entity_attributes
     )
-    notes: list[str] = []
-    if resolved.revision_from == "newest" and isinstance(backend, DataOneBackend):
-        notes.append(
-            f"Revision {package.revision} is the newest DataONE holds; PASTA can hold newer ones."
-        )
+    notes = dataone_newest_note(backend.name, resolved)
     return Loaded(backend, resolved, projection, root, echoes, notes, body)
+
+
+def dataone_newest_note(backend: str, resolved: ResolvedPackage) -> list[str]:
+    """Without a key, 'newest' is DataONE's newest, which can lag PASTA's (D16)."""
+    if resolved.revision_from == "newest" and backend == "dataone":
+        return [
+            f"Revision {resolved.package.revision} is the newest DataONE holds; PASTA can "
+            "hold newer ones (set EDI_API_KEY to be sure)."
+        ]
+    return []
 
 
 def _summary(meta: EntityMetadata, info: EntityInfo | None) -> EntitySummary:

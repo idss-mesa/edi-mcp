@@ -106,7 +106,8 @@ _NULL = {"type": "null"}
 
 def fold_nullable(schema: Any, *, drop_null_defaults: bool) -> Any:
     """Shorten pydantic's ``anyOf: [{type: T, ...}, {type: null}]`` to ``type: [T, "null"]``
-    (same meaning in JSON Schema 2020-12) and, for output schemas, drop ``default: null``.
+    (same meaning in JSON Schema 2020-12) and drop ``default: null``. Applied to output
+    schemas only (D20): input schemas keep pydantic's shape, which every client handles.
 
     Keeps ``tools/list`` inside its byte bound. Branches with ``enum``/``const``/``$ref``
     are left alone, since folding ``null`` into them would change what validates.
@@ -187,9 +188,7 @@ class EdiServer:
     def input_schema(spec: ToolSpec) -> dict[str, Any]:
         """Validation schema by alias; pydantic's auto titles dropped, descriptions kept for the model."""
         raw = spec.input_model.model_json_schema(by_alias=True, mode="validation")
-        schema: dict[str, Any] = fold_nullable(
-            compact_schema(raw, ("title",)), drop_null_defaults=False
-        )
+        schema: dict[str, Any] = dict(compact_schema(raw, ("title",)))
         schema["$schema"] = JSON_SCHEMA_DIALECT
         return schema
 

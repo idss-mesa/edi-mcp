@@ -15,7 +15,7 @@ All notable changes to edi-mcp are documented here. The format follows
   from cite.edirepository.org), `edi_get_quality_report` (counts and non-valid checks;
   works without a key via the DataONE member nodes, D18), and the key-only
   `edi_get_lineage`, `edi_recent_changes` (uploader principals dropped) and
-  `edi_get_read_counts`. The client gains one streaming path (`stream()`); tool schemas
+  `edi_get_read_counts`. The client gains one streaming path (`stream()`); output schemas
   fold nullable `anyOf` so `tools/list` stays under 60 KB with 16 tools (D20).
 - `scripts/install.sh` registers edi-mcp with Claude Code, Claude Desktop, Codex CLI,
   Gemini CLI, Goose and OpenCode (detects installed agents; `--dry-run`, `--scope`,
