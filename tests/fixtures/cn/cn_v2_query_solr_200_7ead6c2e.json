@@ -2,7 +2,7 @@
   "responseHeader":{
     "zkConnected":true,
     "status":0,
-    "QTime":1,
+    "QTime":5,
     "params":{
       "q":"isDocumentedBy:\"https://pasta.lternet.edu/package/metadata/eml/edi/2081/1\"",
       "fl":"id,fileName,size,checksum,checksumAlgorithm,formatId",
@@ -15,18 +15,18 @@
     "start":0,
     "numFoundExact":true,
     "docs":[{
-      "id":"https://pasta.lternet.edu/package/data/eml/edi/2081/1/757761d2f8d14f9026c67a449beac216",
-      "fileName":"EDS_Course_Materials.zip",
-      "formatId":"application/zip",
-      "size":779253756,
-      "checksum":"86bfd3224162b6c49f11d955d736e7a979b01a53",
-      "checksumAlgorithm":"SHA-1"
-    },{
       "id":"https://pasta.lternet.edu/package/metadata/eml/edi/2081/1",
       "fileName":"edi.2081.1.xml",
       "formatId":"https://eml.ecoinformatics.org/eml-2.2.0",
       "size":11024,
       "checksum":"adfb7b0cb1fd046c9a7adcfbf2e79d2c3149c0e5",
+      "checksumAlgorithm":"SHA-1"
+    },{
+      "id":"https://pasta.lternet.edu/package/data/eml/edi/2081/1/757761d2f8d14f9026c67a449beac216",
+      "fileName":"EDS_Course_Materials.zip",
+      "formatId":"application/zip",
+      "size":779253756,
+      "checksum":"86bfd3224162b6c49f11d955d736e7a979b01a53",
       "checksumAlgorithm":"SHA-1"
     },{
       "id":"https://pasta.lternet.edu/package/report/eml/edi/2081/1",

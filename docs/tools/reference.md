@@ -23,18 +23,150 @@ status: stable
 
 # Tool reference
 
-Generated from the tool registry by `scripts/gen_tools_reference.py`; do not edit by hand. 8 tools are registered. Inputs are snake_case and outputs camelCase. Every result also carries `resolved`, `notes`, `nextSteps` and `source` (whose `backend` says whether PASTA or DataONE answered), and failures return `structuredContent.error` with a stable `code` (see [Utilities](utilities.md#error-codes)).
+Generated from the tool registry by `scripts/gen_tools_reference.py`; do not edit by hand. 16 tools are registered; `edi_download_entities`, `edi_download_package` are offered only over stdio. Inputs are snake_case and outputs camelCase. Every result also carries `resolved`, `notes`, `nextSteps` and `source` (whose `backend` says whether PASTA or DataONE answered), and failures return `structuredContent.error` with a stable `code` (see [Utilities](utilities.md#error-codes)).
 
 | Tool | Title | Family | EDI API key |
 | --- | --- | --- | --- |
+| [`edi_download_entities`](#edi_download_entities) | Download data entities | [data](data.md) | no |
+| [`edi_download_package`](#edi_download_package) | Download a whole package (zip) | [data](data.md) | required |
+| [`edi_get_citation`](#edi_get_citation) | Cite an EDI data package | [citation](citation-and-quality.md) | no |
+| [`edi_get_lineage`](#edi_get_lineage) | Get a package's provenance | [provenance](citation-and-quality.md) | required |
 | [`edi_get_metadata`](#edi_get_metadata) | Read a package's EML metadata | [packages](packages.md) | no |
 | [`edi_get_package`](#edi_get_package) | Get an EDI data package | [packages](packages.md) | no |
+| [`edi_get_quality_report`](#edi_get_quality_report) | Get a package's quality report | [provenance](citation-and-quality.md) | no |
+| [`edi_get_read_counts`](#edi_get_read_counts) | Get a package's read counts | [feeds](feeds.md) | required |
 | [`edi_list_entities`](#edi_list_entities) | List a package's data entities | [entities](packages.md) | no |
 | [`edi_list_identifiers`](#edi_list_identifiers) | List package identifiers in a scope | [discovery](discovery.md) | no |
 | [`edi_list_revisions`](#edi_list_revisions) | List the revisions of a package | [discovery](discovery.md) | no |
 | [`edi_list_scopes`](#edi_list_scopes) | List EDI scopes | [discovery](discovery.md) | no |
 | [`edi_ping`](#edi_ping) | Check edi-mcp status | [core](utilities.md) | no |
+| [`edi_preview_entity`](#edi_preview_entity) | Preview a data entity | [data](data.md) | no |
+| [`edi_recent_changes`](#edi_recent_changes) | List recent repository changes | [feeds](feeds.md) | required |
 | [`edi_search_packages`](#edi_search_packages) | Search EDI data packages | [discovery](discovery.md) | no |
+
+## edi_download_entities
+
+**Download data entities.** Save a package's data entities (all, or the ones named) and its EML into the configured download directory (stdio only). The plan is checked against file and byte caps first; SHA-1 checksums are verified; existing identical files are skipped and different ones are never overwritten. Works with or without a key. Next: read the files (pandas.read_csv) and cite with edi_get_citation.
+
+| | |
+| --- | --- |
+| Surface | `data` |
+| EDI API key | optional (PASTA with a key, DataONE without) |
+| Transports | stdio |
+| Annotations | readOnly=false, destructive=false, idempotent=true, openWorld=true |
+| Upstream endpoints | `GET pasta.lternet.edu/package/metadata/eml/{scope}/{id}/{rev}`<br>`GET pasta.lternet.edu/package/data/eml/{scope}/{id}/{rev}/{entity}`<br>`GET pasta.lternet.edu/package/data/checksum/eml/{scope}/{id}/{rev}/{entity}`<br>`GET gmn.lternet.edu/mn/v2/object/{pid}`<br>`GET gmn.lternet.edu/mn/v2/meta/{pid}` |
+
+**Inputs**
+
+| Name | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `package` | string | yes |  | A package: knb-lter-hbr.14.22, knb-lter-hbr.14 (newest unless revision is set), a DOI, or a portal or PASTA URL; the scope may be a site code or name (jrn.210548103). (min length 1; max length 500) |
+| `revision` | integer \\| `newest` \\| `oldest` \\| null |  | null | Revision when package names none: a number, 'newest' (default) or 'oldest'. |
+| `entities` | array of string \\| null |  | null | Entity ids, names or file names; all when omitted. (max items 200) |
+| `include_metadata` | boolean |  | true | Also save the EML as <packageId>.xml. |
+| `dest_subdir` | string \\| null |  | null | Sub-directory of the download directory. (max length 200) |
+| `max_bytes` | integer \\| null |  | null | Refuse plans larger than this. (>= 1) |
+
+**Result fields** (besides the common envelope)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `packageId` | string |  |
+| `directory` | string | Where the files were saved. |
+| `files` | array of SavedFile |  |
+| `downloaded` | integer |  |
+| `bytes` | integer | Bytes transferred by this call. |
+
+## edi_download_package
+
+**Download a whole package (zip).** Save one package revision as PASTA's zip archive (metadata, data entities, quality report) into the configured download directory (stdio only; needs an EDI API key). Archives can be very large: the transfer stops at the byte cap, and an existing file is never overwritten. Next: unzip it, or prefer edi_download_entities for chosen files.
+
+| | |
+| --- | --- |
+| Surface | `data` |
+| EDI API key | required |
+| Transports | stdio |
+| Annotations | readOnly=false, destructive=false, idempotent=true, openWorld=true |
+| Upstream endpoints | `GET pasta.lternet.edu/package/download/eml/{scope}/{id}/{rev}` |
+
+**Inputs**
+
+| Name | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `package` | string | yes |  | A package: knb-lter-hbr.14.22, knb-lter-hbr.14 (newest unless revision is set), a DOI, or a portal or PASTA URL; the scope may be a site code or name (jrn.210548103). (min length 1; max length 500) |
+| `revision` | integer \\| `newest` \\| `oldest` \\| null |  | null | Revision when package names none: a number, 'newest' (default) or 'oldest'. |
+| `dest_subdir` | string \\| null |  | null | Sub-directory of the download directory. (max length 200) |
+| `max_bytes` | integer \\| null |  | null | Stop and fail beyond this many bytes. (>= 1) |
+
+**Result fields** (besides the common envelope)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `packageId` | string |  |
+| `directory` | string | Where the files were saved. |
+| `files` | array of SavedFile |  |
+| `downloaded` | integer |  |
+| `bytes` | integer | Bytes transferred by this call. |
+
+## edi_get_citation
+
+**Cite an EDI data package.** A formatted citation for one package revision from the EDI citation service: ESIP (default), DRYAD or BibTeX, plus its parts (authors, year, title, version, publisher, DOI). Needs no key, though a key lets 'newest' come from PASTA. Restricted packages have no citation. Next: cite the DOI in your work and check the license with edi_get_metadata include=['rights'].
+
+| | |
+| --- | --- |
+| Surface | `citation` |
+| EDI API key | optional (PASTA with a key, DataONE without) |
+| Transports | http, stdio |
+| Annotations | readOnly=true, destructive=false, idempotent=true, openWorld=true |
+| Upstream endpoints | `GET cite.edirepository.org/cite/{packageId}`<br>`GET pasta.lternet.edu/package/eml/{scope}/{id}`<br>`GET cn.dataone.org/cn/v2/query/solr/` |
+
+**Inputs**
+
+| Name | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `package` | string | yes |  | A package: knb-lter-hbr.14.22, knb-lter-hbr.14 (newest unless revision is set), a DOI, or a portal or PASTA URL; the scope may be a site code or name (jrn.210548103). (min length 1; max length 500) |
+| `revision` | integer \\| `newest` \\| `oldest` \\| null |  | null | Revision when package names none: a number, 'newest' (default) or 'oldest'. |
+| `style` | `ESIP` \\| `DRYAD` \\| `BIBTEX` |  | `"ESIP"` | ESIP (default), DRYAD or BIBTEX. |
+
+**Result fields** (besides the common envelope)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `packageId` | string |  |
+| `revisionFrom` | `given` \\| `newest` \\| `oldest` \\| `doi` |  |
+| `style` | `ESIP` \\| `DRYAD` \\| `BIBTEX` |  |
+| `citation` | string | The formatted citation (BibTeX entry for BIBTEX). |
+| `parts` | CitationParts |  |
+| `doiUrl` | string \\| null |  |
+| `portalUrl` | string |  |
+
+## edi_get_lineage
+
+**Get a package's provenance.** Provenance of one package revision: the EDI packages it was derived from (sources named in its EML methods) and the packages that name it as a source (descendants), with titles. Needs an EDI API key. Next: call edi_get_package on a source or descendant.
+
+| | |
+| --- | --- |
+| Surface | `provenance` |
+| EDI API key | required |
+| Transports | http, stdio |
+| Annotations | readOnly=true, destructive=false, idempotent=true, openWorld=true |
+| Upstream endpoints | `GET pasta.lternet.edu/package/sources/eml/{scope}/{id}/{rev}`<br>`GET pasta.lternet.edu/package/descendants/eml/{scope}/{id}/{rev}` |
+
+**Inputs**
+
+| Name | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `package` | string | yes |  | A package: knb-lter-hbr.14.22, knb-lter-hbr.14 (newest unless revision is set), a DOI, or a portal or PASTA URL; the scope may be a site code or name (jrn.210548103). (min length 1; max length 500) |
+| `revision` | integer \\| `newest` \\| `oldest` \\| null |  | null | Revision when package names none: a number, 'newest' (default) or 'oldest'. |
+
+**Result fields** (besides the common envelope)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `packageId` | string |  |
+| `revisionFrom` | `given` \\| `newest` \\| `oldest` \\| `doi` |  |
+| `sources` | array of LinkedOut | Packages this one was derived from. |
+| `descendants` | array of LinkedOut | Packages derived from this one. |
 
 ## edi_get_metadata
 
@@ -127,6 +259,68 @@ Generated from the tool registry by `scripts/gen_tools_reference.py`; do not edi
 | `entityCount` | integer | All entities, including any not listed below. |
 | `totalBytes` | integer \\| null | Sum of known entity sizes (all entities). |
 | `entities` | array of EntitySummary | The first 100; edi_list_entities pages through all. |
+
+## edi_get_quality_report
+
+**Get a package's quality report.** PASTA's quality report for one package revision: how many congruence checks passed, warned or failed (metadata, and each data entity against its EML), and the details of every non-valid check with EDI's explanation and suggestion. Works with a key (PASTA) or without (DataONE member node). Next: inspect a flagged entity with edi_list_entities or edi_preview_entity.
+
+| | |
+| --- | --- |
+| Surface | `provenance` |
+| EDI API key | optional (PASTA with a key, DataONE without) |
+| Transports | http, stdio |
+| Annotations | readOnly=true, destructive=false, idempotent=true, openWorld=true |
+| Upstream endpoints | `GET pasta.lternet.edu/package/report/eml/{scope}/{id}/{rev}`<br>`GET gmn.lternet.edu/mn/v2/object/{pid}` |
+
+**Inputs**
+
+| Name | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `package` | string | yes |  | A package: knb-lter-hbr.14.22, knb-lter-hbr.14 (newest unless revision is set), a DOI, or a portal or PASTA URL; the scope may be a site code or name (jrn.210548103). (min length 1; max length 500) |
+| `revision` | integer \\| `newest` \\| `oldest` \\| null |  | null | Revision when package names none: a number, 'newest' (default) or 'oldest'. |
+| `include_info` | boolean |  | false | Also list 'info' checks, not only warn/error. |
+
+**Result fields** (besides the common envelope)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `packageId` | string |  |
+| `revisionFrom` | `given` \\| `newest` \\| `oldest` \\| `doi` |  |
+| `created` | string \\| null |  |
+| `counts` | StatusCounts | Checks by status, dataset and entities together. |
+| `issues` | array of QualityIssue | Non-valid checks, errors first. |
+| `issuesTotal` | integer |  |
+| `entities` | array of EntityQuality |  |
+| `entitiesTotal` | integer |  |
+
+## edi_get_read_counts
+
+**Get a package's read counts.** How often a package series or one revision has been read on PASTA: totals and non-robot reads by resource type (package, metadata, quality report, data entities, zip archive) and per revision. Needs an EDI API key. Next: cite the package with edi_get_citation.
+
+| | |
+| --- | --- |
+| Surface | `feeds` |
+| EDI API key | required |
+| Transports | http, stdio |
+| Annotations | readOnly=true, destructive=false, idempotent=true, openWorld=true |
+| Upstream endpoints | `GET pasta.lternet.edu/audit/reads/{scope}/{id}[/{rev}]` |
+
+**Inputs**
+
+| Name | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `package` | string | yes |  | A series (knb-lter-hbr.14) for every revision, or one revision (knb-lter-hbr.14.22); the scope may be a site code or name. (min length 1; max length 500) |
+| `revision` | integer \\| null |  | null | Only this revision of a series. (>= 0) |
+
+**Result fields** (besides the common envelope)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `series` | string |  |
+| `revision` | integer \\| null |  |
+| `totals` | object of ReadTally | By resource type: dataPackage, metadata, report, data, archive. |
+| `revisions` | array of RevisionReads | Newest first (at most 100). |
+| `revisionsTotal` | integer |  |
 
 ## edi_list_entities
 
@@ -281,6 +475,77 @@ Generated from the tool registry by `scripts/gen_tools_reference.py`; do not edi
 | `downloadDir` | string \\| null |  |
 | `endpoints` | Endpoints |  |
 | `api` | ApiCheck \\| null | Present when check_api was requested. |
+
+## edi_preview_entity
+
+**Preview a data entity.** The first rows of one delimited data entity (a CSV or other text table), parsed with the EML's delimiter, quote character and header lines, with column names. Reads at most a few hundred KB and stops; works with or without a key (PASTA or the DataONE member node). Binary entities are refused. Next: call edi_list_entities for column definitions and units, or edi_download_entities for the whole file.
+
+| | |
+| --- | --- |
+| Surface | `data` |
+| EDI API key | optional (PASTA with a key, DataONE without) |
+| Transports | http, stdio |
+| Annotations | readOnly=true, destructive=false, idempotent=true, openWorld=true |
+| Upstream endpoints | `GET pasta.lternet.edu/package/metadata/eml/{scope}/{id}/{rev}`<br>`GET pasta.lternet.edu/package/data/eml/{scope}/{id}/{rev}/{entity}`<br>`GET gmn.lternet.edu/mn/v2/object/{pid}` |
+
+**Inputs**
+
+| Name | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `package` | string | yes |  | A package: knb-lter-hbr.14.22, knb-lter-hbr.14 (newest unless revision is set), a DOI, or a portal or PASTA URL; the scope may be a site code or name (jrn.210548103). (min length 1; max length 500) |
+| `revision` | integer \\| `newest` \\| `oldest` \\| null |  | null | Revision when package names none: a number, 'newest' (default) or 'oldest'. |
+| `entity` | string | yes |  | Entity id, name or file name (case-insensitive). (min length 1; max length 300) |
+| `rows` | integer |  | `20` | Data rows to return. (>= 1; <= 200) |
+| `max_bytes` | integer \\| null |  | null | Most bytes to read (capped by limits.preview_max_bytes). (>= 1024) |
+
+**Result fields** (besides the common envelope)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `packageId` | string |  |
+| `revisionFrom` | `given` \\| `newest` \\| `oldest` \\| `doi` |  |
+| `entityId` | string \\| null |  |
+| `name` | string \\| null |  |
+| `size` | integer \\| null | Entity bytes, when known. |
+| `columns` | array of string | Column names (file header, else EML attributes). |
+| `columnsFrom` | `header` \\| `eml` \\| `none` |  |
+| `rows` | array of array of string | Data rows as text; long cells end with '…'. |
+| `complete` | boolean | True when every row of the entity is shown. |
+| `bytesRead` | integer |  |
+
+## edi_recent_changes
+
+**List recent repository changes.** Packages inserted, updated (new revisions) or deleted in PASTA during a date window (default the last 7 days, at most 92), optionally for one scope or kind, newest first, with DOIs. Needs an EDI API key. Next: call edi_get_package on a packageId.
+
+| | |
+| --- | --- |
+| Surface | `feeds` |
+| EDI API key | required |
+| Transports | http, stdio |
+| Annotations | readOnly=true, destructive=false, idempotent=true, openWorld=true |
+| Upstream endpoints | `GET pasta.lternet.edu/package/changes/eml` |
+
+**Inputs**
+
+| Name | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `from_date` | string \\| null |  | null | First day (YYYY-MM-DD, UTC); default 7 days ago. |
+| `to_date` | string \\| null |  | null | Last day (inclusive); default today. |
+| `scope` | string \\| null |  | null | Only this scope: code, LTER site code or name. (max length 100) |
+| `kinds` | array of `insert` \\| `update` \\| `delete` \\| null |  | null | Only these: insert (new package), update (new revision), delete. |
+| `offset` | integer |  | `0` | Index of the first change (paging). (>= 0) |
+| `limit` | integer |  | `25` | Changes per page. (>= 1; <= 200) |
+
+**Result fields** (besides the common envelope)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `fromDate` | string |  |
+| `toDate` | string |  |
+| `scope` | string \\| null |  |
+| `changes` | array of ChangeOut | Newest first. |
+| `counts` | object of integer | Changes in the window by kind. |
+| `page` | Page |  |
 
 ## edi_search_packages
 

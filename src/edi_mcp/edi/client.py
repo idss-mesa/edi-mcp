@@ -25,7 +25,8 @@ import asyncio
 import random
 import re
 import time
-from collections.abc import Awaitable, Callable, Mapping, Sequence
+from collections.abc import AsyncIterator, Awaitable, Callable, Mapping, Sequence
+from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from http.cookiejar import CookieJar, DefaultCookiePolicy
 from typing import Any, Literal
@@ -94,6 +95,25 @@ class Fetched:
     @property
     def text(self) -> str:
         return self.body.decode("utf-8", "replace")
+
+
+@dataclass
+class Streamed:
+    """An open upstream response after redirects; iterate :meth:`chunks`, then let the
+    context manager close it (closing early is fine: GMN ignores ``Range``)."""
+
+    response: httpx.Response
+    url: str
+    endpoint: str
+    content_type: str | None
+    credential: CredentialKind
+
+    def header(self, name: str) -> str | None:
+        value = self.response.headers.get(name)
+        return str(value) if value is not None else None
+
+    def chunks(self) -> AsyncIterator[bytes]:
+        return self.response.aiter_bytes()
 
 
 @dataclass
@@ -213,6 +233,7 @@ class EdiClient:
         key: ApiKey | None,
         accept: str | None,
         stats: UpstreamStats,
+        read_timeout_s: float | None = None,
     ) -> tuple[httpx.Response, CredentialKind]:
         """GET with retries and credential attachment; returns an open streamed response."""
         pasta = self.is_pasta(url)
@@ -239,6 +260,9 @@ class EdiClient:
                     request = self._http.build_request(
                         "GET", url, params=send_params or None, headers=headers
                     )
+                    if read_timeout_s:
+                        # Per request; ``timeout=None`` would disable timeouts altogether.
+                        request.extensions["timeout"] = self._timeout(read_timeout_s).as_dict()
                     response = await self._http.send(request, stream=True)
             except httpx.HTTPError as exc:
                 if attempt < attempts:
@@ -294,7 +318,12 @@ class EdiClient:
             await response.aclose()
         return b"".join(chunks)
 
-    async def _request(
+    def _timeout(self, read_timeout_s: float) -> httpx.Timeout:
+        return httpx.Timeout(
+            connect=self.config.connect_timeout_s, read=read_timeout_s, write=10.0, pool=10.0
+        )
+
+    async def _open(
         self,
         url: str,
         params: Mapping[str, str],
@@ -302,18 +331,30 @@ class EdiClient:
         key: ApiKey | None,
         accept: str | None,
         stats: UpstreamStats,
-        max_bytes: int,
-    ) -> _Raw:
+        allowed_hosts: Sequence[str] | None = None,
+        read_timeout_s: float | None = None,
+    ) -> tuple[httpx.Response, str, CredentialKind]:
+        """Follow allow-listed redirects to a 2xx response and return it open.
+
+        Every hop is checked against ``allowed_hosts`` (default: the EDI/DataONE hosts);
+        an HTTP error status is read (capped) and raised as :class:`EdiApiError`.
+        """
+        hosts = self.allowed_hosts if allowed_hosts is None else tuple(allowed_hosts)
         current, current_params = url, dict(params)
         for _hop in range(MAX_REDIRECTS + 1):
-            if not host_allowed(current, self.allowed_hosts):
+            if not host_allowed(current, hosts):
                 raise ToolError(
                     "upstream_error",
                     "An upstream redirect pointed outside the EDI/DataONE host allow-list.",
-                    details={"host": host_of(current), "allowedHosts": list(self.allowed_hosts)},
+                    details={"host": host_of(current), "allowedHosts": list(hosts)},
                 )
             response, credential = await self._send(
-                current, current_params, key=key, accept=accept, stats=stats
+                current,
+                current_params,
+                key=key,
+                accept=accept,
+                stats=stats,
+                read_timeout_s=read_timeout_s,
             )
             if response.status_code in _REDIRECTS:
                 location = response.headers.get("location")
@@ -324,22 +365,39 @@ class EdiClient:
                     )
                 current, current_params = urljoin(current, location), {}
                 continue
-            body = await self._read(response, current, max_bytes)
-            content_type = (response.headers.get("content-type") or "").split(";")[0] or None
             if response.status_code >= 400:
+                body = await self._read(response, current, 64 * 1024)
                 raise self._error(
                     response.status_code,
                     body.decode("utf-8", "replace").strip(),
                     current,
                     credential,
-                    content_type=content_type,
+                    content_type=_content_type(response),
                     retry_after_s=self._retry_after(response.headers)
                     if response.status_code == 429
                     else None,
                 )
-            return _Raw(body, response.status_code, content_type, scrub_url(current), credential)
+            return response, current, credential
         raise ToolError(
             "upstream_error", "Too many upstream redirects.", details={"url": scrub_url(url)}
+        )
+
+    async def _request(
+        self,
+        url: str,
+        params: Mapping[str, str],
+        *,
+        key: ApiKey | None,
+        accept: str | None,
+        stats: UpstreamStats,
+        max_bytes: int,
+    ) -> _Raw:
+        response, current, credential = await self._open(
+            url, params, key=key, accept=accept, stats=stats
+        )
+        body = await self._read(response, current, max_bytes)
+        return _Raw(
+            body, response.status_code, _content_type(response), scrub_url(current), credential
         )
 
     # ------------------------------------------------------------------ public
@@ -398,6 +456,51 @@ class EdiClient:
             credential=raw.credential,
         )
 
+    @asynccontextmanager
+    async def stream(
+        self,
+        url: str,
+        params: Mapping[str, Any] | None = None,
+        *,
+        key: ApiKey | None = None,
+        accept: str | None = None,
+        stats: UpstreamStats | None = None,
+        allowed_hosts: Sequence[str] | None = None,
+        read_timeout_s: float | None = None,
+    ) -> AsyncIterator[Streamed]:
+        """Open ``url`` for streaming (never cached); same credential, retry, redirect and
+        error rules as :meth:`get`. ``allowed_hosts`` narrows the redirect allow-list."""
+        stats = stats if stats is not None else UpstreamStats()
+        clean = {k: str(v) for k, v in (params or {}).items() if v is not None}
+        if any(k.lower() == "key" for k in clean):
+            raise ValueError("credential parameters are attached by the client, never by callers")
+        endpoint = endpoint_label("GET", url)
+        stats.record_endpoint(endpoint)
+        pasta_key = key if key is not None and self.is_pasta(url) else None
+        response, current, credential = await self._open(
+            url,
+            clean,
+            key=pasta_key,
+            accept=accept,
+            stats=stats,
+            allowed_hosts=allowed_hosts,
+            read_timeout_s=read_timeout_s,
+        )
+        try:
+            yield Streamed(
+                response=response,
+                url=scrub_url(current),
+                endpoint=endpoint,
+                content_type=_content_type(response),
+                credential=credential,
+            )
+        except httpx.HTTPError as exc:
+            raise self._error(
+                0, type(exc).__name__, current, credential, kind="transport"
+            ) from None
+        finally:
+            await response.aclose()
+
     def cache_stats(self) -> CacheStats:
         return self.cache.stats()
 
@@ -405,4 +508,8 @@ class EdiClient:
         await self._http.aclose()
 
 
-__all__ = ["EdiClient", "Fetched", "endpoint_label", "host_allowed"]
+def _content_type(response: httpx.Response) -> str | None:
+    return (response.headers.get("content-type") or "").split(";")[0] or None
+
+
+__all__ = ["EdiClient", "Fetched", "Streamed", "endpoint_label", "host_allowed"]

@@ -100,8 +100,8 @@ fallback was used). A refused key shows up as an `error` with code
 
 ## Without a key
 
-Without a key, edi-mcp answers from DataONE. The tools available today all work that
-way; several planned tools will need a key. Entity listings carry a keyless
+Without a key, edi-mcp answers from DataONE and the citation service. Twelve of the
+sixteen tools work that way; four need a key. Entity listings carry a keyless
 `anonymousUrl` (a DataONE member node) beside PASTA's `dataUrl`.
 
 | Operation | Without a key (DataONE) | With a key (PASTA) |
@@ -110,12 +110,14 @@ way; several planned tools will need a key. Entity listings carry a keyless
 | Scope list (`edi_list_scopes`) | dated snapshot | live |
 | Identifiers and revisions (`edi_list_identifiers`, `edi_list_revisions`) | yes | yes |
 | Package overview, metadata and data entities (`edi_get_package`, `edi_get_metadata`, `edi_list_entities`) | yes | yes |
-| Data preview and download *(planned)* | yes | yes |
-| Citations *(planned; cite.edirepository.org)* | yes | yes |
-| Quality reports, lineage, change feeds, read counts *(planned)* | no | yes |
-| Whole-package zip download *(planned)* | no | yes |
+| Data preview and entity download (`edi_preview_entity`, `edi_download_entities`; downloads on stdio only) | yes | yes |
+| Citations (`edi_get_citation`, cite.edirepository.org) | yes | yes |
+| Quality reports (`edi_get_quality_report`; DataONE member nodes) | yes | yes |
+| Lineage, change feed, read counts (`edi_get_lineage`, `edi_recent_changes`, `edi_get_read_counts`) | no | yes |
+| Whole-package zip download (`edi_download_package`, stdio only) | no | yes |
 
-See the [Roadmap](../tools/roadmap.md) for the planned tools.
+Without a key, data and quality reports of scopes DataONE does not replicate (such as
+`cos-spu` and `icarus`) need a key too.
 
 Caveats of the fallback: the DataONE index can lag new EDI uploads by a day or more and
 may not hold every scope or revision PASTA has; the DataONE member nodes proxy PASTA, so
@@ -353,7 +355,7 @@ claude mcp add --transport http edi https://edi-mcp.example.org/mcp \
 
 Each user sends their own key in `X-EDI-Key`; the server honours it only when its
 `public_base_url` is `https://` (see [Transports](../mcp/transports.md)). Over HTTP the
-planned download tools are not offered.
+download tools are not offered.
 
 [^claude-code-mcp]: Claude Code — MCP. <https://docs.claude.com/en/docs/claude-code/mcp>
 [^codex-mcp]: OpenAI Codex CLI. <https://developers.openai.com/codex/cli/>
@@ -458,9 +460,8 @@ Never put the API key in a YAML file you share or commit; use `EDI_API_KEY`.
 A few settings default to "unset" and resolve per transport:
 
 * `downloads.enabled`: downloads exist only on stdio; over HTTP the download tools are
-  never listed, whatever this says. `--no-downloads` turns them off on stdio too. (The
-  download tools themselves are still being built; see the
-  [Roadmap](../tools/roadmap.md).)
+  never listed, whatever this says. `--no-downloads` turns them off on stdio too. See
+  [Previews and downloads](../tools/data.md).
 * `server.dns_rebinding_protection`: unset follows the MCP SDK default, which is on for
   loopback binds or when `allowed_hosts` / `allowed_origins` are set.
 * `server.public_base_url`: when set, its host and origin join the allow-lists, and an
@@ -810,7 +811,7 @@ Nothing is required. The settings most people touch:
 ```bash
 EDI_API_KEY=                      # optional; PASTA with it, DataONE without
 EDI_MCP_SERVER__LOG_LEVEL=info    # debug | info | warning | error | critical (stderr)
-EDI_MCP_DOWNLOADS__DIRECTORY=     # where the planned download tools may write
+EDI_MCP_DOWNLOADS__DIRECTORY=     # where the download tools write (default ~/edi-downloads)
 ```
 
 edi-mcp does not read `.env` files on its own. See [Configuration](configuration.md)
@@ -909,8 +910,9 @@ This walks through a first session in Claude Code[^claude-code-mcp]; other clien
 work the same way once connected ([Clients](clients.md)). It uses the tools available
 today: `edi_ping`, the discovery tools (`edi_search_packages`, `edi_list_scopes`,
 `edi_list_identifiers`, `edi_list_revisions`) and the package tools (`edi_get_package`,
-`edi_get_metadata`, `edi_list_entities`). Preview, download and citation tools are still
-being built; see the [Roadmap](../tools/roadmap.md).
+`edi_get_metadata`, `edi_list_entities`), then preview, download and cite with
+`edi_preview_entity`, `edi_download_entities` (stdio) and `edi_get_citation`. The
+[Tool reference](../tools/reference.md) lists all sixteen tools.
 
 ## 1. Register the server
 
@@ -995,6 +997,18 @@ depends on the backend and on what EDI holds at the time.
     with a PASTA `dataUrl` and, where DataONE replicates the scope, a keyless
     `anonymousUrl`. See [Packages, metadata and entities](../tools/packages.md).
 
+5. **Preview, save and cite**
+
+    ```json
+    {"tool": "edi_preview_entity", "arguments": {"package": "knb-lter-hbr.14.22", "entity": "thiessen_weights", "rows": 5}}
+    ```
+
+    → `columns` and the first `rows` of the table. Then
+    `edi_download_entities(package=…, entities=["thiessen_weights"])` saves the CSV and
+    the EML under the download directory with its SHA-1 verified (stdio only), and
+    `edi_get_citation(package="knb-lter-hbr.14.22")` returns the ESIP citation with its
+    DOI. See [Previews and downloads](../tools/data.md).
+
 Every result also carries `notes` (caveats such as DataONE lag) and `nextSteps`
 (concrete follow-up calls). The [Tool reference](../tools/reference.md) lists every
 input and result field.
@@ -1067,10 +1081,16 @@ say so.
 
 ## Key-only operations
 
-Some EDI services have no DataONE counterpart: quality reports, provenance
-(lineage), change and upload feeds, read counts and whole-package zip downloads. The
-tools planned for them (see the [Roadmap](roadmap.md)) will return `auth_required`
-without a key. [`edi_list_scopes`](reference.md#edi_list_scopes) needs PASTA for a
+Some EDI services have no DataONE counterpart: provenance (lineage), the change
+feed, read counts and whole-package zip downloads. Their tools
+([`edi_get_lineage`](reference.md#edi_get_lineage),
+[`edi_recent_changes`](reference.md#edi_recent_changes),
+[`edi_get_read_counts`](reference.md#edi_get_read_counts) and
+[`edi_download_package`](reference.md#edi_download_package)) return `auth_required`
+without a key. Quality reports are the exception the original plan did not expect:
+the member nodes serve PASTA's reports anonymously, so
+[`edi_get_quality_report`](reference.md#edi_get_quality_report) works on both
+backends. [`edi_list_scopes`](reference.md#edi_list_scopes) needs PASTA for a
 live list and falls back to edi-mcp's dated scope snapshot without a key.
 
 ## Caveats of the DataONE fallback
@@ -1091,6 +1111,200 @@ live list and falls back to edi-mcp's dated scope snapshot without a key.
   and set a key when you need authoritative answers.
 
 [^edi-news-auth]: EDI news, 2026-07-27. <https://edirepository.org/news/news-20260727.00>
+
+---8<--- https://idss-mesa.github.io/edi-mcp/tools/citation-and-quality/
+
+---
+title: "Citations, quality reports and lineage"
+description: "Cite a package revision with edi_get_citation, read PASTA's quality checks with edi_get_quality_report (with or without a key), and follow provenance with edi_get_lineage (key required)."
+type: Guide
+tags:
+  - tools
+  - citation
+  - quality
+  - provenance
+generated:
+  by: "claude/opus-5.5"
+  at: "2026-10-19T00:00:00Z"
+sources:
+  - id: cite
+    resource: "https://cite.edirepository.org/"
+    title: "EDI citation service"
+    author: "team:edi"
+  - id: pasta-api
+    resource: "https://pasta.lternet.edu/package/docs/api"
+    title: "EDI PASTA+ Data Package Manager REST API"
+    author: "team:edi"
+  - id: edi-policy
+    resource: "https://edirepository.org/about/edi-policy"
+    title: "EDI data policy"
+    author: "team:edi"
+status: stable
+---
+
+# Citations, quality reports and lineage
+
+## edi_get_citation
+
+[`edi_get_citation`](reference.md#edi_get_citation) returns a formatted citation for
+one package revision from EDI's citation service, `cite.edirepository.org`, which
+needs no key. `style` is `ESIP` (the default), `DRYAD` or `BIBTEX` (a `@misc` entry).
+Beside the text, `parts` gives the authors, year, title, version, publisher and DOI
+(normalised to `doi:10.6073/pasta/<md5>`, with `doiUrl`), and `portalUrl` the EDI Data
+Portal page.
+
+- A series (`knb-lter-hbr.14`) resolves to its newest revision on the call's backend
+  first; `source.backend` is then `mixed`, and `cite` when only the citation service
+  was asked.
+- The service has no citation for packages that do not exist or are
+  access-restricted; both fail with `not_found` and a hint.
+- A note reminds you to cite the exact revision by DOI and to check the package's
+  license with `edi_get_metadata(include=['rights'])`. See
+  [Citing EDI data](../about/citing-edi.md).
+
+## edi_get_quality_report
+
+[`edi_get_quality_report`](reference.md#edi_get_quality_report) summarises the quality
+report PASTA wrote when the revision was published: congruence checks of the metadata
+and of each data entity against its EML. It works **with or without a key**: PASTA's
+reports are replicated to the DataONE member nodes, which serve them anonymously
+(verified 2026-10-19 on both nodes). Scopes DataONE does not replicate need a key.
+
+- `counts` gives the checks by status (`valid`, `info`, `warn`, `error`) over the
+  dataset and all entities.
+- `issues` lists the non-valid checks, errors first, with EDI's name, what was found,
+  the explanation and the suggestion (long text is cut); `entity` names the entity a
+  check belongs to. `include_info` adds the `info` checks. At most 50 are listed;
+  `issuesTotal` counts them all.
+- `entities` gives each entity's own counts (`entitiesTotal` counts them all).
+
+## edi_get_lineage
+
+[`edi_get_lineage`](reference.md#edi_get_lineage) needs an EDI API key. It lists the
+EDI packages a revision was derived from (`sources`, the data sources named in its
+EML methods) and the packages that name it as a source (`descendants`), each with its
+`packageId`, title and metadata URL. PASTA escapes these titles twice; edi-mcp decodes
+them. `nextSteps` points at `edi_get_package` for the first few.
+
+---8<--- https://idss-mesa.github.io/edi-mcp/tools/data/
+
+---
+title: "Previews and downloads"
+description: "Read the first rows of a delimited data entity with edi_preview_entity on either backend, and save entities, their EML or a whole package zip into the download directory with edi_download_entities and edi_download_package (stdio only)."
+type: Guide
+tags:
+  - tools
+  - data
+  - preview
+  - downloads
+generated:
+  by: "claude/opus-5.5"
+  at: "2026-10-19T00:00:00Z"
+sources:
+  - id: pasta-api
+    resource: "https://pasta.lternet.edu/package/docs/api"
+    title: "EDI PASTA+ Data Package Manager REST API"
+    author: "team:edi"
+  - id: dataone-mn
+    resource: "https://dataoneorg.github.io/api-documentation/apis/MN_APIs.html"
+    title: "DataONE Member Node APIs"
+    author: "team:dataone"
+status: stable
+---
+
+# Previews and downloads
+
+Three tools read the data themselves:
+[`edi_preview_entity`](reference.md#edi_preview_entity) shows the first rows of one
+table, [`edi_download_entities`](reference.md#edi_download_entities) saves entities to
+disk, and [`edi_download_package`](reference.md#edi_download_package) saves a whole
+package as PASTA's zip archive. All take the `package` and `revision` inputs described
+in [Packages, metadata and entities](packages.md); entities are named by id, name or
+file name, case-insensitively, as [`edi_list_entities`](reference.md#edi_list_entities)
+lists them.
+
+With an EDI API key the bytes come from PASTA; without one they come from the
+scope's DataONE member node, which serves the same objects anonymously (see
+[Backends](backends.md)). Scopes that edi-mcp's dated snapshot shows DataONE does not
+replicate (`cos-spu`, `icarus`, …) fail with `auth_required` before any request is
+made.
+
+## edi_preview_entity
+
+The preview streams the entity and stops reading as soon as it has the rows it needs,
+or at `max_bytes` (at most `limits.preview_max_bytes`, 256 KiB by default). Reading
+stops early because the member nodes ignore HTTP `Range`.
+
+- **Layout from the EML.** The field delimiter, quote character and number of header
+  lines come from the entity's `textFormat`. Delimiters written as escape text or
+  words (`\t`, `tab`, `#x09`, `\r\n`) are unescaped. When the EML names no delimiter,
+  a comma is assumed, and a note says so.
+- **Header detection.** When the EML gives no header-line count, the first line is
+  taken as the header if it names at least half of the EML's attribute names (or, with
+  no attributes, if Python's `csv.Sniffer` thinks it is one); a note says which way it
+  went. `columnsFrom` reports where `columns` came from: `header`, `eml` (attribute
+  names) or `none`.
+- **Rows.** `rows` (default 20, at most 200) data rows as text. A record cut off by
+  the early stop is dropped. Cells longer than 200 characters are cut and end with
+  `…`; only the first 100 columns are kept. `complete` is true when the whole entity
+  was read.
+- **Binary data** (a NUL byte in the first 8 KiB) is refused with `invalid_argument`;
+  download it instead.
+
+## Downloads (stdio only)
+
+The two download tools are the only tools that write. They are offered only over
+stdio and only while `downloads.enabled` is not `false`; over HTTP they are never
+listed. Everything is written under `downloads.directory` (`~/edi-downloads` by
+default; see [Configuration](../getting-started/configuration.md)), optionally in a
+relative `dest_subdir` made of letters, digits, `.`, `_`, `-` and `/`. Absolute paths,
+`..`, backslashes and symlinks that lead outside the directory are refused with
+`download_denied`.
+
+### edi_download_entities
+
+Saves the chosen entities (all of them when `entities` is omitted) into
+`<download dir>/[dest_subdir/]<packageId>/`, and, unless `include_metadata` is false,
+the EML as `<packageId>.xml` beside them.
+
+1. **Plan first.** The number of entities and their known sizes are checked against
+   `downloads.max_files_per_call`, `downloads.max_bytes_per_call` and the call's
+   `max_bytes` before anything is transferred; a plan over a limit fails with
+   `download_limit_exceeded`. Each file is also capped at `downloads.max_file_bytes`
+   while it streams.
+2. **Safe names.** Files are saved under their EML object name, made safe (spaces and
+   other characters become `_`) and de-duplicated; renamed files are listed in
+   `notes`.
+3. **Checksums.** The SHA-1 EDI publishes comes from PASTA's checksum service (with a
+   key) or the member node's `DataONE-Checksum` header. `sha1Verified` is true or
+   false against it, or absent when none is published. A file whose SHA-1 differs is
+   removed and reported with status `failed` (`checksum_mismatch: …`).
+4. **Never overwrite.** Each file streams to a `.part` file and is linked into place
+   only if nothing exists there. An existing identical file is `skipped`; an existing
+   different file is reported as `conflict` and left untouched; use `dest_subdir` to
+   save another revision elsewhere.
+
+Every redirect hop must be on `downloads.allowed_hosts`. Each saved file is reported
+with its path, bytes and status (`downloaded`, `skipped`, `conflict` or `failed`), and
+`bytes` totals what this call transferred.
+
+### edi_download_package
+
+Saves PASTA's zip archive of one revision (metadata, data entities and quality
+report) as `<download dir>/[dest_subdir/]<packageId>.zip`. It needs an EDI API key,
+since DataONE has no archive. Archives can be very large: the plan is checked against
+the package's known entity bytes, an archive whose `Content-Length` exceeds the cap is
+refused before writing, and the stream stops at the cap otherwise, removing the
+partial file. An existing archive is skipped, never replaced. Prefer
+`edi_download_entities` when only some files are needed.
+
+## Typical flow
+
+1. `edi_list_entities` → choose an entity and check its size.
+2. `edi_preview_entity` → confirm the columns and missing-value codes look right.
+3. `edi_download_entities(entities=[…])` → save it with its EML, SHA-1 verified.
+4. `edi_get_citation` → cite the revision you used (see
+   [Citations, quality reports and lineage](citation-and-quality.md)).
 
 ---8<--- https://idss-mesa.github.io/edi-mcp/tools/discovery/
 
@@ -1221,6 +1435,63 @@ reports `page.total` (when known), `returned`, `truncated` and `nextOffset`; whe
 `nextOffset` is set, the result's `nextSteps` include the call for the next page.
 A result that would exceed the size budget is trimmed and reports
 `truncatedReason: budget`.
+
+---8<--- https://idss-mesa.github.io/edi-mcp/tools/feeds/
+
+---
+title: "Change feed and read counts"
+description: "List packages inserted, updated or deleted in PASTA during a date window with edi_recent_changes, and see how often a package series or revision has been read with edi_get_read_counts; both need an EDI API key."
+type: Guide
+tags:
+  - tools
+  - feeds
+  - audit
+generated:
+  by: "claude/opus-5.5"
+  at: "2026-10-19T00:00:00Z"
+sources:
+  - id: pasta-api
+    resource: "https://pasta.lternet.edu/package/docs/api"
+    title: "EDI PASTA+ Data Package Manager REST API"
+    author: "team:edi"
+status: stable
+---
+
+# Change feed and read counts
+
+Both tools read PASTA services that have no DataONE counterpart, so they need an EDI
+API key; without one they fail at once with `auth_required` (see
+[EDI API key](../getting-started/api-key.md)).
+
+## edi_recent_changes
+
+[`edi_recent_changes`](reference.md#edi_recent_changes) reads PASTA's change feed
+(`/package/changes/eml`): every package inserted (a new package), updated (a new
+revision) or deleted during a window of days.
+
+- `from_date` and `to_date` are `YYYY-MM-DD` days in UTC, both inclusive. The default
+  window is the last 7 days; the longest is 92 days, so split longer periods into
+  several calls.
+- `scope` narrows the feed to one scope (a scope code, LTER site code or name, resolved
+  as in [Identifiers and scope names](identifiers.md)); `kinds` keeps only `insert`,
+  `update` or `delete` entries.
+- Changes come newest first with their `packageId`, `kind`, ISO 8601 `date` and DOI,
+  paged with `offset` and `limit` (default 25, at most 200). `counts` tallies the whole
+  window by kind, before the `kinds` filter.
+- The upstream feed names the EDI user who made each change; edi-mcp drops that
+  identifier, so it never appears in a result.
+
+## edi_get_read_counts
+
+[`edi_get_read_counts`](reference.md#edi_get_read_counts) reads PASTA's audit service
+(`/audit/reads`). Give a series (`knb-lter-hbr.14`) for every revision, or one revision
+(`knb-lter-hbr.14.22`, or the series plus `revision`); a DOI names one revision.
+
+- `totals` gives total and non-robot reads by resource type: `dataPackage`,
+  `metadata`, `report`, `data` (all entities) and `archive` (zip downloads), as PASTA
+  reports them.
+- `revisions` lists each revision, newest first (at most 100, `revisionsTotal` counts
+  them all), with the package's and its data entities' reads.
 
 ---8<--- https://idss-mesa.github.io/edi-mcp/tools/identifiers/
 
@@ -1449,8 +1720,9 @@ ask for fewer entities or one `entity` to get them back.
 4. `edi_list_entities` with `entity=…` → which columns, units and missing-value
    codes, and where to fetch the file.
 
-Previewing rows, downloading files and formatted citations come with the next
-build step; see the [Roadmap](roadmap.md).
+Then preview rows, download files and cite the revision: see
+[Previews and downloads](data.md) and
+[Citations, quality reports and lineage](citation-and-quality.md).
 
 ---8<--- https://idss-mesa.github.io/edi-mcp/tools/reference/
 
@@ -1479,18 +1751,150 @@ status: stable
 
 # Tool reference
 
-Generated from the tool registry by `scripts/gen_tools_reference.py`; do not edit by hand. 8 tools are registered. Inputs are snake_case and outputs camelCase. Every result also carries `resolved`, `notes`, `nextSteps` and `source` (whose `backend` says whether PASTA or DataONE answered), and failures return `structuredContent.error` with a stable `code` (see [Utilities](utilities.md#error-codes)).
+Generated from the tool registry by `scripts/gen_tools_reference.py`; do not edit by hand. 16 tools are registered; `edi_download_entities`, `edi_download_package` are offered only over stdio. Inputs are snake_case and outputs camelCase. Every result also carries `resolved`, `notes`, `nextSteps` and `source` (whose `backend` says whether PASTA or DataONE answered), and failures return `structuredContent.error` with a stable `code` (see [Utilities](utilities.md#error-codes)).
 
 | Tool | Title | Family | EDI API key |
 | --- | --- | --- | --- |
+| [`edi_download_entities`](#edi_download_entities) | Download data entities | [data](data.md) | no |
+| [`edi_download_package`](#edi_download_package) | Download a whole package (zip) | [data](data.md) | required |
+| [`edi_get_citation`](#edi_get_citation) | Cite an EDI data package | [citation](citation-and-quality.md) | no |
+| [`edi_get_lineage`](#edi_get_lineage) | Get a package's provenance | [provenance](citation-and-quality.md) | required |
 | [`edi_get_metadata`](#edi_get_metadata) | Read a package's EML metadata | [packages](packages.md) | no |
 | [`edi_get_package`](#edi_get_package) | Get an EDI data package | [packages](packages.md) | no |
+| [`edi_get_quality_report`](#edi_get_quality_report) | Get a package's quality report | [provenance](citation-and-quality.md) | no |
+| [`edi_get_read_counts`](#edi_get_read_counts) | Get a package's read counts | [feeds](feeds.md) | required |
 | [`edi_list_entities`](#edi_list_entities) | List a package's data entities | [entities](packages.md) | no |
 | [`edi_list_identifiers`](#edi_list_identifiers) | List package identifiers in a scope | [discovery](discovery.md) | no |
 | [`edi_list_revisions`](#edi_list_revisions) | List the revisions of a package | [discovery](discovery.md) | no |
 | [`edi_list_scopes`](#edi_list_scopes) | List EDI scopes | [discovery](discovery.md) | no |
 | [`edi_ping`](#edi_ping) | Check edi-mcp status | [core](utilities.md) | no |
+| [`edi_preview_entity`](#edi_preview_entity) | Preview a data entity | [data](data.md) | no |
+| [`edi_recent_changes`](#edi_recent_changes) | List recent repository changes | [feeds](feeds.md) | required |
 | [`edi_search_packages`](#edi_search_packages) | Search EDI data packages | [discovery](discovery.md) | no |
+
+## edi_download_entities
+
+**Download data entities.** Save a package's data entities (all, or the ones named) and its EML into the configured download directory (stdio only). The plan is checked against file and byte caps first; SHA-1 checksums are verified; existing identical files are skipped and different ones are never overwritten. Works with or without a key. Next: read the files (pandas.read_csv) and cite with edi_get_citation.
+
+| | |
+| --- | --- |
+| Surface | `data` |
+| EDI API key | optional (PASTA with a key, DataONE without) |
+| Transports | stdio |
+| Annotations | readOnly=false, destructive=false, idempotent=true, openWorld=true |
+| Upstream endpoints | `GET pasta.lternet.edu/package/metadata/eml/{scope}/{id}/{rev}`<br>`GET pasta.lternet.edu/package/data/eml/{scope}/{id}/{rev}/{entity}`<br>`GET pasta.lternet.edu/package/data/checksum/eml/{scope}/{id}/{rev}/{entity}`<br>`GET gmn.lternet.edu/mn/v2/object/{pid}`<br>`GET gmn.lternet.edu/mn/v2/meta/{pid}` |
+
+**Inputs**
+
+| Name | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `package` | string | yes |  | A package: knb-lter-hbr.14.22, knb-lter-hbr.14 (newest unless revision is set), a DOI, or a portal or PASTA URL; the scope may be a site code or name (jrn.210548103). (min length 1; max length 500) |
+| `revision` | integer \\| `newest` \\| `oldest` \\| null |  | null | Revision when package names none: a number, 'newest' (default) or 'oldest'. |
+| `entities` | array of string \\| null |  | null | Entity ids, names or file names; all when omitted. (max items 200) |
+| `include_metadata` | boolean |  | true | Also save the EML as <packageId>.xml. |
+| `dest_subdir` | string \\| null |  | null | Sub-directory of the download directory. (max length 200) |
+| `max_bytes` | integer \\| null |  | null | Refuse plans larger than this. (>= 1) |
+
+**Result fields** (besides the common envelope)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `packageId` | string |  |
+| `directory` | string | Where the files were saved. |
+| `files` | array of SavedFile |  |
+| `downloaded` | integer |  |
+| `bytes` | integer | Bytes transferred by this call. |
+
+## edi_download_package
+
+**Download a whole package (zip).** Save one package revision as PASTA's zip archive (metadata, data entities, quality report) into the configured download directory (stdio only; needs an EDI API key). Archives can be very large: the transfer stops at the byte cap, and an existing file is never overwritten. Next: unzip it, or prefer edi_download_entities for chosen files.
+
+| | |
+| --- | --- |
+| Surface | `data` |
+| EDI API key | required |
+| Transports | stdio |
+| Annotations | readOnly=false, destructive=false, idempotent=true, openWorld=true |
+| Upstream endpoints | `GET pasta.lternet.edu/package/download/eml/{scope}/{id}/{rev}` |
+
+**Inputs**
+
+| Name | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `package` | string | yes |  | A package: knb-lter-hbr.14.22, knb-lter-hbr.14 (newest unless revision is set), a DOI, or a portal or PASTA URL; the scope may be a site code or name (jrn.210548103). (min length 1; max length 500) |
+| `revision` | integer \\| `newest` \\| `oldest` \\| null |  | null | Revision when package names none: a number, 'newest' (default) or 'oldest'. |
+| `dest_subdir` | string \\| null |  | null | Sub-directory of the download directory. (max length 200) |
+| `max_bytes` | integer \\| null |  | null | Stop and fail beyond this many bytes. (>= 1) |
+
+**Result fields** (besides the common envelope)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `packageId` | string |  |
+| `directory` | string | Where the files were saved. |
+| `files` | array of SavedFile |  |
+| `downloaded` | integer |  |
+| `bytes` | integer | Bytes transferred by this call. |
+
+## edi_get_citation
+
+**Cite an EDI data package.** A formatted citation for one package revision from the EDI citation service: ESIP (default), DRYAD or BibTeX, plus its parts (authors, year, title, version, publisher, DOI). Needs no key, though a key lets 'newest' come from PASTA. Restricted packages have no citation. Next: cite the DOI in your work and check the license with edi_get_metadata include=['rights'].
+
+| | |
+| --- | --- |
+| Surface | `citation` |
+| EDI API key | optional (PASTA with a key, DataONE without) |
+| Transports | http, stdio |
+| Annotations | readOnly=true, destructive=false, idempotent=true, openWorld=true |
+| Upstream endpoints | `GET cite.edirepository.org/cite/{packageId}`<br>`GET pasta.lternet.edu/package/eml/{scope}/{id}`<br>`GET cn.dataone.org/cn/v2/query/solr/` |
+
+**Inputs**
+
+| Name | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `package` | string | yes |  | A package: knb-lter-hbr.14.22, knb-lter-hbr.14 (newest unless revision is set), a DOI, or a portal or PASTA URL; the scope may be a site code or name (jrn.210548103). (min length 1; max length 500) |
+| `revision` | integer \\| `newest` \\| `oldest` \\| null |  | null | Revision when package names none: a number, 'newest' (default) or 'oldest'. |
+| `style` | `ESIP` \\| `DRYAD` \\| `BIBTEX` |  | `"ESIP"` | ESIP (default), DRYAD or BIBTEX. |
+
+**Result fields** (besides the common envelope)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `packageId` | string |  |
+| `revisionFrom` | `given` \\| `newest` \\| `oldest` \\| `doi` |  |
+| `style` | `ESIP` \\| `DRYAD` \\| `BIBTEX` |  |
+| `citation` | string | The formatted citation (BibTeX entry for BIBTEX). |
+| `parts` | CitationParts |  |
+| `doiUrl` | string \\| null |  |
+| `portalUrl` | string |  |
+
+## edi_get_lineage
+
+**Get a package's provenance.** Provenance of one package revision: the EDI packages it was derived from (sources named in its EML methods) and the packages that name it as a source (descendants), with titles. Needs an EDI API key. Next: call edi_get_package on a source or descendant.
+
+| | |
+| --- | --- |
+| Surface | `provenance` |
+| EDI API key | required |
+| Transports | http, stdio |
+| Annotations | readOnly=true, destructive=false, idempotent=true, openWorld=true |
+| Upstream endpoints | `GET pasta.lternet.edu/package/sources/eml/{scope}/{id}/{rev}`<br>`GET pasta.lternet.edu/package/descendants/eml/{scope}/{id}/{rev}` |
+
+**Inputs**
+
+| Name | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `package` | string | yes |  | A package: knb-lter-hbr.14.22, knb-lter-hbr.14 (newest unless revision is set), a DOI, or a portal or PASTA URL; the scope may be a site code or name (jrn.210548103). (min length 1; max length 500) |
+| `revision` | integer \\| `newest` \\| `oldest` \\| null |  | null | Revision when package names none: a number, 'newest' (default) or 'oldest'. |
+
+**Result fields** (besides the common envelope)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `packageId` | string |  |
+| `revisionFrom` | `given` \\| `newest` \\| `oldest` \\| `doi` |  |
+| `sources` | array of LinkedOut | Packages this one was derived from. |
+| `descendants` | array of LinkedOut | Packages derived from this one. |
 
 ## edi_get_metadata
 
@@ -1583,6 +1987,68 @@ Generated from the tool registry by `scripts/gen_tools_reference.py`; do not edi
 | `entityCount` | integer | All entities, including any not listed below. |
 | `totalBytes` | integer \\| null | Sum of known entity sizes (all entities). |
 | `entities` | array of EntitySummary | The first 100; edi_list_entities pages through all. |
+
+## edi_get_quality_report
+
+**Get a package's quality report.** PASTA's quality report for one package revision: how many congruence checks passed, warned or failed (metadata, and each data entity against its EML), and the details of every non-valid check with EDI's explanation and suggestion. Works with a key (PASTA) or without (DataONE member node). Next: inspect a flagged entity with edi_list_entities or edi_preview_entity.
+
+| | |
+| --- | --- |
+| Surface | `provenance` |
+| EDI API key | optional (PASTA with a key, DataONE without) |
+| Transports | http, stdio |
+| Annotations | readOnly=true, destructive=false, idempotent=true, openWorld=true |
+| Upstream endpoints | `GET pasta.lternet.edu/package/report/eml/{scope}/{id}/{rev}`<br>`GET gmn.lternet.edu/mn/v2/object/{pid}` |
+
+**Inputs**
+
+| Name | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `package` | string | yes |  | A package: knb-lter-hbr.14.22, knb-lter-hbr.14 (newest unless revision is set), a DOI, or a portal or PASTA URL; the scope may be a site code or name (jrn.210548103). (min length 1; max length 500) |
+| `revision` | integer \\| `newest` \\| `oldest` \\| null |  | null | Revision when package names none: a number, 'newest' (default) or 'oldest'. |
+| `include_info` | boolean |  | false | Also list 'info' checks, not only warn/error. |
+
+**Result fields** (besides the common envelope)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `packageId` | string |  |
+| `revisionFrom` | `given` \\| `newest` \\| `oldest` \\| `doi` |  |
+| `created` | string \\| null |  |
+| `counts` | StatusCounts | Checks by status, dataset and entities together. |
+| `issues` | array of QualityIssue | Non-valid checks, errors first. |
+| `issuesTotal` | integer |  |
+| `entities` | array of EntityQuality |  |
+| `entitiesTotal` | integer |  |
+
+## edi_get_read_counts
+
+**Get a package's read counts.** How often a package series or one revision has been read on PASTA: totals and non-robot reads by resource type (package, metadata, quality report, data entities, zip archive) and per revision. Needs an EDI API key. Next: cite the package with edi_get_citation.
+
+| | |
+| --- | --- |
+| Surface | `feeds` |
+| EDI API key | required |
+| Transports | http, stdio |
+| Annotations | readOnly=true, destructive=false, idempotent=true, openWorld=true |
+| Upstream endpoints | `GET pasta.lternet.edu/audit/reads/{scope}/{id}[/{rev}]` |
+
+**Inputs**
+
+| Name | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `package` | string | yes |  | A series (knb-lter-hbr.14) for every revision, or one revision (knb-lter-hbr.14.22); the scope may be a site code or name. (min length 1; max length 500) |
+| `revision` | integer \\| null |  | null | Only this revision of a series. (>= 0) |
+
+**Result fields** (besides the common envelope)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `series` | string |  |
+| `revision` | integer \\| null |  |
+| `totals` | object of ReadTally | By resource type: dataPackage, metadata, report, data, archive. |
+| `revisions` | array of RevisionReads | Newest first (at most 100). |
+| `revisionsTotal` | integer |  |
 
 ## edi_list_entities
 
@@ -1738,6 +2204,77 @@ Generated from the tool registry by `scripts/gen_tools_reference.py`; do not edi
 | `endpoints` | Endpoints |  |
 | `api` | ApiCheck \\| null | Present when check_api was requested. |
 
+## edi_preview_entity
+
+**Preview a data entity.** The first rows of one delimited data entity (a CSV or other text table), parsed with the EML's delimiter, quote character and header lines, with column names. Reads at most a few hundred KB and stops; works with or without a key (PASTA or the DataONE member node). Binary entities are refused. Next: call edi_list_entities for column definitions and units, or edi_download_entities for the whole file.
+
+| | |
+| --- | --- |
+| Surface | `data` |
+| EDI API key | optional (PASTA with a key, DataONE without) |
+| Transports | http, stdio |
+| Annotations | readOnly=true, destructive=false, idempotent=true, openWorld=true |
+| Upstream endpoints | `GET pasta.lternet.edu/package/metadata/eml/{scope}/{id}/{rev}`<br>`GET pasta.lternet.edu/package/data/eml/{scope}/{id}/{rev}/{entity}`<br>`GET gmn.lternet.edu/mn/v2/object/{pid}` |
+
+**Inputs**
+
+| Name | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `package` | string | yes |  | A package: knb-lter-hbr.14.22, knb-lter-hbr.14 (newest unless revision is set), a DOI, or a portal or PASTA URL; the scope may be a site code or name (jrn.210548103). (min length 1; max length 500) |
+| `revision` | integer \\| `newest` \\| `oldest` \\| null |  | null | Revision when package names none: a number, 'newest' (default) or 'oldest'. |
+| `entity` | string | yes |  | Entity id, name or file name (case-insensitive). (min length 1; max length 300) |
+| `rows` | integer |  | `20` | Data rows to return. (>= 1; <= 200) |
+| `max_bytes` | integer \\| null |  | null | Most bytes to read (capped by limits.preview_max_bytes). (>= 1024) |
+
+**Result fields** (besides the common envelope)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `packageId` | string |  |
+| `revisionFrom` | `given` \\| `newest` \\| `oldest` \\| `doi` |  |
+| `entityId` | string \\| null |  |
+| `name` | string \\| null |  |
+| `size` | integer \\| null | Entity bytes, when known. |
+| `columns` | array of string | Column names (file header, else EML attributes). |
+| `columnsFrom` | `header` \\| `eml` \\| `none` |  |
+| `rows` | array of array of string | Data rows as text; long cells end with '…'. |
+| `complete` | boolean | True when every row of the entity is shown. |
+| `bytesRead` | integer |  |
+
+## edi_recent_changes
+
+**List recent repository changes.** Packages inserted, updated (new revisions) or deleted in PASTA during a date window (default the last 7 days, at most 92), optionally for one scope or kind, newest first, with DOIs. Needs an EDI API key. Next: call edi_get_package on a packageId.
+
+| | |
+| --- | --- |
+| Surface | `feeds` |
+| EDI API key | required |
+| Transports | http, stdio |
+| Annotations | readOnly=true, destructive=false, idempotent=true, openWorld=true |
+| Upstream endpoints | `GET pasta.lternet.edu/package/changes/eml` |
+
+**Inputs**
+
+| Name | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `from_date` | string \\| null |  | null | First day (YYYY-MM-DD, UTC); default 7 days ago. |
+| `to_date` | string \\| null |  | null | Last day (inclusive); default today. |
+| `scope` | string \\| null |  | null | Only this scope: code, LTER site code or name. (max length 100) |
+| `kinds` | array of `insert` \\| `update` \\| `delete` \\| null |  | null | Only these: insert (new package), update (new revision), delete. |
+| `offset` | integer |  | `0` | Index of the first change (paging). (>= 0) |
+| `limit` | integer |  | `25` | Changes per page. (>= 1; <= 200) |
+
+**Result fields** (besides the common envelope)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `fromDate` | string |  |
+| `toDate` | string |  |
+| `scope` | string \\| null |  |
+| `changes` | array of ChangeOut | Newest first. |
+| `counts` | object of integer | Changes in the window by kind. |
+| `page` | Page |  |
+
 ## edi_search_packages
 
 **Search EDI data packages.** Search EDI/LTER data packages by free text, scope (exact, LTER site code or name such as 'Jornada'), creator last name, temporal overlap (start_year/end_year) and bounding box; sort by relevance or publication date; paginated (offset/limit). Returns the newest revision of each package with title, DOI, coverage dates, creators and keywords. Bulk generated scopes are excluded unless include_bulk=true. Next: call edi_get_package or edi_get_metadata with a packageId.
@@ -1777,12 +2314,13 @@ Generated from the tool registry by `scripts/gen_tools_reference.py`; do not edi
 
 ---
 title: "Roadmap"
-description: "Tools, resources and packaging that are planned for edi-mcp but not yet released: package and entity inspection, previews, downloads, citations and the key-only PASTA services."
+description: "What remains planned for edi-mcp after the sixteen tools: more edi:// resources and templates, prompts, a server.json for the MCP Registry, a Docker image and the v0.1.0 release."
 type: Roadmap
 tags:
   - tools
   - roadmap
   - planned
+  - release
 generated:
   by: "claude/opus-5.5"
   at: "2026-10-19T00:00:00Z"
@@ -1801,29 +2339,13 @@ stale_after: "2027-01-19T00:00:00Z"
 
 # Roadmap
 
-edi-mcp is built in seven steps, one pull request each. Steps 1–5 are released on
-`main`: the scaffold and auth probe, the MCP core (registry, transports, `edi_ping`,
-conformance tests), the EDI client with both backends, the four
-[discovery tools](discovery.md), and the [package, metadata and entity tools](packages.md). Everything on this page is **planned and not yet
-available**; tool names and inputs may still change. The [tool reference](reference.md)
-lists only what is registered today.
-
-## Step 6 — previews, downloads, citations and key-only services
-
-| Planned tool | Purpose | Key |
-| --- | --- | --- |
-| `edi_preview_entity` | The first rows of a tabular entity, read with a byte cap. | optional |
-| `edi_download_entities` | Save data entities under the configured download directory and verify their SHA-1. stdio only. | optional |
-| `edi_download_package` | Save a whole package as a zip. stdio only. | required |
-| `edi_get_citation` | A formatted citation (ESIP, DRYAD or BibTeX) from `cite.edirepository.org`. | optional |
-| `edi_get_quality_report` | A summary of PASTA's congruence checks for a package. | required |
-| `edi_get_lineage` | Provenance: a package's sources and descendants. | required |
-| `edi_recent_changes` | Recent inserts, updates and deletes, by date or scope. | required |
-| `edi_get_read_counts` | Download and read counts for a package. | required |
-
-"Required" tools have no DataONE counterpart and will return `auth_required` without
-a key (see [Backends](backends.md)). Downloads will be the only tools that write,
-will never overwrite, and will be offered only over stdio.
+edi-mcp is built in seven steps, one pull request each. Steps 1–6 are done: the
+scaffold and auth probe, the MCP core (registry, transports, `edi_ping`, conformance
+tests), the EDI client with both backends, the four [discovery tools](discovery.md),
+the [package, metadata and entity tools](packages.md), and the
+[preview and download](data.md), [citation, quality and lineage](citation-and-quality.md)
+and [feed](feeds.md) tools. All sixteen tools are in the [tool reference](reference.md).
+What follows is **planned and not yet available**.
 
 ## Step 7 — resources, prompts and release
 
@@ -1914,9 +2436,11 @@ machine-readable; `message` is safe to show a user and never contains a key or t
 | `result_too_large` | A result stayed above the hard size limit after trimming, or an upstream response exceeded the byte cap. | Narrow the request: a smaller `limit` or a narrower search. |
 | `unknown_tool` | No tool has that name. | `details.available` lists the tools. |
 | `internal_error` | A bug in edi-mcp. | Report it with the request id. |
-| `feature_unavailable` | Reserved: a feature disabled by configuration. | — |
-| `not_available_in_http_mode` | Reserved for the stdio-only download tools ([Roadmap](roadmap.md)). | Use a stdio deployment. |
-| `download_limit_exceeded`, `download_denied`, `checksum_mismatch` | Reserved for the download tools ([Roadmap](roadmap.md)): a per-call limit, a path or host outside what is allowed, and a file whose SHA-1 differs from the one EDI publishes. | — |
+| `feature_unavailable` | A download tool was called while downloads are disabled (`downloads.enabled: false`, or not stdio). | Use a stdio deployment with downloads enabled. |
+| `not_available_in_http_mode` | Reserved; not raised today. Over HTTP the download tools are not listed, so calling one returns `unknown_tool`. | Use a stdio deployment. |
+| `download_limit_exceeded` | A download plan or stream exceeds `downloads.max_files_per_call`, `max_bytes_per_call`, `max_file_bytes` or the call's `max_bytes`. | Download fewer entities, or raise the limit. |
+| `download_denied` | A `dest_subdir` or file name outside the download directory, or a file that appeared while downloading. | Use a plain relative `dest_subdir`. |
+| `checksum_mismatch` | Not raised as an error: a file whose SHA-1 differs from EDI's is removed and reported with status `failed` and this code in its `error` text. | Download it again. |
 
 Results that are merely large are not errors: lists are trimmed to fit the result
 budget (50,000 bytes by default) and report `page.truncatedReason: budget` with a
@@ -1991,9 +2515,12 @@ the source for them and fails if any appear.
 
 ## Measured size
 
-With the eight tools registered today, `tools/list` is about 37 KB of compact JSON on
-both transports. The conformance bound is 60,000 bytes and will be re-measured once
-every planned tool has landed.
+With all sixteen tools (stdio; HTTP lists fourteen, without the download tools),
+`tools/list` is about 58 KB of compact JSON, inside the conformance bound of 60,000
+bytes. To stay inside it, the adapter folds pydantic's nullable `anyOf: [{type: T},
+{type: null}]` in **output** schemas into `type: [T, "null"]` (the same meaning in JSON
+Schema 2020-12) and leaves `default: null` out of them. Input schemas keep pydantic's
+`anyOf` form, which function-calling clients handle most consistently.
 
 ## Conformance tests
 
@@ -2246,7 +2773,7 @@ install the package into a virtual environment as above.
 ## Not available over HTTP
 
 Downloads exist only on stdio, confined to `downloads.directory`: the
-download tools (planned for build step 6) are never listed over HTTP. Each instance keeps its own
+download tools (`edi_download_entities`, `edi_download_package`) are never listed over HTTP. Each instance keeps its own
 in-memory response cache (`cache.*` settings), so instances do not share state.
 
 [^mcp-transports]: MCP 2026-07-28 — Transports. <https://modelcontextprotocol.io/specification/2026-07-28/basic/transports>
@@ -2628,17 +3155,20 @@ names them), marks the page `truncated` with `truncatedReason: budget` and a
 | `models/common.py` | `EdiInput`, `ToolResultBase`, `Page`, `Resolved`, `Source` |
 | `edi/auth.py` | `ApiKey`, per-call key resolution, the HTTP TLS gate, `scrub_url` |
 | `edi/tokens.py` | key → `edi-token` exchange and refresh per key identity, `?key=` fallback |
-| `edi/client.py` | the one `httpx` client: PASTA-only credentials, cookie jar that stores nothing, retries, allow-listed redirects, byte caps, upstream error scrubbing |
+| `edi/client.py` | the one `httpx` client: PASTA-only credentials, cookie jar that stores nothing, retries, allow-listed redirects, byte caps, upstream error scrubbing; `get()` for cached bodies and `stream()` for previews and downloads, both through one redirect loop (`_open`) |
 | `edi/cache.py` | per-family TTL cache with single-flight and stale-if-error; PASTA entries keyed by key identity |
 | `edi/backends/` | the `Backend` contract, `PastaBackend`, `DataOneBackend`, `backend_for`, `resolve_package` |
 | `edi/pid.py` | package identifier, DOI and URL parsing |
 | `edi/scopes.py` | scope snapshot, scope names, LTER site codes and `name.identifier` references |
 | `edi/xml.py`, `edi/eml.py` | defusedxml parsing and EML prose; EML data-entity references and sizes |
+| `edi/preview.py` | delimited-text preview: EML delimiter unescaping, header detection, early-stop record handling |
+| `edi/downloads.py` | the download area: confined destinations, safe names, plan caps, `.part` streaming with SHA-1 and exclusive (never-overwrite) placement |
 | `projections/eml.py` | parsed EML → compact, capped models (people, coverage, methods, license, project, entities and attributes), with `<references>` resolution |
-| `tools/` | one module per family (`core.py`, `discovery.py`, `packages.py`, which fetches and parses the EML once per call via `load()`), plus helpers in `_common.py` (`source`, `paginate`, `portal_url`) |
+| `projections/report.py` | PASTA quality report → counts by status and the capped non-valid checks |
+| `tools/` | one module per family (`core.py`, `discovery.py`, `packages.py`, which fetches and parses the EML once per call via `load()`; `data.py` for previews and downloads, `citation.py`, `provenance.py` for quality reports and lineage, `feeds.py` for the change feed and read counts), plus helpers in `_common.py` (`source`, `paginate`, `portal_url`) |
 | `transport/` | stdio; stateless Streamable HTTP with `/healthz`, `/readyz` and the request-context middleware |
 
-Preview, download, citation and the key-only tools arrive in build step 6 (see the
+Resources, prompts and packaging arrive in build step 7 (see the
 [Roadmap](../tools/roadmap.md)).
 
 Design decisions and their reasons are recorded in `DESIGN.md` (the D-numbers)
@@ -3094,12 +3624,12 @@ You can request these yourself, for example
 `https://cite.edirepository.org/cite/knb-lter-hbr.14.22?style=ESIP`. The EDI Data
 Portal's landing page for each package shows the same citation.
 
-!!! note "edi_get_citation is planned"
+!!! tip "Ask edi-mcp for the citation"
 
-    A dedicated `edi_get_citation` tool that returns these styles is part of the next
-    build step and is not available yet (see the [Roadmap](../tools/roadmap.md)). Until
-    then, `edi_search_packages` returns each package's `doi` and `portalUrl`, from which
-    the citation above can be retrieved.
+    [`edi_get_citation`](../tools/reference.md#edi_get_citation) returns these styles
+    (`ESIP`, `DRYAD`, `BIBTEX`) and the citation's parts, including the DOI, from the
+    same service and without a key; see
+    [Citations, quality reports and lineage](../tools/citation-and-quality.md).
 
 ## Intellectual rights
 
@@ -3213,6 +3743,8 @@ names belong to their respective owners; this site uses its own original artwork
 # Directory Update Log
 
 ## 2026-10-19
+* **Creation**: [Previews and downloads](tools/data.md) (`edi_preview_entity`, `edi_download_entities`, `edi_download_package`), [Citations, quality reports and lineage](tools/citation-and-quality.md) (`edi_get_citation`, `edi_get_quality_report`, `edi_get_lineage`) and [Change feed and read counts](tools/feeds.md) (`edi_recent_changes`, `edi_get_read_counts`): build step 6.
+* **Update**: [Tool reference](tools/reference.md) regenerated (16 tools); [Roadmap](tools/roadmap.md) now lists only step 7; [EDI API key](getting-started/api-key.md) table (quality reports work without a key; four tools need one); [Backends](tools/backends.md), [Utilities and errors](tools/utilities.md) (download error codes), [Quickstart](getting-started/quickstart.md), [Configuration](getting-started/configuration.md), [Install](getting-started/install.md), [Clients](getting-started/clients.md), [Citing EDI data](about/citing-edi.md), [Hosted HTTP](deploy/hosted-http.md), [Architecture](develop/architecture.md), [MCP 2026-07-28 conformance](mcp/spec-2026-07-28.md) (tools/list about 58 KB) and the home page.
 * **Update**: [Install edi-mcp](getting-started/install.md) — rewritten for macOS, Linux and Windows after gbif-mcp's guide: uv prerequisites per platform, the new `scripts/install.sh` (registers the server with Claude Code, Claude Desktop, Codex CLI, Gemini CLI, Goose and OpenCode; `--with-key` stores the key without a key flag), manual registration with per-OS paths, stdio verification, troubleshooting, upgrades and removal.
 * **Update**: [Clients](getting-started/clients.md) — Gemini CLI and Goose entries, Claude Desktop paths for all three platforms, the Codex TOML table and the OpenCode 2.x layout.
 * **Creation**: [Packages, metadata and entities](tools/packages.md) — `edi_get_package`, `edi_get_metadata` and `edi_list_entities` (build step 5), now on `main`.

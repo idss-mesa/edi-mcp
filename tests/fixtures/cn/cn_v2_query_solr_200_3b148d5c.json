@@ -2,7 +2,7 @@
   "responseHeader":{
     "zkConnected":true,
     "status":0,
-    "QTime":0,
+    "QTime":3,
     "params":{
       "q":"id:\"https://pasta.lternet.edu/package/metadata/eml/edi/2081/1\"",
       "fl":"id,resourceMap",

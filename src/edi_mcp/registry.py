@@ -287,6 +287,8 @@ def _mark_trimmed(
 ) -> int | None:
     """Rewrite the budget list's Page and add (or refresh) the trimming note."""
     page = payload.get(_wire_name(output_model, output_model.budget_page))
+    if output_model.budget_incomplete_flag:
+        payload[_wire_name(output_model, output_model.budget_incomplete_flag)] = False
     next_offset = kept
     if isinstance(page, dict):
         next_offset = int(page.get("offset", 0)) + kept

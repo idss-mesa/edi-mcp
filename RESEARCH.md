@@ -215,3 +215,34 @@ Probed live with a profile key (PASTA) and anonymously (DataONE CN Solr).
   `funding`, EML 2.2 `award` and `licensed`.
 - **Entity ids.** The MD5-of-`entityName` rule matched PASTA's `/name` list for every
   entity of `knb-lter-hbr.14.22` (5) and `knb-lter-jrn.210548103.32` (1).
+
+## 7. Step-6 endpoints (verified 2026-10-19)
+
+- **Quality reports are anonymous on GMN.** `gmn.lternet.edu/mn/v2/object/<url-encoded
+  https://pasta.lternet.edu/package/report/eml/s/i/r>` and the same on
+  `gmn.edirepository.org` (checked `knb-lter-hbr.14.22`, `edi.2081.1`) return the
+  `qr:qualityReport` XML (`application/octet-stream`) without credentials, byte-identical
+  to PASTA's. Structure: `creationDate`, `packageId`, `datasetReport/qualityCheck*`,
+  `entityReport/{entityName, qualityCheck*}`; each check has `identifier`, `name`,
+  `found`, `status` (valid, info, warn, error), `explanation`, `suggestion`. Sizes:
+  hbr.14.22 83 KB (5 entities), jrn.210548103.32 32 KB, edi.2081.1 22 KB.
+- **Lineage.** `/package/sources/eml/…` → `<dataSources><dataSource><packageId/><title/><url/>`;
+  `/descendants/eml/…` → `<dataDescendants><dataDescendant>…`. Titles are escaped twice
+  (`&#x26;&#x23;x3a&#x3b;` parses to `&#x3a;`), so `html.unescape` them. hbr.14.22's source
+  is hbr.278.8, whose descendant is hbr.14.22.
+- **Change feed.** `/package/changes/eml?fromDate=&toDate=&scope=` → `<dataPackageChanges>
+  <dataPackage><packageId/><scope/><identifier/><revision/><principal>EDI-<40 hex></principal>
+  <doi/><serviceMethod>createDataPackage|updateDataPackage|…</serviceMethod>
+  <date>2026-10-12T22:19:37.455</date>`. `/uploads/eml` has the same shape with
+  `2026-10-19 17:53:59` dates. Both name **other users' principals**: never surface them.
+- **Read counts.** `/audit/reads/{s}/{i}[/{r}]` → `<resourceReads><resource><resourceId/>
+  <resourceType>dataPackage|metadata|report|data|archive</resourceType><scope/><identifier/>
+  <revision/><totalReads/><nonRobotReads/>`. Series-level for hbr.14 is 48 KB; edi.2081 1.8 KB.
+- **Citations.** `cite.edirepository.org/cite/{packageId}?style=ESIP|DRYAD|BIBTEX` →
+  text/plain; `Accept: application/json` → `{authors, pub_year, title, version, publisher,
+  doi}` with trailing periods (`"2026."`, `"…b062."`). A missing **or** access-restricted
+  package (`icarus.13.1`) is HTTP 400 with an HTML page.
+- **Data.** PASTA `/package/data/eml/…/{entity}` streams the bytes (`text/csv` for
+  thiessen_weights, 734 B); GMN adds `DataONE-Checksum: SHA-1,<hex>`.
+  `/package/download/eml/{s}/{i}/{r}` is the whole package as `application/zip` with no
+  `Content-Disposition`; edi.2081.1's is 779 MB, so the download tool caps every stream.

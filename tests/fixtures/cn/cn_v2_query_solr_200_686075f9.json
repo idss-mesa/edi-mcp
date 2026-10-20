@@ -2,7 +2,7 @@
   "responseHeader":{
     "zkConnected":true,
     "status":0,
-    "QTime":0,
+    "QTime":206,
     "params":{
       "q":"*:*",
       "defType":"edismax",
@@ -19,23 +19,23 @@
     "start":0,
     "numFoundExact":true,
     "docs":[{
-      "id":"knb-lter-and.3192.9",
-      "dateUploaded":"2005-08-14T23:00:00Z",
-      "keywords":["Disturbance","Long-Term Ecological Research (LTER)"],
-      "title":"Fire history database of the western United States, 1994",
-      "beginDate":"1993-01-01T00:00:00Z",
-      "endDate":"1996-01-01T00:00:00Z",
-      "pubDate":"2013-09-13T00:00:00Z",
-      "origin":["Emily K. Heyerdahl"]
+      "id":"knb-lter-hfr.111.14",
+      "dateUploaded":"2008-05-06T23:00:00Z",
+      "keywords":["carnivorous plants","competition","evolution","predation","populations","Harvard Forest","HFR","LTER","USA"],
+      "title":"Prey Capture by Carnivorous Plants Worldwide 1923-2007",
+      "beginDate":"1923-01-01T00:00:00Z",
+      "endDate":"2007-12-31T00:00:00Z",
+      "pubDate":"2008-01-01T00:00:00Z",
+      "origin":["Aaron Ellison","Nicholas Gotelli"]
     },{
-      "id":"knb-lter-and.4041.10",
-      "dateUploaded":"2005-08-14T23:00:00Z",
-      "keywords":["Carbon","Decomposition","Litterfall","Nitrogen","Phosphorus","Roots","Wood"],
-      "title":"LTER Intersite Fine Litter Decomposition Experiment (LIDET), 1990 to 2002",
-      "beginDate":"1990-01-31T00:00:00Z",
-      "endDate":"2007-06-12T00:00:00Z",
-      "pubDate":"2013-09-05T00:00:00Z",
-      "origin":["Andrews Forest LTER Site","Mark E. Harmon"]
+      "id":"knb-lter-ntl.223.7",
+      "dateUploaded":"2008-06-02T23:00:00Z",
+      "keywords":["conductance","conductivity","populations","species richness","zooplankton","North Temperate Lakes - LTER","lake density"],
+      "title":"Crustacean Zooplankton Species Richness in 66 North American Lakes",
+      "beginDate":"1992-01-01T00:00:00Z",
+      "endDate":"1993-01-01T00:00:00Z",
+      "pubDate":"2000-01-01T00:00:00Z",
+      "origin":["Stanley Dodson"]
     },{
       "id":"doi:10.6073/AA/knb-lter-lno.108.1",
       "dateUploaded":"2005-07-27T23:00:00Z",
@@ -46,23 +46,23 @@
       "pubDate":"2004-01-01T00:00:00Z",
       "origin":["John Vande Castle"]
     },{
-      "id":"knb-lter-ntl.289.4",
-      "dateUploaded":"2014-01-04T00:00:00Z",
-      "keywords":["geographic information systems","populations","North Temperate Lakes - LTER","NTL LTER","NTL-LTER","GIS","spatial","lakes","area","count","perimeter"],
-      "title":"Lake Shoreline in the Contiguous United States",
-      "beginDate":"2013-01-15T00:00:00Z",
-      "endDate":"2013-01-15T00:00:00Z",
-      "pubDate":"2014-01-01T00:00:00Z",
-      "origin":["Luke A. Winslow"]
+      "id":"knb-lter-hfr.168.6",
+      "dateUploaded":"2011-03-12T00:00:00Z",
+      "keywords":["carnivorous plants","evolution","photosynthesis","plant physiology","respiration","populations","Harvard Forest","HFR","LTER","USA"],
+      "title":"Ecophysiology of Carnivorous Plants Worldwide 1980-2011",
+      "beginDate":"1980-01-01T00:00:00Z",
+      "endDate":"2011-01-01T00:00:00Z",
+      "pubDate":"2011-01-01T00:00:00Z",
+      "origin":["Aaron Ellison","Lubomir Adamec"]
     },{
-      "id":"knb-lter-cap.556.10",
-      "dateUploaded":"2011-09-23T23:00:00Z",
-      "keywords":["Land-Use, Land-Cover and Land Architecture","disturbance patterns","sonoran desert","phoenix","urban","metropolitan area","land use changes","humans","human environment feedback","public policy","state trust lands","ballots","land use","growth","dimensions","caplter","central arizona phoenix longterm ecological research","arizona","caplter created","az","cap","arid land"],
-      "title":"Institutional drivers of urban growth in the central Arizona-Phoenix area",
-      "beginDate":"2008-05-01T00:00:00Z",
-      "endDate":"2009-06-01T00:00:00Z",
-      "pubDate":"2009-01-01T00:00:00Z",
-      "origin":["Abby York","Shannon Conley"]
+      "id":"knb-lter-ntl.222.8",
+      "dateUploaded":"2008-06-02T23:00:00Z",
+      "keywords":["crustaceans","fishes","phytoplankton","populations","primary production","rotifers","species richness","zooplankton","NTL LTER","North Temperate Lakes - LTER","cladoceran species richness","copepod species richness","crustacean zooplankton species richness","fish species richness","macrophyte species richness","macrophytes","phytoplankton species richness","rotifer species richness","zooplankton species richness"],
+      "title":"Primary Production and Species Richness in Lake Communities 1997 - 2000",
+      "beginDate":"1997-01-01T00:00:00Z",
+      "endDate":"2000-01-01T00:00:00Z",
+      "pubDate":"2001-01-01T00:00:00Z",
+      "origin":["Stanley Dodson"]
     }]
   }
 }

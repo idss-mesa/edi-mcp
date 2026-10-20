@@ -1,0 +1,9 @@
+@misc{knb-lter-hbr.14.22,
+    author={USDA Forest Service, Northern Research Station},
+    title={{Hubbard Brook Experimental Forest: Total Daily Precipitation by Watershed, 1956 - ongoing. ver 22}},
+    year={2026},
+    publisher={Environmental Data Initiative},
+    doi={10.6073/pasta/2017345f0977c0f7c46e1ad90ce1b062},
+    url={https://doi.org/10.6073/pasta/2017345f0977c0f7c46e1ad90ce1b062},
+    note = {Type: dataset}
+}

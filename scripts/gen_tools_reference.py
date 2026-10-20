@@ -35,6 +35,10 @@ FAMILY_PAGES = {
     "discovery": "discovery.md",
     "packages": "packages.md",
     "entities": "packages.md",
+    "data": "data.md",
+    "citation": "citation-and-quality.md",
+    "provenance": "citation-and-quality.md",
+    "feeds": "feeds.md",
 }
 
 

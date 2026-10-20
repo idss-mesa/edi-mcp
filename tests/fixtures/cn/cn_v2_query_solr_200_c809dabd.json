@@ -2,7 +2,7 @@
   "responseHeader":{
     "zkConnected":true,
     "status":0,
-    "QTime":58,
+    "QTime":246,
     "params":{
       "q":"streamflow",
       "defType":"edismax",

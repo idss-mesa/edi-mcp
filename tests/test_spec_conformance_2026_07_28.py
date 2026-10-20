@@ -33,9 +33,9 @@ from edi_mcp.server import (
 from tests.helpers.asgi import AppHarness, mcp_headers, rpc
 
 SERVER_INFO = "io.modelcontextprotocol/serverInfo"
-#: PASTA-only tools (DESIGN.md D3); they need an EDI API key.
+#: PASTA-only tools (DESIGN.md D3); they need an EDI API key. Quality reports are
+#: replicated to the DataONE member nodes, so edi_get_quality_report needs none (D18).
 KEY_TOOLS = {
-    "edi_get_quality_report",
     "edi_get_lineage",
     "edi_recent_changes",
     "edi_get_read_counts",

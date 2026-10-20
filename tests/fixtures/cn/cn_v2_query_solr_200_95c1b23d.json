@@ -2,7 +2,7 @@
   "responseHeader":{
     "zkConnected":true,
     "status":0,
-    "QTime":2,
+    "QTime":3,
     "params":{
       "q":"id:https\\:\\/\\/pasta.lternet.edu\\/package\\/metadata\\/eml\\/no\\-such\\-scope\\/*",
       "fl":"id",

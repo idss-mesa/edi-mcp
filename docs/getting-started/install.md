@@ -269,7 +269,7 @@ Nothing is required. The settings most people touch:
 ```bash
 EDI_API_KEY=                      # optional; PASTA with it, DataONE without
 EDI_MCP_SERVER__LOG_LEVEL=info    # debug | info | warning | error | critical (stderr)
-EDI_MCP_DOWNLOADS__DIRECTORY=     # where the planned download tools may write
+EDI_MCP_DOWNLOADS__DIRECTORY=     # where the download tools write (default ~/edi-downloads)
 ```
 
 edi-mcp does not read `.env` files on its own. See [Configuration](configuration.md)

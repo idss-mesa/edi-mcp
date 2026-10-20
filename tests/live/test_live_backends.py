@@ -159,3 +159,47 @@ async def test_live_member_nodes_serve_data_without_a_key(
         async for chunk in response.aiter_bytes():
             assert chunk
             break
+
+
+# ---------------------------------------------------------------------- step 6
+
+
+@pytest.fixture
+def dataone(client: EdiClient) -> DataOneBackend:
+    return DataOneBackend(client, Config.model_validate({}), UpstreamStats())
+
+
+@pytest.mark.parametrize("package", [HBR, PackageId("edi", 2081, 1)])
+async def test_live_quality_reports_are_anonymous_on_the_member_nodes(
+    dataone: DataOneBackend, package: PackageId
+) -> None:
+    """edi_get_quality_report needs no key (D18, verified 2026-10-19)."""
+    body = await dataone.read_report(package)
+    assert b"qualityReport" in body[:2000] and package.package_id.encode() in body
+
+
+async def test_live_entity_stream_closes_early(dataone: DataOneBackend) -> None:
+    """Previews stop reading after the first chunk (GMN ignores Range)."""
+    entity = "c4f72fa0cb155f1b61f1333bb67e3d00"
+    async with dataone.stream_entity(HBR, entity) as stream:
+        assert (stream.header("dataone-checksum") or "").upper().startswith("SHA-1,")
+        async for chunk in stream.chunks():
+            assert chunk.startswith(b"SRG_Num")
+            break
+
+
+async def test_live_citation_service(dataone: DataOneBackend) -> None:
+    fields = await dataone.citation_fields(HBR)
+    assert fields.doi == "doi:10.6073/pasta/2017345f0977c0f7c46e1ad90ce1b062"
+    assert (await dataone.citation(HBR, "BIBTEX")).startswith("@misc{knb-lter-hbr.14.22,")
+
+
+async def test_live_pasta_feeds(pasta: PastaBackend) -> None:
+    """Changes, read counts and lineage parse; principals are never kept."""
+    changes = await pasta.changes("2026-10-12", "2026-10-19", "edi")
+    assert changes and all(c.package.scope == "edi" for c in changes)
+    assert not any("EDI-" in repr(c) for c in changes)
+    reads = await pasta.read_counts("edi", 2081, None)
+    assert {r.resource_type for r in reads} >= {"dataPackage", "metadata", "data"}
+    sources = await pasta.data_sources(HBR)
+    assert sources and sources[0].title and "&#" not in sources[0].title

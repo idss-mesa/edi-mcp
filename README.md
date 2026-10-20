@@ -11,9 +11,8 @@ ecological data packages.
 
 > Documentation: <https://idss-mesa.github.io/edi-mcp/>
 
-> **Status: under construction.** The discovery tools (`edi_ping`, search, list
-> scopes/identifiers/revisions) and the package tools (`edi_get_package`,
-> `edi_get_metadata`, `edi_list_entities`) work; the rest of the tools below are planned. See
+> **Status: pre-release.** All 16 tools below work; resources, prompts, `server.json`, a
+> container image and the v0.1.0 PyPI release are the last build step. See
 > [DESIGN.md](DESIGN.md) for decisions and [RESEARCH.md](RESEARCH.md) for verified API
 > facts.
 
@@ -88,10 +87,11 @@ Other clients (Codex CLI, Gemini CLI, Goose, OpenCode, VS Code, hosted HTTP):
 Since 2026-07-30 EDI requires an API key for **every** PASTA REST call, including
 public reads. Create a free key at <https://auth.edirepository.org> (Profile → API
 keys) and set it as `EDI_API_KEY`. Without a key, edi-mcp falls back to the anonymous
-DataONE replicas of EDI content: search, metadata, entity download and citations work,
-while quality reports, lineage, change feeds and read counts need a key.
+DataONE replicas of EDI content: search, metadata, entity previews and downloads, quality
+reports and citations work, while lineage, the change feed, read counts and whole-package
+zips need a key.
 
-## Planned tools
+## Tools
 
 | Tool | Purpose |
 |---|---|
@@ -100,13 +100,13 @@ while quality reports, lineage, change feeds and read counts need a key.
 | `edi_get_package` | DOI, landing page, entities and sizes for one package revision |
 | `edi_get_metadata` | Compact projection of the EML metadata |
 | `edi_list_entities` | Data entities with names, sizes, checksums, formats and attributes |
-| `edi_preview_entity` | First rows of a tabular entity |
+| `edi_preview_entity` | First rows of a delimited entity, streamed and parsed with its EML layout |
 | `edi_get_citation` | Formatted citation (ESIP, DRYAD, BibTeX) |
-| `edi_get_quality_report` | PASTA congruence-check summary (key required) |
+| `edi_get_quality_report` | PASTA congruence-check summary: counts and non-valid checks |
 | `edi_get_lineage` | Provenance sources and descendants (key required) |
 | `edi_recent_changes` | Recent inserts, updates and deletes (key required) |
-| `edi_get_read_counts` | Download/read counts (key required) |
-| `edi_download_entities` / `edi_download_package` | Save data locally (stdio only) |
+| `edi_get_read_counts` | Read counts by resource type and revision (key required) |
+| `edi_download_entities` / `edi_download_package` | Save entities (SHA-1 verified, never overwriting) or the zip (key) locally; stdio only |
 | `edi_ping` | Server, backend and key status |
 
 ## License

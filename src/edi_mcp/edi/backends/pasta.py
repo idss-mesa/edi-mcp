@@ -9,7 +9,11 @@ is Solr XML (``<resultset numFound>``).
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+import html
+import re
+from contextlib import AbstractAsyncContextManager
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Literal
 
 from edi_mcp.edi.backends.base import (
     BULK_SCOPES,
@@ -32,10 +36,67 @@ if TYPE_CHECKING:
     from edi_mcp.edi.auth import ApiKey
     from edi_mcp.edi.backends.dataone import DataOneBackend
     from edi_mcp.edi.cache import CacheFamily
-    from edi_mcp.edi.client import EdiClient, Fetched
+    from edi_mcp.edi.client import EdiClient, Fetched, Streamed
     from edi_mcp.edi.eml import EmlEntity
 
 SEARCH_FIELDS = "packageid,title,pubdate,doi,begindate,enddate,scope,keyword,author"
+ChangeKind = Literal["insert", "update", "delete"]
+_METHOD_KIND: dict[str, ChangeKind] = {
+    "createdatapackage": "insert",
+    "updatedatapackage": "update",
+    "deletedatapackage": "delete",
+}
+_DATE_RE = re.compile(r"^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2}:\d{2})")
+
+
+@dataclass
+class LinkedPackage:
+    """One provenance source or descendant (``/sources``, ``/descendants``)."""
+
+    package: PackageId | None
+    title: str | None
+    url: str | None
+
+
+@dataclass
+class PackageChange:
+    """One entry of ``/changes/eml`` (the uploader's principal is never kept)."""
+
+    package: PackageId
+    kind: ChangeKind | None
+    method: str | None
+    date: str | None
+    doi: str | None
+
+
+@dataclass
+class ResourceReads:
+    """One ``/audit/reads`` resource: total and non-robot reads."""
+
+    resource_type: str
+    revision: int | None
+    entity_id: str | None
+    total: int
+    non_robot: int
+
+
+def _iso(value: str | None) -> str | None:
+    """``2026-10-12T22:19:37.455`` and ``2026-10-19 17:53:59`` → ``2026-10-12T22:19:37Z``
+    (PASTA reports UTC)."""
+    m = _DATE_RE.match((value or "").strip())
+    return f"{m.group(1)}T{m.group(2)}Z" if m else None
+
+
+def _int(value: str | None) -> int:
+    text = (value or "").strip()
+    return int(text) if text.isdigit() else 0
+
+
+def _title(value: str | None) -> str | None:
+    """Lineage titles arrive escaped twice (``&#x3a;`` survives XML parsing)."""
+    if not value:
+        return None
+    return " ".join(html.unescape(value).split()) or None
 
 
 def _lines(text: str) -> list[str]:
@@ -239,6 +300,128 @@ class PastaBackend(BackendBase):
         value = fetched.text.strip()
         return value or None
 
+    async def read_report(self, package: PackageId) -> bytes:
+        try:
+            fetched = await self._get(
+                f"/report/eml/{package.path}",
+                cache="reports",
+                max_bytes=self.config.limits.max_eml_bytes,
+            )
+        except EdiApiError as exc:
+            raise self.not_found(exc, "quality report", str(package)) from None
+        return fetched.body
+
+    # ------------------------------------------------------------------ PASTA only
+
+    async def _linked(
+        self, kind: Literal["sources", "descendants"], package: PackageId
+    ) -> list[LinkedPackage]:
+        try:
+            fetched = await self._get(f"/{kind}/eml/{package.path}", cache="reports")
+        except EdiApiError as exc:
+            raise self.not_found(exc, "package", str(package)) from None
+        root = parse_xml(fetched.body, source=f"/package/{kind}/eml")
+        out = []
+        tag = "dataSource" if kind == "sources" else "dataDescendant"
+        for item in descendants(root, tag):
+            pid = text_of(item, "packageId")
+            ref = None
+            if pid:
+                try:
+                    ref = parse_reference(pid).package
+                except ToolError:
+                    ref = None
+            out.append(LinkedPackage(ref, _title(text_of(item, "title")), text_of(item, "url")))
+        return out
+
+    async def data_sources(self, package: PackageId) -> list[LinkedPackage]:
+        """Packages this one was derived from (EML ``methods/dataSource``)."""
+        return await self._linked("sources", package)
+
+    async def data_descendants(self, package: PackageId) -> list[LinkedPackage]:
+        """Packages that name this one as a source."""
+        return await self._linked("descendants", package)
+
+    async def changes(
+        self, from_date: str, to_date: str | None, scope: str | None
+    ) -> list[PackageChange]:
+        """Inserts, updates and deletes between two dates (``/changes/eml``)."""
+        params = {"fromDate": from_date, "toDate": to_date, "scope": scope}
+        fetched = await self._get(
+            "/changes/eml", {k: v for k, v in params.items() if v}, cache="feeds"
+        )
+        root = parse_xml(fetched.body, source="/package/changes/eml")
+        out = []
+        for item in descendants(root, "dataPackage"):
+            pid = text_of(item, "packageId")
+            try:
+                ref = parse_reference(pid or "").package
+            except ToolError:
+                ref = None
+            if ref is None or ref.revision is None:
+                continue
+            method = text_of(item, "serviceMethod")
+            out.append(
+                PackageChange(
+                    package=ref,
+                    kind=_METHOD_KIND.get((method or "").lower()),
+                    method=method,
+                    date=_iso(text_of(item, "date")),
+                    doi=text_of(item, "doi") or None,
+                )
+            )
+        return out
+
+    async def read_counts(
+        self, scope: str, identifier: int, revision: int | None
+    ) -> list[ResourceReads]:
+        """``/audit/reads/{scope}/{id}[/{rev}]``: reads per resource (package, metadata,
+        report, each data entity)."""
+        path = f"{scope}/{identifier}" + (f"/{revision}" if revision is not None else "")
+        try:
+            fetched = await self.client.get(
+                f"{self.config.edi.pasta_base_url.rstrip('/')}/audit/reads/{path}",
+                key=self.key,
+                cache="feeds",
+                stats=self.stats,
+            )
+        except EdiApiError as exc:
+            raise self.not_found(exc, "package", path.replace("/", ".")) from None
+        root = parse_xml(fetched.body, source="/audit/reads")
+        out = []
+        for item in descendants(root, "resource"):
+            resource_id = text_of(item, "resourceId") or ""
+            entity = None
+            if (text_of(item, "resourceType") or "") == "data":
+                entity = resource_id.rstrip("/").rsplit("/", 1)[-1] or None
+            rev = text_of(item, "revision")
+            out.append(
+                ResourceReads(
+                    resource_type=text_of(item, "resourceType") or "unknown",
+                    revision=int(rev) if rev and rev.isdigit() else None,
+                    entity_id=entity,
+                    total=_int(text_of(item, "totalReads")),
+                    non_robot=_int(text_of(item, "nonRobotReads")),
+                )
+            )
+        return out
+
+    def stream_package_zip(
+        self,
+        package: PackageId,
+        *,
+        allowed_hosts: list[str] | None = None,
+        read_timeout_s: float | None = None,
+    ) -> AbstractAsyncContextManager[Streamed]:
+        """The whole package as one zip (``/download/eml``), streamed."""
+        return self.client.stream(
+            f"{self.base}/download/eml/{package.path}",
+            key=self.key,
+            stats=self.stats,
+            allowed_hosts=allowed_hosts,
+            read_timeout_s=read_timeout_s,
+        )
+
     async def resolve_doi(self, doi: Doi) -> PackageId:
         _, hits = await self._search_xml(
             {"q": f'doi:"{doi.pid}"', "fl": "packageid,doi", "rows": "1", "start": "0"}
@@ -261,4 +444,4 @@ class PastaBackend(BackendBase):
         )
 
 
-__all__ = ["PastaBackend"]
+__all__ = ["ChangeKind", "LinkedPackage", "PackageChange", "PastaBackend", "ResourceReads"]

@@ -31,6 +31,7 @@ import os
 import re
 import shutil
 import sys
+import tempfile
 from collections.abc import Callable, Iterable
 from pathlib import Path
 from typing import Any
@@ -56,6 +57,8 @@ JWT_RE = re.compile(r"eyJ[A-Za-z0-9_-]{6,}(?:\.[A-Za-z0-9_-]*){0,2}")
 FORBIDDEN_RE = re.compile(r"edi-token=|set-cookie", re.IGNORECASE)
 KEY_PARAM_RE = re.compile(r"[?&]key=", re.IGNORECASE)
 SYSTEM_PRINCIPALS = {"public access", "human access", "authenticated access"}
+#: Any EDI user principal: PASTA's change and upload feeds name other uploaders.
+PRINCIPAL_RE = re.compile(r"EDI-[0-9a-f]{40}")
 EXTENSIONS = {
     "application/xml": ".xml",
     "text/xml": ".xml",
@@ -100,6 +103,7 @@ class Scrubber:
     def scrub(self, text: str) -> str:
         for secret in sorted(self.secrets, key=len, reverse=True):
             text = text.replace(secret, "REDACTED")
+        text = PRINCIPAL_RE.sub("EDI-REDACTED", text)
         return JWT_RE.sub("REDACTED-JWT", text)
 
     def leaks(self, text: str) -> list[str]:
@@ -108,6 +112,8 @@ class Scrubber:
             problems.append("JWT-shaped string")
         if FORBIDDEN_RE.search(text):
             problems.append("edi-token or set-cookie")
+        if PRINCIPAL_RE.search(text):
+            problems.append("EDI user principal")
         problems.extend(f"secret #{i}" for i, s in enumerate(sorted(self.secrets)) if s in text)
         return problems
 
@@ -248,6 +254,8 @@ async def _scenarios(transport: RecordingTransport, key_value: str) -> None:
     config = Config.model_validate({})
     config.edi.api_key = SecretStr(key_value)
     config.cache.enabled = False
+    # Download scenarios write here, never into the recorder's real download directory.
+    config.downloads.directory = Path(tempfile.mkdtemp(prefix="edi-mcp-record-"))
     client = EdiClient(config.edi, config.cache, http_transport=transport)
     key = ApiKey(key_value, "config")
     hbr = PackageId("knb-lter-hbr", 14, 22)
@@ -397,6 +405,39 @@ TOOL_SCENARIOS: list[tuple[str, str, dict[str, Any], bool]] = [
     ),
     ("key", "edi_get_package", {"package": "knb-lter-hbr.14"}, True),
     ("key", "edi_get_package", {"package": "icarus.13.1"}, False),
+    # Step 6. thiessen_weights (734 bytes) is the preview/download entity; edi.2081.1's
+    # quality report (22 KB) fits the fixture cap, hbr.14.22's (83 KB) does not.
+    *(
+        (who, name, args, True)
+        for who in ("key", "anon")
+        for name, args in (
+            (
+                "edi_preview_entity",
+                {"package": "knb-lter-hbr.14.22", "entity": "thiessen_weights", "rows": 5},
+            ),
+            ("edi_get_citation", {"package": "knb-lter-hbr.14.22"}),
+            ("edi_get_citation", {"package": "knb-lter-hbr.14.22", "style": "BIBTEX"}),
+            ("edi_get_quality_report", {"package": "edi.2081.1"}),
+            (
+                "edi_download_entities",
+                {
+                    "package": "knb-lter-hbr.14.22",
+                    "entities": ["thiessen_weights"],
+                    "dest_subdir": who,
+                },
+            ),
+        )
+    ),
+    ("anon", "edi_get_citation", {"package": "icarus.13.1"}, False),
+    ("key", "edi_get_lineage", {"package": "knb-lter-hbr.14.22"}, True),
+    (
+        "key",
+        "edi_recent_changes",
+        {"from_date": "2026-10-12", "to_date": "2026-10-18", "scope": "edi"},
+        True,
+    ),
+    ("key", "edi_get_read_counts", {"package": "edi.2081"}, True),
+    ("key", "edi_get_read_counts", {"package": "knb-lter-jrn.210548103.32"}, True),
 ]
 
 
