@@ -86,16 +86,18 @@ class TokenManager:
         slot = self._slots.get(identity)
         if slot is None:
             slot = self._slots[identity] = _Slot(key)
-            self._evict()
+            self._evict(keep=identity)
         self._slots.move_to_end(identity)
         return slot
 
-    def _evict(self) -> None:
+    def _evict(self, *, keep: str) -> None:
+        """Drop least recently used slots over the cap; may stay over it when the rest are
+        pinned, in use, or the one just created."""
         for identity in list(self._slots):
             if len(self._slots) <= self._max_slots:
                 return
             slot = self._slots[identity]
-            if slot.key.source == "config" or slot.lock.locked():
+            if identity == keep or slot.key.source == "config" or slot.lock.locked():
                 continue
             del self._slots[identity]
             forget_secret(slot.token)

@@ -414,3 +414,21 @@ async def test_token_slots_are_bounded_and_forget_evicted_secrets() -> None:
         # An evicted caller comes back: a fresh exchange, nothing reused.
         again = await tokens.credential(callers[0])
         assert again.value == issued[-1] and tokens.exchanges(callers[0]) == 1
+
+
+async def test_token_slot_cap_never_evicts_the_new_or_pinned_slot() -> None:
+    from edi_mcp.edi.tokens import TokenManager
+
+    def auth(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"edi-token": fake_jwt(time.time() + 3600, 0)})
+
+    cfg = Config.model_validate({"edi": {"max_token_slots": 1}})
+    async with httpx.AsyncClient(transport=httpx.MockTransport(auth)) as http:
+        tokens = TokenManager(http, cfg.edi)
+        await tokens.credential(ApiKey("configured-key-0000", "config"))
+        caller = ApiKey("caller-key-0000", "request")
+        assert (await tokens.credential(caller)).kind == "token"
+        assert tokens.slot_count() == 2  # over the cap: the configured slot is pinned
+        other = ApiKey("caller-key-0001", "request")
+        await tokens.credential(other)
+        assert tokens.slot_count() == 2 and tokens.exchanges(other) == 1
