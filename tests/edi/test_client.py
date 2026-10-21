@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import time
 from collections.abc import AsyncIterator, Callable
 
 import httpx
@@ -383,3 +384,33 @@ async def test_key_param_never_reaches_stderr_logs(
         assert TEST_KEY not in captured.err + captured.out
     finally:
         setup_logging("warning", "stdio")
+
+
+async def test_token_slots_are_bounded_and_forget_evicted_secrets() -> None:
+    from edi_mcp.edi.tokens import TokenManager
+    from edi_mcp.logging import registered_secrets
+
+    issued: list[str] = []
+
+    def auth(request: httpx.Request) -> httpx.Response:
+        token = fake_jwt(time.time() + 3600 * 8, len(issued))
+        issued.append(token)
+        return httpx.Response(200, json={"edi-token": token})
+
+    cfg = Config.model_validate({"edi": {"max_token_slots": 2}})
+    async with httpx.AsyncClient(transport=httpx.MockTransport(auth)) as http:
+        tokens = TokenManager(http, cfg.edi)
+        configured = ApiKey("configured-key-0000", "config")
+        callers = [ApiKey(f"caller-key-{i:04d}", "request") for i in range(4)]
+        await tokens.credential(configured)
+        for caller in callers:
+            await tokens.credential(caller)
+        assert tokens.slot_count() == 2  # the configured slot plus the newest caller
+        secrets = registered_secrets()
+        assert configured.value in secrets and issued[0] in secrets
+        assert callers[-1].value in secrets and issued[-1] in secrets
+        for evicted, token in zip(callers[:-1], issued[1:-1], strict=True):
+            assert evicted.value not in secrets and token not in secrets
+        # An evicted caller comes back: a fresh exchange, nothing reused.
+        again = await tokens.credential(callers[0])
+        assert again.value == issued[-1] and tokens.exchanges(callers[0]) == 1

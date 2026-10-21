@@ -156,7 +156,7 @@ async def test_server_discover(http_server: EdiServer) -> None:
         _, message = await rpc(client, "server/discover")
     result = message["result"]
     assert LATEST_PROTOCOL_VERSION in result["supportedVersions"]
-    assert {"tools", "resources"} <= set(result["capabilities"])
+    assert {"tools", "resources", "prompts"} <= set(result["capabilities"])
     assert "edi_search_packages" in result["instructions"]
     assert "EDI_API_KEY" in result["instructions"]
     assert result["cacheScope"] == "public" and result["ttlMs"] > 0

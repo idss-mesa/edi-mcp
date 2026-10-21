@@ -15,6 +15,7 @@ from __future__ import annotations
 import logging
 import re
 import sys
+from collections import OrderedDict
 from collections.abc import MutableMapping
 from typing import Any
 
@@ -29,28 +30,51 @@ _LEVEL_MAP: dict[str, int] = {
 }
 
 _SECRET_KEY_RE = re.compile(r"(?i)token|authorization|secret|password|api_?key|edi-key|cookie")
-_SECRETS: set[str] = set()
+#: Most remembered per-caller secrets (HTTP ``X-EDI-Key`` values and their tokens). Pinned
+#: ones (the configured key and its tokens) never count or leave; the rest are least
+#: recently used first. Keys and tokens are re-registered on every use, and the token
+#: manager forgets a caller's pair when it evicts the slot, so this cap is a backstop.
+MAX_SECRETS = 4096
+_SECRETS: OrderedDict[str, None] = OrderedDict()
+_PINNED: set[str] = set()
 
 
-def register_secret(value: str | None) -> None:
-    """Remember a secret so the log processor masks it wherever it appears."""
-    if value and len(value) >= 4:
-        _SECRETS.add(value)
+def register_secret(value: str | None, *, pinned: bool = False) -> None:
+    """Remember a secret (or mark it recently used) so the log processor masks it."""
+    if not value or len(value) < 4:
+        return
+    if pinned:
+        _PINNED.add(value)
+        _SECRETS.pop(value, None)
+        return
+    if value in _PINNED:
+        return
+    _SECRETS[value] = None
+    _SECRETS.move_to_end(value)
+    while len(_SECRETS) > MAX_SECRETS:
+        _SECRETS.popitem(last=False)
+
+
+def forget_secret(value: str | None) -> None:
+    """Stop masking an unpinned secret that is no longer held anywhere."""
+    if value:
+        _SECRETS.pop(value, None)
 
 
 def registered_secrets() -> frozenset[str]:
     """Snapshot of every registered secret (used by error redaction)."""
-    return frozenset(_SECRETS)
+    return frozenset(_PINNED | _SECRETS.keys())
 
 
 def forget_secrets() -> None:
     """Test helper: clear the registered-secret set."""
     _SECRETS.clear()
+    _PINNED.clear()
 
 
 def _mask(value: Any) -> Any:
     if isinstance(value, str):
-        for secret in _SECRETS:
+        for secret in registered_secrets():
             if secret in value:
                 value = value.replace(secret, "***")
         return value
@@ -81,7 +105,7 @@ class _StdlibSecretFilter(logging.Filter):
     """Mask registered secrets in records from non-structlog libraries."""
 
     def filter(self, record: logging.LogRecord) -> bool:
-        if _SECRETS:
+        if _SECRETS or _PINNED:
             record.msg = _mask(str(record.msg))
             if record.args:
                 record.args = (
