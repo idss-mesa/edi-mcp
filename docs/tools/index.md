@@ -11,4 +11,4 @@ All sixteen tools, with the generated reference: discovery, package and metadata
 * [Identifiers and scope names](identifiers.md) - How EDI packages are identified (scope.identifier.revision, DOIs, portal and PASTA URLs), which forms edi-mcp accepts, and how scope names and LTER site codes resolve.
 * [Backends: PASTA and DataONE](backends.md) - Why edi-mcp reads PASTA when an EDI API key is set and the anonymous DataONE replicas otherwise, how a result says which one answered, and the caveats of the DataONE fallback.
 * [Utilities and errors](utilities.md) - Check the server, its key status and backend with edi_ping, and the stable error codes every edi-mcp tool can return.
-* [Roadmap](roadmap.md) - What remains planned for edi-mcp after the sixteen tools: more edi:// resources and templates, prompts, a server.json for the MCP Registry, a Docker image and the v0.1.0 release.
+* [Roadmap](roadmap.md) - How edi-mcp was built in seven steps up to v0.1.0, and what is planned after it: a dry-run EML check and other opt-in additions.

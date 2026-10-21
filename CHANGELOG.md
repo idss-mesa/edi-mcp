@@ -6,7 +6,22 @@ All notable changes to edi-mcp are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-10-20
+
+First release, on PyPI as **`edi-pasta-mcp`** (the name `edi-mcp` belongs to an
+unrelated project); it installs the commands `edi-mcp` and `edi-pasta-mcp`.
+
 ### Added
+
+- Build step 7: guides `edi://guide/agent-workflow`, `edi://guide/citing-edi-data` and
+  `edi://guide/search-syntax`; resource templates `edi://packages/{packageId}` (the
+  `edi_get_package` summary) and `edi://packages/{packageId}/eml` (raw EML, at most
+  1 MiB), served with `cacheScope: private` because they depend on the caller's key
+  (D21); prompts `edi_find_data`, `edi_cite_package` and `edi_plan_download` (D22).
+- `server.json` for the MCP Registry (`io.github.idss-mesa/edi-mcp`), a Dockerfile
+  (non-root, read-only root file system, `/healthz` health check) with
+  `docker-compose.yml`, `scripts/smoke_http.py`, a CI job that builds and smoke-tests the
+  image, and `release.yml` (PyPI trusted publishing, GitHub release, MCP Registry).
 
 - Build step 6: `edi_preview_entity` (first rows of a delimited entity, streamed and
   stopped early; EML layout, header detection, binary refused), `edi_download_entities`
@@ -65,6 +80,12 @@ All notable changes to edi-mcp are documented here. The format follows
 
 ### Changed
 
+- Per-caller token slots and the log redactor's secret set are bounded LRUs; the
+  configured key is never evicted (D23).
+- Empty `EDI_MCP_*` environment values count as unset.
+- The server instructions point at `edi://guide/agent-workflow` and
+  `edi://guide/search-syntax`.
+
 - `lter-landsat-ledaps` joins `ecotrends` and `lter-landsat` as a bulk scope excluded
   from search by default.
 - DataONE sorts search results by upload date: its `pubDate` became unsortable on
@@ -73,6 +94,11 @@ All notable changes to edi-mcp are documented here. The format follows
 - A PASTA 403 sent with valid credentials is now `upstream_forbidden` with
   `reason: access_restricted` (the package is restricted) instead of a message blaming
   the key.
+
+### Fixed
+
+- The API-key guide suggested `uvx edi-mcp`, which would install the unrelated PyPI
+  project; it now says `uvx edi-pasta-mcp`.
 
 ### Security
 

@@ -14,7 +14,7 @@ Build order (one PR each): 1 scaffold + auth probe ✅ → 2 core port from neon
 (registry, adapter, config, errors, key resolution, transports, `edi_ping`, conformance
 tests, CI) → 3 client/token exchange/PID resolver/backends + fixtures ✅ → 4 discovery tools
 (search, list scopes/identifiers/revisions, D9 scope names) ✅ → 5 package, metadata and
-entity tools (EML projection) ✅ → 6 preview/download/citation/report/PASTA-only tools ✅ → 7 resources, prompts, server.json, Docker, v0.1.0. The docs site (Zensical, `docs/`, deployed from `main`) fails its drift check unless `scripts/gen_tools_reference.py` and `scripts/gen_llms_txt.py` are re-run after tool changes.
+entity tools (EML projection) ✅ → 6 preview/download/citation/report/PASTA-only tools ✅ → 7 resources, prompts, server.json, Docker, release workflow ✅ (v0.1.0 is tagged only on the user's go-ahead; the tag publishes to PyPI and the MCP Registry irreversibly). The docs site (Zensical, `docs/`, deployed from `main`) fails its drift check unless `scripts/gen_tools_reference.py` and `scripts/gen_llms_txt.py` are re-run after tool changes.
 `--check` stays offline (the live check is `edi_ping(check_api=true)`). `resources_static/scopes.json` is a dated snapshot; the live test
 `test_live_scope_snapshot_is_current` fails when a known scope leaves PASTA (new ones warn).
 tools/list is 58.0 KB with all 16 tools (bound 60 KB; output schemas fold nullable `anyOf`, D20):
@@ -30,6 +30,9 @@ uv run mypy --strict src
 uv run python scripts/record_fixtures.py check  # fixtures carry no secrets (CI runs it)
 scripts/install.sh --agents all --dry-run       # register with agents (test only in a sandboxed HOME)
 uv run zensical build --clean --strict          # docs; then gen_tools_reference.py / gen_llms_txt.py
+docker build -t edi-mcp . && docker run -d --name e --read-only --tmpfs /tmp edi-mcp \
+  && docker exec -i e python - --offline < scripts/smoke_http.py   # image smoke (as CI)
+uv build                                        # wheel + sdist (dist/edi_pasta_mcp-*)
 set -a; . ./.env; set +a; uv run python scripts/record_fixtures.py record   # re-record live
 set -a; . ./.env; set +a; EDI_MCP_LIVE=1 uv run pytest -m live tests/live   # live smoke
 ```
@@ -45,6 +48,10 @@ set -a; . ./.env; set +a; EDI_MCP_LIVE=1 uv run pytest -m live tests/live   # li
 - Config: `EDI_MCP_<SECTION>__<FIELD>`; precedence flag > env > YAML > defaults; key from
   `EDI_API_KEY` only; no key flag; `.env` is not auto-loaded.
 - MIT, Copyright (c) 2026 The Regents of the University of New Mexico.
+- PyPI distribution **`edi-pasta-mcp`** (`edi-mcp` on PyPI is an unrelated project; never
+  write `uvx edi-mcp` or `pip install edi-mcp`). Commands `edi-mcp` and `edi-pasta-mcp`;
+  registry name `io.github.idss-mesa/edi-mcp`; `server.json`, `__version__` and the tag
+  must agree (release.yml checks).
 
 ## Code map
 
@@ -70,7 +77,10 @@ quality reports (D18); data/citation/provenance/feeds tools live in `tools/data.
 (previews, downloads); backends expose `stream_entity`. Tests replay `tests/fixtures/` through `tests/fixture_router.py`
 (any unrecorded request fails); `scripts/record_fixtures.py` records
 backend scenarios and `TOOL_SCENARIOS` (real tool calls on both backends); transports in
-`transport/`; static guides and `scopes.json` in `resources_static/`; tool helpers
+`transport/`; `resources.py` serves static guides and `scopes.json` from `resources_static/`
+plus the `edi://packages/{packageId}[/eml]` templates (`cacheScope: private`, D21);
+`prompts.py` holds the three prompts (a test fails if any guide or prompt names an unknown
+`edi_*` tool); tool helpers
 (`source`, `paginate`, `portal_url`) in `tools/_common.py`.
 
 ## Adding a tool

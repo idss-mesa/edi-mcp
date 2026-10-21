@@ -483,6 +483,7 @@ A few settings default to "unset" and resolve per transport:
 | `edi.portal_url` | `EDI_MCP_EDI__PORTAL_URL` | str | `https://portal.edirepository.org/nis` | EDI Data Portal (landing pages are built from it). |
 | `edi.api_key` | `EDI_MCP_EDI__API_KEY`<br>(or `EDI_API_KEY`) | SecretStr \| null | unset | EDI API access key (https://auth.edirepository.org/auth/ui/key). Enables the PASTA backend; without it edi-mcp uses DataONE. Prefer the EDI_API_KEY env var; never commit it. |
 | `edi.user_agent_suffix` | `EDI_MCP_EDI__USER_AGENT_SUFFIX` | str \| null | unset | Text appended to the User-Agent header. |
+| `edi.max_token_slots` | `EDI_MCP_EDI__MAX_TOKEN_SLOTS` | int | `256` | Most per-caller key/token slots kept in memory (HTTP X-EDI-Key callers; least recently used are dropped first). |
 | `edi.connect_timeout_s` | `EDI_MCP_EDI__CONNECT_TIMEOUT_S` | float | `10.0` | TCP/TLS connect timeout. |
 | `edi.read_timeout_s` | `EDI_MCP_EDI__READ_TIMEOUT_S` | float | `60.0` | Default read timeout. |
 | `edi.download_read_timeout_s` | `EDI_MCP_EDI__DOWNLOAD_READ_TIMEOUT_S` | float | `300.0` | Read timeout for data-entity downloads. |
@@ -510,8 +511,9 @@ A few settings default to "unset" and resolve per transport:
 | `limits.text_budget_summary` | `EDI_MCP_LIMITS__TEXT_BUDGET_SUMMARY` | int | `300` | Characters kept of long text fields (abstracts) in summaries. |
 | `limits.text_budget_detail` | `EDI_MCP_LIMITS__TEXT_BUDGET_DETAIL` | int | `4000` | Default characters kept of long text fields in detail views. |
 | `limits.max_eml_bytes` | `EDI_MCP_LIMITS__MAX_EML_BYTES` | int | `20971520` | Largest EML document parsed (larger ones fail with result_too_large). |
+| `limits.max_resource_bytes` | `EDI_MCP_LIMITS__MAX_RESOURCE_BYTES` | int | `1048576` | Largest resource read returned (the raw EML template); larger ones fail with result_too_large. |
 | `limits.preview_max_bytes` | `EDI_MCP_LIMITS__PREVIEW_MAX_BYTES` | int | `262144` | Most bytes edi_preview_entity reads from an entity. |
-| `limits.tools_list_max_bytes` | `EDI_MCP_LIMITS__TOOLS_LIST_MAX_BYTES` | int | `60000` | Conformance bound on the serialized tools/list result; tightened once every tool lands. |
+| `limits.tools_list_max_bytes` | `EDI_MCP_LIMITS__TOOLS_LIST_MAX_BYTES` | int | `60000` | Conformance bound on the serialized tools/list result (58 KB with all 16 tools). |
 | `downloads.enabled` | `EDI_MCP_DOWNLOADS__ENABLED` | bool \| null | unset | Offer the download tools. Unset: true on stdio; never available over http. |
 | `downloads.directory` | `EDI_MCP_DOWNLOADS__DIRECTORY` | Path | `~/edi-downloads` | Directory every download is confined to (created on first use). |
 | `downloads.max_files_per_call` | `EDI_MCP_DOWNLOADS__MAX_FILES_PER_CALL` | int | `50` | Most entities one edi_download_entities call transfers. |
@@ -683,34 +685,48 @@ it would write WSL's own config files, which Claude Desktop for Windows never re
 
 ## Option 2: Install the package and register it by hand
 
-Install the `edi-mcp` command:
+The package is published on PyPI as **`edi-pasta-mcp`** and installs the `edi-mcp`
+command (also available as `edi-pasta-mcp`).
+
+!!! warning "Not `edi-mcp`"
+
+    `pip install edi-mcp` or `uvx edi-mcp` would install a different, unrelated
+    project that happens to own that name on PyPI.
 
 === "uv tool (recommended)"
+
+    ```bash
+    uv tool install edi-pasta-mcp
+    ```
+
+    This puts `edi-mcp` in uv's tool directory (`~/.local/bin` on macOS and Linux,
+    `%USERPROFILE%\.local\bin` on Windows). Upgrade with
+    `uv tool upgrade edi-pasta-mcp`.
+
+=== "uvx (no install)"
+
+    ```bash
+    uvx edi-pasta-mcp --version
+    ```
+
+    Clients can use `uvx` as the command with `["edi-pasta-mcp"]` as its arguments;
+    the first start is slower while uv builds the environment.
+
+=== "pipx / pip"
+
+    ```bash
+    pipx install edi-pasta-mcp
+    # or, inside a virtual environment:
+    pip install edi-pasta-mcp
+    ```
+
+=== "Development version"
 
     ```bash
     uv tool install git+https://github.com/idss-mesa/edi-mcp
     ```
 
-    This puts `edi-mcp` in uv's tool directory (`~/.local/bin` on macOS and Linux,
-    `%USERPROFILE%\.local\bin` on Windows). Upgrade with `uv tool upgrade edi-mcp`.
-
-=== "uvx (no install)"
-
-    ```bash
-    uvx --from git+https://github.com/idss-mesa/edi-mcp edi-mcp --version
-    ```
-
-    Clients can use `uvx` as the command with
-    `["--from", "git+https://github.com/idss-mesa/edi-mcp", "edi-mcp"]` as its
-    arguments; the first start is slower while uv builds the environment.
-
-=== "pipx / pip"
-
-    ```bash
-    pipx install git+https://github.com/idss-mesa/edi-mcp
-    # or, inside a virtual environment:
-    pip install "git+https://github.com/idss-mesa/edi-mcp"
-    ```
+    The `main` branch, ahead of the latest release.
 
 === "From source"
 
@@ -764,9 +780,19 @@ Goose, OpenCode, VS Code and hosted servers.
 
 ## Option 3: Docker
 
-A container image (`python:3.13-slim`, non-root, HTTP on port 8080 with a `/healthz`
-check) is planned for the v0.1.0 release; see the [Roadmap](../tools/roadmap.md).
-There is no Dockerfile yet.
+The repository's `Dockerfile` builds an image that serves stateless Streamable HTTP on
+port 8080 as a non-root user, with a `/healthz` health check:
+
+```bash
+git clone https://github.com/idss-mesa/edi-mcp && cd edi-mcp
+docker build -t edi-mcp .
+docker run --rm --read-only --tmpfs /tmp -p 127.0.0.1:8080:8080 edi-mcp
+```
+
+Point an HTTP-capable client at `http://127.0.0.1:8080/mcp`. Without TLS in front,
+calls are served anonymously from DataONE; to let callers send their own key in
+`X-EDI-Key`, follow [Hosted HTTP](../deploy/hosted-http.md). The download tools are
+not offered over HTTP.
 
 ## Verify the installation
 
@@ -2314,7 +2340,7 @@ Generated from the tool registry by `scripts/gen_tools_reference.py`; do not edi
 
 ---
 title: "Roadmap"
-description: "What remains planned for edi-mcp after the sixteen tools: more edi:// resources and templates, prompts, a server.json for the MCP Registry, a Docker image and the v0.1.0 release."
+description: "How edi-mcp was built in seven steps up to v0.1.0, and what is planned after it: a dry-run EML check and other opt-in additions."
 type: Roadmap
 tags:
   - tools
@@ -2323,7 +2349,7 @@ tags:
   - release
 generated:
   by: "claude/opus-5.5"
-  at: "2026-10-19T00:00:00Z"
+  at: "2026-10-20T00:00:00Z"
 sources:
   - id: repo
     resource: "https://github.com/idss-mesa/edi-mcp"
@@ -2339,21 +2365,32 @@ stale_after: "2027-01-19T00:00:00Z"
 
 # Roadmap
 
-edi-mcp is built in seven steps, one pull request each. Steps 1–6 are done: the
-scaffold and auth probe, the MCP core (registry, transports, `edi_ping`, conformance
-tests), the EDI client with both backends, the four [discovery tools](discovery.md),
-the [package, metadata and entity tools](packages.md), and the
-[preview and download](data.md), [citation, quality and lineage](citation-and-quality.md)
-and [feed](feeds.md) tools. All sixteen tools are in the [tool reference](reference.md).
-What follows is **planned and not yet available**.
+edi-mcp was built in seven steps, one pull request each, up to **v0.1.0**:
 
-## Step 7 — resources, prompts and release
+1. the scaffold and a probe of how PASTA accepts an API key;
+2. the MCP core (registry, transports, `edi_ping`, conformance tests);
+3. the EDI client with its PASTA and DataONE backends;
+4. the four [discovery tools](discovery.md);
+5. the [package, metadata and entity tools](packages.md);
+6. the [preview and download](data.md),
+   [citation, quality and lineage](citation-and-quality.md) and [feed](feeds.md) tools;
+7. the [resources and prompts](../mcp/resources-and-prompts.md), the MCP Registry entry
+   (`server.json`), the Docker image and the release workflow.
 
-* More `edi://` guides and references, and resource templates for a package and its
-  raw EML.
-* Prompts for finding data, citing a package and planning a download.
-* A `server.json` for the MCP Registry, a Docker image, and the **v0.1.0** release
-  on PyPI.
+All sixteen tools are in the [tool reference](reference.md). The PyPI package is
+`edi-pasta-mcp`.
+
+## Planned after v0.1.0
+
+These are ideas, **not available** today:
+
+* `edi_evaluate_package`: an opt-in dry run of EDI's EML congruence checks on a draft
+  package, without publishing it. v0.1.0 is read-only.
+* A published container image, in addition to the `Dockerfile`.
+* A fallback for DataONE's index when it misses revisions of a package (seen on
+  2026-10-20), for callers without a key.
+
+Requests and reports: <https://github.com/idss-mesa/edi-mcp/issues>.
 
 ---8<--- https://idss-mesa.github.io/edi-mcp/tools/utilities/
 
@@ -2446,6 +2483,93 @@ Results that are merely large are not errors: lists are trimmed to fit the resul
 budget (50,000 bytes by default) and report `page.truncatedReason: budget` with a
 `nextOffset` to continue from.
 
+---8<--- https://idss-mesa.github.io/edi-mcp/mcp/resources-and-prompts/
+
+---
+title: "Resources and prompts"
+description: "The edi:// guide resources, the package and raw-EML resource templates with their cache scopes, and the three prompts edi-mcp offers."
+type: Reference
+tags:
+  - mcp
+  - resources
+  - prompts
+generated:
+  by: "claude/opus-5.5"
+  at: "2026-10-20T00:00:00Z"
+sources:
+  - id: mcp-resources
+    resource: "https://modelcontextprotocol.io/specification/2026-07-28/server/resources"
+    title: "MCP specification — Resources"
+    author: "team:modelcontextprotocol"
+  - id: mcp-prompts
+    resource: "https://modelcontextprotocol.io/specification/2026-07-28/server/prompts"
+    title: "MCP specification — Prompts"
+    author: "team:modelcontextprotocol"
+status: stable
+---
+
+# Resources and prompts
+
+Besides its sixteen tools, edi-mcp offers read-only **resources**[^mcp-resources] (text
+an agent or user can load into context) and **prompts**[^mcp-prompts] (task recipes a
+client can offer as commands). Both work over stdio and HTTP and need no key.
+
+## Guides and references
+
+| URI | Content |
+| --- | --- |
+| `edi://guide/agent-workflow` | A five-call path from a question to cited data, input forms, keys and backends, and what to do about each error code. |
+| `edi://guide/api-key` | Why EDI needs a key since 2026-07-30, how to create one, how to give it to edi-mcp (stdio and HTTP), and what works without one. |
+| `edi://guide/search-syntax` | What `query` accepts and the filters of `edi_search_packages`, and how PASTA and DataONE results differ. |
+| `edi://guide/package-identifiers` | `scope.identifier.revision`, `newest` / `oldest`, DOIs, entity ids, and every identifier form the tools accept. |
+| `edi://guide/citing-edi-data` | Citing one revision by its DOI, the ESIP, DRYAD and BibTeX styles, and intellectual rights. |
+| `edi://reference/scopes` | Every scope with its name, kind, LTER site code, location and package counts on PASTA and DataONE (a dated snapshot, JSON). |
+
+These are the same for every caller: `resources/read` returns them with
+`cacheScope: public` and a 24-hour `ttlMs`.
+
+!!! tip "Several words are ORed"
+
+    `edi_search_packages(query="streamflow chemistry")` finds packages with *either*
+    word, on both backends. Write `streamflow AND chemistry` or
+    `+streamflow +chemistry` to require both; `edi://guide/search-syntax` has the rest.
+
+## Package templates
+
+| Template | Returns |
+| --- | --- |
+| `edi://packages/{packageId}` | The `edi_get_package` summary as JSON: DOI, title, creators, license, entities and sizes. |
+| `edi://packages/{packageId}/eml` | The package's raw EML document (`application/xml`). |
+
+`packageId` is `scope.identifier.revision` (`knb-lter-hbr.14.22`) or a series
+(`knb-lter-hbr.14`, meaning the newest revision); a site code works for the scope
+(`jrn.210548103.32`), and a percent-encoded DOI (`doi%3A10.6073%2Fpasta%2F…`) also
+resolves. The raw EML is refused with `result_too_large` above
+`limits.max_resource_bytes` (1 MiB by default); `edi_get_metadata` returns a compact
+projection of any EML instead.
+
+Template reads depend on the caller. With a key they come from PASTA, which is
+current and includes access-restricted packages the key may read. Without one they
+come from DataONE, which can lag. They are therefore returned with
+`cacheScope: private` and a one-hour `ttlMs`, so a shared cache never hands one
+caller's result to another. Errors are JSON-RPC errors whose `data.code` is an
+[error code](../tools/utilities.md#error-codes) such as `not_found` or `auth_required`.
+
+## Prompts
+
+| Prompt | Arguments | What it asks the agent to do |
+| --- | --- | --- |
+| `edi_find_data` | `question` (required), `place`, `years` (`YYYY` or `YYYY-YYYY`) | Check the key, search with two or three phrasings, compare the best packages' coverage and methods, check the main table's columns, and finish with a table of candidates and their citations. |
+| `edi_cite_package` | `package` (required), `style` (`ESIP`, `DRYAD` or `BIBTEX`) | Get the citation and the package's intellectual rights, and present both with the DOI. |
+| `edi_plan_download` | `package` (required), `entities` (comma-separated) | List the entities with sizes and checksums, preview each table, download them on stdio (or give their URLs over HTTP), and cite the package. |
+
+Unknown or missing arguments, and invalid `style` or `years` values, are refused with
+JSON-RPC `-32602` and `data.code: invalid_argument`. `prompts/list` is cached for a day
+(`cacheScope: public`).
+
+[^mcp-resources]: MCP specification — Resources. <https://modelcontextprotocol.io/specification/2026-07-28/server/resources>
+[^mcp-prompts]: MCP specification — Prompts. <https://modelcontextprotocol.io/specification/2026-07-28/server/prompts>
+
 ---8<--- https://idss-mesa.github.io/edi-mcp/mcp/spec-2026-07-28/
 
 ---
@@ -2484,9 +2608,9 @@ SDK; the tool registry is SDK-agnostic.
 | Requirement | edi-mcp |
 | --- | --- |
 | No `initialize` handshake, no sessions | Streamable HTTP runs with `stateless_http=True`: no `Mcp-Session-Id`, any instance answers any request. stdio also accepts the legacy handshake. |
-| `server/discover` | Answered by the SDK with the supported versions, capabilities (tools, resources) and the server instructions. |
+| `server/discover` | Answered by the SDK with the supported versions, capabilities (tools, resources, prompts) and the server instructions. |
 | Per-request `_meta` envelope | `io.modelcontextprotocol/clientCapabilities` decides whether a tool may ask a follow-up question (MRTR elicitation). |
-| Cacheable results | `tools/list` 5 min, `resources/list` and `resources/templates/list` 1 h, `server/discover` 5 min, `resources/read` 24 h for static guides and 1 h for derived content; `cacheScope` is always `public` because nothing depends on the caller. |
+| Cacheable results | `tools/list` 5 min, `resources/list` and `resources/templates/list` 1 h, `server/discover` 5 min, `prompts/list` 24 h, `resources/read` 24 h for static guides and 1 h for package templates. `cacheScope` is `public` everywhere except template reads, which are `private` because they depend on the caller's key (see [Resources and prompts](resources-and-prompts.md)). |
 | `resultType` | `complete` on every result; `input_required` only for an MRTR follow-up. |
 | `structuredContent` and `outputSchema` | Every tool declares an `outputSchema`; results carry `structuredContent` and the same JSON as text. Failures set `isError` with `structuredContent.error` (see [error codes](../tools/utilities.md#error-codes)). |
 | JSON Schema 2020-12 | Every `inputSchema` and `outputSchema` declares the dialect. Pydantic's generated `title` keys are dropped from both, and descriptions from output schemas (the [tool reference](../tools/reference.md) keeps them). |
@@ -2564,8 +2688,8 @@ status: stable
 `edi-mcp` (or `edi-mcp --transport stdio`) serves one client over standard input and
 output, the usual setup for Claude Code, Claude Desktop and other local clients. Only
 MCP framing goes to stdout; logs go to stderr. The key in the server's environment
-(`EDI_API_KEY`) is used for every call, and the stdio-only download tools, once
-released, are offered only here. The SDK's stdio loop serves both protocol eras: a
+(`EDI_API_KEY`) is used for every call, and the stdio-only download tools are
+offered only here. The SDK's stdio loop serves both protocol eras: a
 client that starts with the legacy `initialize` handshake and a 2026-07-28 client
 both work.
 
@@ -2758,9 +2882,28 @@ operator key.
 
 ## Container image
 
-A `Dockerfile` (Python slim base, non-root user, health check on `/healthz`) is
-planned for the v0.1.0 release and is not in the repository yet. Until then,
-install the package into a virtual environment as above.
+The repository's `Dockerfile` builds a `python:3.13-slim` image that installs
+edi-mcp into `/app/.venv`, runs it as user `edi` (uid 10001) with
+`--transport http --bind-address 0.0.0.0` on port 8080, and checks `/healthz` every
+30 seconds. Nothing is written to disk, so it runs on a read-only root file system:
+
+```bash
+docker build -t edi-mcp .
+docker run -d --name edi-mcp --read-only --tmpfs /tmp \
+  -p 127.0.0.1:8080:8080 \
+  -e EDI_MCP_SERVER__PUBLIC_BASE_URL=https://edi-mcp.example.org \
+  -e EDI_MCP_SERVER__ALLOWED_HOSTS=edi-mcp.example.org \
+  edi-mcp
+```
+
+`docker-compose.yml` does the same, reading `PUBLIC_BASE_URL` and `ALLOWED_HOSTS` from
+the environment (empty values count as unset). Publish the port on `127.0.0.1` only and
+put the TLS proxy in front: callers' `X-EDI-Key` headers are secrets. To lend an
+operator key to every caller, pass `EDI_API_KEY` from the host environment
+(`-e EDI_API_KEY`, never the value on the command line) and set
+`EDI_MCP_SERVER__SHARE_CONFIG_KEY_OVER_HTTP=true`. `scripts/smoke_http.py` checks a
+running instance (`docker exec -i edi-mcp python - --offline < scripts/smoke_http.py`),
+as CI does for every change.
 
 ## Health and readiness
 
@@ -3151,7 +3294,8 @@ names them), marks the page `truncated` with `truncatedReason: budget` and a
 | `errors.py` | `ToolError` codes and the upstream error mapping (`upstream_forbidden`, `access_restricted`, …) |
 | `logging.py` | structlog to stderr; credential masking and registered-secret redaction |
 | `instructions.py` | server instructions returned by `server/discover` |
-| `resources.py`, `resources_static/` | `edi://` guides (`api-key`, `package-identifiers`) and the dated scope snapshot `scopes.json` |
+| `resources.py`, `resources_static/` | `edi://` guides (`agent-workflow`, `api-key`, `citing-edi-data`, `package-identifiers`, `search-syntax`), the dated scope snapshot `scopes.json`, and the `edi://packages/{packageId}[/eml]` templates |
+| `prompts.py` | the prompts `edi_find_data`, `edi_cite_package` and `edi_plan_download` |
 | `models/common.py` | `EdiInput`, `ToolResultBase`, `Page`, `Resolved`, `Source` |
 | `edi/auth.py` | `ApiKey`, per-call key resolution, the HTTP TLS gate, `scrub_url` |
 | `edi/tokens.py` | key → `edi-token` exchange and refresh per key identity, `?key=` fallback |
@@ -3168,8 +3312,9 @@ names them), marks the page `truncated` with `truncatedReason: budget` and a
 | `tools/` | one module per family (`core.py`, `discovery.py`, `packages.py`, which fetches and parses the EML once per call via `load()`; `data.py` for previews and downloads, `citation.py`, `provenance.py` for quality reports and lineage, `feeds.py` for the change feed and read counts), plus helpers in `_common.py` (`source`, `paginate`, `portal_url`) |
 | `transport/` | stdio; stateless Streamable HTTP with `/healthz`, `/readyz` and the request-context middleware |
 
-Resources, prompts and packaging arrive in build step 7 (see the
-[Roadmap](../tools/roadmap.md)).
+Packaging: `pyproject.toml` builds the `edi-pasta-mcp` wheel, `server.json` is the MCP
+Registry entry, the `Dockerfile` the HTTP image, and `.github/workflows/release.yml`
+publishes a `v*` tag to PyPI, GitHub releases and the registry.
 
 Design decisions and their reasons are recorded in `DESIGN.md` (the D-numbers)
 and verified API facts in `RESEARCH.md`, both at the repository root.
@@ -3741,6 +3886,10 @@ names belong to their respective owners; this site uses its own original artwork
 ---8<--- https://idss-mesa.github.io/edi-mcp/log/
 
 # Directory Update Log
+
+## 2026-10-20
+* **Creation**: [Resources and prompts](mcp/resources-and-prompts.md) — the six `edi://` guides and references, the `edi://packages/{packageId}` and `.../eml` templates (`cacheScope: private`), and the prompts `edi_find_data`, `edi_cite_package`, `edi_plan_download` (build step 7).
+* **Update**: [Install edi-mcp](getting-started/install.md) — PyPI package `edi-pasta-mcp` (not `edi-mcp`, an unrelated project), a development-version tab, and Docker; [Hosted HTTP](deploy/hosted-http.md) — the container image and `scripts/smoke_http.py`; [MCP 2026-07-28 conformance](mcp/spec-2026-07-28.md) (prompts capability, private template reads); [Transports](mcp/transports.md); [Architecture](develop/architecture.md) (prompts and packaging); [Configuration](getting-started/configuration.md) regenerated (`edi.max_token_slots`, `limits.max_resource_bytes`); [Roadmap](tools/roadmap.md) — all seven steps done; the home page for v0.1.0.
 
 ## 2026-10-19
 * **Creation**: [Previews and downloads](tools/data.md) (`edi_preview_entity`, `edi_download_entities`, `edi_download_package`), [Citations, quality reports and lineage](tools/citation-and-quality.md) (`edi_get_citation`, `edi_get_quality_report`, `edi_get_lineage`) and [Change feed and read counts](tools/feeds.md) (`edi_recent_changes`, `edi_get_read_counts`): build step 6.

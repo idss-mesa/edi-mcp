@@ -246,3 +246,28 @@ Probed live with a profile key (PASTA) and anonymously (DataONE CN Solr).
   thiessen_weights, 734 B); GMN adds `DataONE-Checksum: SHA-1,<hex>`.
   `/package/download/eml/{s}/{i}/{r}` is the whole package as `application/zip` with no
   `Content-Disposition`; edi.2081.1's is 779 MB, so the download tool caps every stream.
+
+## 8. Step-7 facts (verified 2026-10-20)
+
+- **Several words are ORed on both backends.** `edi_search_packages` totals for
+  `streamflow` / `chemistry` / `streamflow chemistry` / `streamflow OR chemistry` /
+  `+streamflow -chemistry`: PASTA 193 / 1,183 / 1,321 / 1,321 / 138; DataONE 733 / 3,500 /
+  4,025 / 4,025 / 525. Requiring every word takes `AND` or `+word`; `edi://guide/search-syntax`
+  says so.
+- **PyPI name.** `https://pypi.org/pypi/edi-mcp/json` is an unrelated project ("Local MCP
+  server wrapping EDI gRPC and ANSYS HFSS tools", 0.1.0–0.1.6). `edi-pasta-mcp`,
+  `edirepository-mcp` and `edi-repository-mcp` were free; the user chose `edi-pasta-mcp`.
+- **MCP Registry.** `server.json` schema
+  `https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json` (draft-07;
+  `description` ≤ 100 characters; `name` `^[a-zA-Z0-9.-]+/[a-zA-Z0-9._-]+$`). PyPI
+  ownership is verified by an `mcp-name: <server name>` string in the package README (an
+  HTML comment works). Publishing from Actions: `mcp-publisher login github-oidc` then
+  `mcp-publisher publish`, with `id-token: write`; latest `mcp-publisher` is v1.8.1
+  (2026-08-06).
+- **SDK cache scopes.** `mcp.server.caching.CacheHint.scope` is `Literal["public",
+  "private"]`; a result's own `cache_scope` overrides the hint.
+- **DataONE drift, again.** On 2026-10-20 CN Solr held one METADATA record for
+  `knb-lter-jrn.210548103` (revision 1, `obsoletedBy` revision 2) although DATA and report
+  records exist up to revision 33, which PASTA lists as newest. Anonymous `newest` for
+  that series therefore resolves to revision 1; the "newest DataONE holds" note is the
+  only signal. Explicit revisions (`.32`) still read fine through GMN.

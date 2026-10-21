@@ -115,6 +115,7 @@ A few settings default to "unset" and resolve per transport:
 | `edi.portal_url` | `EDI_MCP_EDI__PORTAL_URL` | str | `https://portal.edirepository.org/nis` | EDI Data Portal (landing pages are built from it). |
 | `edi.api_key` | `EDI_MCP_EDI__API_KEY`<br>(or `EDI_API_KEY`) | SecretStr \| null | unset | EDI API access key (https://auth.edirepository.org/auth/ui/key). Enables the PASTA backend; without it edi-mcp uses DataONE. Prefer the EDI_API_KEY env var; never commit it. |
 | `edi.user_agent_suffix` | `EDI_MCP_EDI__USER_AGENT_SUFFIX` | str \| null | unset | Text appended to the User-Agent header. |
+| `edi.max_token_slots` | `EDI_MCP_EDI__MAX_TOKEN_SLOTS` | int | `256` | Most per-caller key/token slots kept in memory (HTTP X-EDI-Key callers; least recently used are dropped first). |
 | `edi.connect_timeout_s` | `EDI_MCP_EDI__CONNECT_TIMEOUT_S` | float | `10.0` | TCP/TLS connect timeout. |
 | `edi.read_timeout_s` | `EDI_MCP_EDI__READ_TIMEOUT_S` | float | `60.0` | Default read timeout. |
 | `edi.download_read_timeout_s` | `EDI_MCP_EDI__DOWNLOAD_READ_TIMEOUT_S` | float | `300.0` | Read timeout for data-entity downloads. |
@@ -142,8 +143,9 @@ A few settings default to "unset" and resolve per transport:
 | `limits.text_budget_summary` | `EDI_MCP_LIMITS__TEXT_BUDGET_SUMMARY` | int | `300` | Characters kept of long text fields (abstracts) in summaries. |
 | `limits.text_budget_detail` | `EDI_MCP_LIMITS__TEXT_BUDGET_DETAIL` | int | `4000` | Default characters kept of long text fields in detail views. |
 | `limits.max_eml_bytes` | `EDI_MCP_LIMITS__MAX_EML_BYTES` | int | `20971520` | Largest EML document parsed (larger ones fail with result_too_large). |
+| `limits.max_resource_bytes` | `EDI_MCP_LIMITS__MAX_RESOURCE_BYTES` | int | `1048576` | Largest resource read returned (the raw EML template); larger ones fail with result_too_large. |
 | `limits.preview_max_bytes` | `EDI_MCP_LIMITS__PREVIEW_MAX_BYTES` | int | `262144` | Most bytes edi_preview_entity reads from an entity. |
-| `limits.tools_list_max_bytes` | `EDI_MCP_LIMITS__TOOLS_LIST_MAX_BYTES` | int | `60000` | Conformance bound on the serialized tools/list result; tightened once every tool lands. |
+| `limits.tools_list_max_bytes` | `EDI_MCP_LIMITS__TOOLS_LIST_MAX_BYTES` | int | `60000` | Conformance bound on the serialized tools/list result (58 KB with all 16 tools). |
 | `downloads.enabled` | `EDI_MCP_DOWNLOADS__ENABLED` | bool \| null | unset | Offer the download tools. Unset: true on stdio; never available over http. |
 | `downloads.directory` | `EDI_MCP_DOWNLOADS__DIRECTORY` | Path | `~/edi-downloads` | Directory every download is confined to (created on first use). |
 | `downloads.max_files_per_call` | `EDI_MCP_DOWNLOADS__MAX_FILES_PER_CALL` | int | `50` | Most entities one edi_download_entities call transfers. |

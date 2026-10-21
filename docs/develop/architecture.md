@@ -94,7 +94,8 @@ names them), marks the page `truncated` with `truncatedReason: budget` and a
 | `errors.py` | `ToolError` codes and the upstream error mapping (`upstream_forbidden`, `access_restricted`, …) |
 | `logging.py` | structlog to stderr; credential masking and registered-secret redaction |
 | `instructions.py` | server instructions returned by `server/discover` |
-| `resources.py`, `resources_static/` | `edi://` guides (`api-key`, `package-identifiers`) and the dated scope snapshot `scopes.json` |
+| `resources.py`, `resources_static/` | `edi://` guides (`agent-workflow`, `api-key`, `citing-edi-data`, `package-identifiers`, `search-syntax`), the dated scope snapshot `scopes.json`, and the `edi://packages/{packageId}[/eml]` templates |
+| `prompts.py` | the prompts `edi_find_data`, `edi_cite_package` and `edi_plan_download` |
 | `models/common.py` | `EdiInput`, `ToolResultBase`, `Page`, `Resolved`, `Source` |
 | `edi/auth.py` | `ApiKey`, per-call key resolution, the HTTP TLS gate, `scrub_url` |
 | `edi/tokens.py` | key → `edi-token` exchange and refresh per key identity, `?key=` fallback |
@@ -111,8 +112,9 @@ names them), marks the page `truncated` with `truncatedReason: budget` and a
 | `tools/` | one module per family (`core.py`, `discovery.py`, `packages.py`, which fetches and parses the EML once per call via `load()`; `data.py` for previews and downloads, `citation.py`, `provenance.py` for quality reports and lineage, `feeds.py` for the change feed and read counts), plus helpers in `_common.py` (`source`, `paginate`, `portal_url`) |
 | `transport/` | stdio; stateless Streamable HTTP with `/healthz`, `/readyz` and the request-context middleware |
 
-Resources, prompts and packaging arrive in build step 7 (see the
-[Roadmap](../tools/roadmap.md)).
+Packaging: `pyproject.toml` builds the `edi-pasta-mcp` wheel, `server.json` is the MCP
+Registry entry, the `Dockerfile` the HTTP image, and `.github/workflows/release.yml`
+publishes a `v*` tag to PyPI, GitHub releases and the registry.
 
 Design decisions and their reasons are recorded in `DESIGN.md` (the D-numbers)
 and verified API facts in `RESEARCH.md`, both at the repository root.

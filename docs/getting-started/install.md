@@ -141,34 +141,48 @@ it would write WSL's own config files, which Claude Desktop for Windows never re
 
 ## Option 2: Install the package and register it by hand
 
-Install the `edi-mcp` command:
+The package is published on PyPI as **`edi-pasta-mcp`** and installs the `edi-mcp`
+command (also available as `edi-pasta-mcp`).
+
+!!! warning "Not `edi-mcp`"
+
+    `pip install edi-mcp` or `uvx edi-mcp` would install a different, unrelated
+    project that happens to own that name on PyPI.
 
 === "uv tool (recommended)"
+
+    ```bash
+    uv tool install edi-pasta-mcp
+    ```
+
+    This puts `edi-mcp` in uv's tool directory (`~/.local/bin` on macOS and Linux,
+    `%USERPROFILE%\.local\bin` on Windows). Upgrade with
+    `uv tool upgrade edi-pasta-mcp`.
+
+=== "uvx (no install)"
+
+    ```bash
+    uvx edi-pasta-mcp --version
+    ```
+
+    Clients can use `uvx` as the command with `["edi-pasta-mcp"]` as its arguments;
+    the first start is slower while uv builds the environment.
+
+=== "pipx / pip"
+
+    ```bash
+    pipx install edi-pasta-mcp
+    # or, inside a virtual environment:
+    pip install edi-pasta-mcp
+    ```
+
+=== "Development version"
 
     ```bash
     uv tool install git+https://github.com/idss-mesa/edi-mcp
     ```
 
-    This puts `edi-mcp` in uv's tool directory (`~/.local/bin` on macOS and Linux,
-    `%USERPROFILE%\.local\bin` on Windows). Upgrade with `uv tool upgrade edi-mcp`.
-
-=== "uvx (no install)"
-
-    ```bash
-    uvx --from git+https://github.com/idss-mesa/edi-mcp edi-mcp --version
-    ```
-
-    Clients can use `uvx` as the command with
-    `["--from", "git+https://github.com/idss-mesa/edi-mcp", "edi-mcp"]` as its
-    arguments; the first start is slower while uv builds the environment.
-
-=== "pipx / pip"
-
-    ```bash
-    pipx install git+https://github.com/idss-mesa/edi-mcp
-    # or, inside a virtual environment:
-    pip install "git+https://github.com/idss-mesa/edi-mcp"
-    ```
+    The `main` branch, ahead of the latest release.
 
 === "From source"
 
@@ -222,9 +236,19 @@ Goose, OpenCode, VS Code and hosted servers.
 
 ## Option 3: Docker
 
-A container image (`python:3.13-slim`, non-root, HTTP on port 8080 with a `/healthz`
-check) is planned for the v0.1.0 release; see the [Roadmap](../tools/roadmap.md).
-There is no Dockerfile yet.
+The repository's `Dockerfile` builds an image that serves stateless Streamable HTTP on
+port 8080 as a non-root user, with a `/healthz` health check:
+
+```bash
+git clone https://github.com/idss-mesa/edi-mcp && cd edi-mcp
+docker build -t edi-mcp .
+docker run --rm --read-only --tmpfs /tmp -p 127.0.0.1:8080:8080 edi-mcp
+```
+
+Point an HTTP-capable client at `http://127.0.0.1:8080/mcp`. Without TLS in front,
+calls are served anonymously from DataONE; to let callers send their own key in
+`X-EDI-Key`, follow [Hosted HTTP](../deploy/hosted-http.md). The download tools are
+not offered over HTTP.
 
 ## Verify the installation
 

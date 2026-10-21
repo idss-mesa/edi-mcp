@@ -26,11 +26,12 @@ If you want EDI data rather than documentation, connect to the edi-mcp server it
 - [Identifiers and scope names](https://idss-mesa.github.io/edi-mcp/tools/identifiers/): How EDI packages are identified (scope.identifier.revision, DOIs, portal and PASTA URLs), which forms edi-mcp accepts, and how scope names and LTER site codes resolve.
 - [Packages, metadata and entities](https://idss-mesa.github.io/edi-mcp/tools/packages/): Inspect one EDI package revision with edi_get_package, read its EML metadata in compact sections with edi_get_metadata, and list its data tables and files with columns, formats and checksums with edi_list_entities.
 - [Tool reference](https://idss-mesa.github.io/edi-mcp/tools/reference/): Every edi-mcp tool with its inputs, result fields, upstream endpoints, key requirement and annotations, generated from the registry.
-- [Roadmap](https://idss-mesa.github.io/edi-mcp/tools/roadmap/): What remains planned for edi-mcp after the sixteen tools: more edi:// resources and templates, prompts, a server.json for the MCP Registry, a Docker image and the v0.1.0 release.
+- [Roadmap](https://idss-mesa.github.io/edi-mcp/tools/roadmap/): How edi-mcp was built in seven steps up to v0.1.0, and what is planned after it: a dry-run EML check and other opt-in additions.
 - [Utilities and errors](https://idss-mesa.github.io/edi-mcp/tools/utilities/): Check the server, its key status and backend with edi_ping, and the stable error codes every edi-mcp tool can return.
 
 ## MCP protocol
 
+- [Resources and prompts](https://idss-mesa.github.io/edi-mcp/mcp/resources-and-prompts/): The edi:// guide resources, the package and raw-EML resource templates with their cache scopes, and the three prompts edi-mcp offers.
 - [MCP 2026-07-28 conformance](https://idss-mesa.github.io/edi-mcp/mcp/spec-2026-07-28/): Which parts of the MCP 2026-07-28 stateless core edi-mcp implements — discovery, cache hints, result types, schemas, _meta, MRTR — and which deprecated features it deliberately leaves out.
 - [Transports](https://idss-mesa.github.io/edi-mcp/mcp/transports/): The stdio and stateless Streamable HTTP transports: routes, health checks, header routing, DNS-rebinding protection and per-request EDI API keys.
 
