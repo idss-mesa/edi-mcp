@@ -5,7 +5,7 @@ Precedence (highest wins): CLI flag > environment variable > YAML file > default
 Environment variables use the ``EDI_MCP_`` prefix and ``__`` to descend into
 nested sections at any depth: ``EDI_MCP_EDI__RETRIES__MAX_ATTEMPTS`` sets
 ``config.edi.retries.max_attempts``. List fields accept a comma-separated
-string. The EDI API key (``EDI_MCP_EDI__API_KEY``) additionally falls back to
+string; an empty value counts as unset. The EDI API key (``EDI_MCP_EDI__API_KEY``) additionally falls back to
 ``EDI_API_KEY``, the name EDI's own guides and EDIutils use. Look-alike names
 (``EDI_KEY``, ``EDI_TOKEN``, ``EDI_AUTH_TOKEN``) are not read; the loader warns
 when one is set without ``EDI_API_KEY`` (DESIGN.md D5).
@@ -318,8 +318,8 @@ class Config(BaseModel):
 
 
 def _coerce_env_value(raw: str) -> Any:
-    """Env values stay strings (pydantic coerces them); null-ish become ``None``."""
-    if raw.strip().lower() in {"", "null", "none"}:
+    """Env values stay strings (pydantic coerces them); ``null`` / ``none`` become ``None``."""
+    if raw.strip().lower() in {"null", "none"}:
         return None
     return raw
 
@@ -347,6 +347,8 @@ def _load_env(env: Mapping[str, str]) -> dict[str, Any]:
     for key, raw in env.items():
         if not key.startswith(ENV_PREFIX):
             continue
+        if not raw.strip():
+            continue  # VAR= (as docker compose passes an unset ${VAR:-}) means "not set"
         parts = [p.lower() for p in key[len(ENV_PREFIX) :].split(ENV_DELIM) if p]
         if not parts:
             continue

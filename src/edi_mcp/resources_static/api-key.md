@@ -23,7 +23,7 @@ EDI's guide: <https://edirepository.org/resources/working-with-access-keys>.
 ## Give it to edi-mcp
 
 - **stdio (Claude Code, Claude Desktop, …):** set `EDI_API_KEY` in the server's
-  environment, e.g. `claude mcp add edi -e EDI_API_KEY=… -- uvx --from edi-pasta-mcp edi-mcp`.
+  environment, e.g. `claude mcp add edi -e EDI_API_KEY=… -- uvx edi-pasta-mcp`.
   `EDI_MCP_EDI__API_KEY` overrides it. edi-mcp does not read `.env` files on its own,
   has no key flag (command lines leak into `ps` and shell history), and ignores
   look-alike names such as `EDI_TOKEN`.

@@ -1,0 +1,18 @@
+# Local or single-host deployment. Put a TLS-terminating reverse proxy in front (callers'
+# X-EDI-Key headers are bearer secrets) and set PUBLIC_BASE_URL to its https:// address;
+# without it, per-caller keys are refused and every call is served anonymously from DataONE.
+services:
+  edi-mcp:
+    build: .
+    image: edi-mcp:local
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      EDI_MCP_SERVER__PUBLIC_BASE_URL: "${PUBLIC_BASE_URL:-}"
+      EDI_MCP_SERVER__ALLOWED_HOSTS: "${ALLOWED_HOSTS:-}"
+      # An operator key is lent to callers only with EDI_MCP_SERVER__SHARE_CONFIG_KEY_OVER_HTTP=true:
+      # EDI_API_KEY: "${EDI_API_KEY}"
+    read_only: true
+    tmpfs:
+      - /tmp
+    restart: unless-stopped

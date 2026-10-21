@@ -1,0 +1,25 @@
+# Never send secrets or local state to the Docker daemon.
+.env
+.env.*
+.envrc
+probe.json
+*.pem
+*.key
+.git
+.github
+.venv
+.mypy_cache
+.pytest_cache
+.ruff_cache
+**/__pycache__
+.coverage
+coverage.xml
+htmlcov
+site
+docs
+tests
+scripts
+downloads
+edi-downloads
+dist
+build

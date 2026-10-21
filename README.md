@@ -3,6 +3,9 @@
 [![MCP 2026-07-28](https://img.shields.io/badge/MCP-2026--07--28-blue)](https://modelcontextprotocol.io/specification/2026-07-28)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Docs](https://img.shields.io/badge/docs-idss--mesa.github.io%2Fedi--mcp-indigo)](https://idss-mesa.github.io/edi-mcp/)
+[![PyPI](https://img.shields.io/pypi/v/edi-pasta-mcp)](https://pypi.org/project/edi-pasta-mcp/)
+
+<!-- mcp-name: io.github.idss-mesa/edi-mcp -->
 
 A [Model Context Protocol](https://modelcontextprotocol.io) server (spec **2026-07-28**)
 for the [Environmental Data Initiative](https://edirepository.org) (EDI) PASTA+ data
@@ -11,10 +14,10 @@ ecological data packages.
 
 > Documentation: <https://idss-mesa.github.io/edi-mcp/>
 
-> **Status: pre-release.** All 16 tools below work; resources, prompts, `server.json`, a
-> container image and the v0.1.0 PyPI release are the last build step. See
-> [DESIGN.md](DESIGN.md) for decisions and [RESEARCH.md](RESEARCH.md) for verified API
-> facts.
+> **Status: v0.1.0.** 16 read-only tools, 6 guide resources, 2 package templates and 3
+> prompts. The PyPI distribution is **`edi-pasta-mcp`** (the name `edi-mcp` belongs to an
+> unrelated project); it installs the command `edi-mcp` (also available as `edi-pasta-mcp`). See [DESIGN.md](DESIGN.md)
+> for decisions and [RESEARCH.md](RESEARCH.md) for verified API facts.
 
 ## Installation
 
@@ -59,9 +62,25 @@ installing.
 ### Manual
 
 ```bash
-uv tool install git+https://github.com/idss-mesa/edi-mcp
+uv tool install edi-pasta-mcp         # or run it without installing: uvx edi-pasta-mcp
 claude mcp add edi -s user -e EDI_API_KEY="$EDI_API_KEY" -- edi-mcp
 ```
+
+`pip install edi-pasta-mcp` and `pipx install edi-pasta-mcp` work too; the
+development version installs from `git+https://github.com/idss-mesa/edi-mcp`. Do not
+`pip install edi-mcp`: that is a different, unrelated package.
+
+### Docker (HTTP)
+
+```bash
+docker build -t edi-mcp .
+docker run --rm -p 127.0.0.1:8080:8080 edi-mcp      # MCP at http://127.0.0.1:8080/mcp
+```
+
+The image serves stateless Streamable HTTP as a non-root user, with `/healthz` and
+`/readyz`. Callers send their own key in `X-EDI-Key`, which edi-mcp accepts only behind
+TLS (`EDI_MCP_SERVER__PUBLIC_BASE_URL=https://…`); see
+<https://idss-mesa.github.io/edi-mcp/deploy/hosted-http/> and `docker-compose.yml`.
 
 Claude Desktop (`~/Library/Application Support/Claude/claude_desktop_config.json` on
 macOS, `%APPDATA%\Claude\claude_desktop_config.json` on Windows,
@@ -108,6 +127,22 @@ zips need a key.
 | `edi_get_read_counts` | Read counts by resource type and revision (key required) |
 | `edi_download_entities` / `edi_download_package` | Save entities (SHA-1 verified, never overwriting) or the zip (key) locally; stdio only |
 | `edi_ping` | Server, backend and key status |
+
+## Resources and prompts
+
+| Resource | Content |
+|---|---|
+| `edi://guide/agent-workflow` | Five-call recipe from a question to cited data, input forms, error remedies |
+| `edi://guide/api-key` | Why EDI needs a key, how to create and pass one, what works without |
+| `edi://guide/search-syntax` | Query text (words are ORed), filters, PASTA vs DataONE differences |
+| `edi://guide/package-identifiers` | scope.identifier.revision, DOIs, entity ids, accepted forms |
+| `edi://guide/citing-edi-data` | Citing one revision by its DOI, styles, rights |
+| `edi://reference/scopes` | Every scope with name, kind, site code and package counts |
+| `edi://packages/{packageId}` | Template: the `edi_get_package` summary |
+| `edi://packages/{packageId}/eml` | Template: the raw EML document (up to 1 MiB) |
+
+Prompts: `edi_find_data` (question → candidate packages), `edi_cite_package` (citation
+plus rights) and `edi_plan_download` (size, preview, download, cite).
 
 ## License
 

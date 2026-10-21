@@ -1,0 +1,39 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.idss-mesa/edi-mcp",
+  "title": "EDI Data Repository",
+  "description": "Search, inspect, preview, download and cite LTER/EDI ecological data packages (EDI PASTA+).",
+  "version": "0.1.0",
+  "websiteUrl": "https://idss-mesa.github.io/edi-mcp/",
+  "repository": {
+    "url": "https://github.com/idss-mesa/edi-mcp",
+    "source": "github"
+  },
+  "packages": [
+    {
+      "registryType": "pypi",
+      "registryBaseUrl": "https://pypi.org",
+      "identifier": "edi-pasta-mcp",
+      "version": "0.1.0",
+      "runtimeHint": "uvx",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "EDI_API_KEY",
+          "description": "EDI API key (https://auth.edirepository.org). Optional: without it edi-mcp reads the anonymous DataONE replicas, and lineage, change feeds, read counts and package zips are unavailable.",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "EDI_MCP_DOWNLOADS__DIRECTORY",
+          "description": "Directory downloads are confined to (default ~/edi-downloads).",
+          "isRequired": false,
+          "format": "filepath"
+        }
+      ]
+    }
+  ]
+}

@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "edi-mcp"
+name = "edi-pasta-mcp"
 dynamic = ["version"]
 description = "Model Context Protocol (MCP 2026-07-28) server for the Environmental Data Initiative (EDI) PASTA+ repository: search, inspect, preview, download and cite LTER/EDI ecological data packages."
 readme = "README.md"
@@ -52,6 +52,8 @@ dev = [
 
 [project.scripts]
 edi-mcp = "edi_mcp.__main__:main"
+# Same entry point under the distribution name, so `uvx edi-pasta-mcp` works.
+edi-pasta-mcp = "edi_mcp.__main__:main"
 
 [project.urls]
 Homepage = "https://github.com/idss-mesa/edi-mcp"
