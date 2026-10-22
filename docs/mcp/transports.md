@@ -25,8 +25,8 @@ status: stable
 `edi-mcp` (or `edi-mcp --transport stdio`) serves one client over standard input and
 output, the usual setup for Claude Code, Claude Desktop and other local clients. Only
 MCP framing goes to stdout; logs go to stderr. The key in the server's environment
-(`EDI_API_KEY`) is used for every call, and the stdio-only download tools, once
-released, are offered only here. The SDK's stdio loop serves both protocol eras: a
+(`EDI_API_KEY`) is used for every call, and the stdio-only download tools are
+offered only here. The SDK's stdio loop serves both protocol eras: a
 client that starts with the legacy `initialize` handshake and a 2026-07-28 client
 both work.
 

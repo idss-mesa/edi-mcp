@@ -3,7 +3,10 @@
 One :class:`TokenManager` per process holds one slot per key identity, so
 HTTP callers with different ``X-EDI-Key`` values never share a token. A
 slot's lock makes concurrent calls exchange once. Tokens live in memory
-only and are registered with the log redactor.
+only and are registered with the log redactor. At most
+``edi.max_token_slots`` caller slots are kept (least recently used go first,
+never the configured key's or one in use); an evicted slot's key and token
+leave the redactor too, since nothing holds them any more.
 
 * No token, or an expired one: ``POST {auth}/key {"key": …}``.
 * Fewer than ``token_refresh_margin_s`` seconds left: ``POST
@@ -18,6 +21,7 @@ from __future__ import annotations
 
 import asyncio
 import time
+from collections import OrderedDict
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any, Literal
@@ -28,7 +32,7 @@ import structlog
 from edi_mcp.config import EdiConfig
 from edi_mcp.edi.auth import ApiKey, jwt_expiry
 from edi_mcp.errors import EdiApiError
-from edi_mcp.logging import register_secret
+from edi_mcp.logging import forget_secret, register_secret
 
 log = structlog.get_logger("edi_mcp.auth")
 
@@ -49,6 +53,7 @@ class Credential:
 
 @dataclass
 class _Slot:
+    key: ApiKey
     lock: asyncio.Lock = field(default_factory=asyncio.Lock)
     token: str | None = field(default=None, repr=False)
     expires_at: float = 0.0
@@ -73,17 +78,42 @@ class TokenManager:
         self._margin = config.token_refresh_margin_s
         self._fallback_s = config.auth_fallback_s
         self._clock = clock
-        self._slots: dict[str, _Slot] = {}
+        self._max_slots = config.max_token_slots
+        self._slots: OrderedDict[str, _Slot] = OrderedDict()
 
     def _slot(self, key: ApiKey) -> _Slot:
-        return self._slots.setdefault(key.identity(), _Slot())
+        identity = key.identity()
+        slot = self._slots.get(identity)
+        if slot is None:
+            slot = self._slots[identity] = _Slot(key)
+            self._evict(keep=identity)
+        self._slots.move_to_end(identity)
+        return slot
+
+    def _evict(self, *, keep: str) -> None:
+        """Drop least recently used slots over the cap; may stay over it when the rest are
+        pinned, in use, or the one just created."""
+        for identity in list(self._slots):
+            if len(self._slots) <= self._max_slots:
+                return
+            slot = self._slots[identity]
+            if identity == keep or slot.key.source == "config" or slot.lock.locked():
+                continue
+            del self._slots[identity]
+            forget_secret(slot.token)
+            forget_secret(slot.key.value)
+
+    def slot_count(self) -> int:
+        return len(self._slots)
 
     async def credential(self, key: ApiKey) -> Credential:
         """A credential for ``key``: a valid token when possible, else the key itself."""
         slot = self._slot(key)
+        pinned = key.source == "config"
         async with slot.lock:
             now = self._clock()
             if slot.token and slot.expires_at - now > self._margin:
+                register_secret(slot.token, pinned=pinned)  # keep it recent in the redactor
                 return Credential("token", slot.token)
             if slot.fallback_until > now:
                 return Credential("key", key.value)
@@ -91,12 +121,14 @@ class TokenManager:
                 token = None
                 if slot.token and slot.expires_at - now > 30:
                     try:
-                        token = await self._post("/token/refresh", {"edi-token": slot.token})
+                        token = await self._post(
+                            "/token/refresh", {"edi-token": slot.token}, pinned=pinned
+                        )
                     except EdiApiError:
                         token = None
                 if token is None:
                     slot.exchanges += 1
-                    token = await self._post("/key", {"key": key.value})
+                    token = await self._post("/key", {"key": key.value}, pinned=pinned)
             except _AuthUnavailable as exc:
                 slot.token = None
                 slot.fallback_until = now + self._fallback_s
@@ -117,7 +149,7 @@ class TokenManager:
     def exchanges(self, key: ApiKey) -> int:
         return self._slot(key).exchanges
 
-    async def _post(self, path: str, body: dict[str, Any]) -> str:
+    async def _post(self, path: str, body: dict[str, Any], *, pinned: bool = False) -> str:
         try:
             response = await self._http.post(
                 f"{self._base}{path}",
@@ -143,7 +175,7 @@ class TokenManager:
             token = None
         if not isinstance(token, str) or not token:
             raise _AuthUnavailable("response carried no edi-token")
-        register_secret(token)
+        register_secret(token, pinned=pinned)
         return token
 
 

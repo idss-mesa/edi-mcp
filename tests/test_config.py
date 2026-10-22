@@ -130,3 +130,15 @@ def test_lookalike_key_alone_warns_without_leaking(caplog: pytest.LogCaptureFixt
     with caplog.at_level(logging.WARNING, logger="edi_mcp.config"):
         load_config(env={"EDI_API_KEY": "key-aaaa", "EDI_TOKEN": "key-bbbb"})
     assert "EDI_TOKEN" not in caplog.text
+
+
+def test_empty_env_values_count_as_unset() -> None:
+    cfg = load_config(
+        env={
+            "EDI_MCP_SERVER__ALLOWED_HOSTS": "",
+            "EDI_MCP_SERVER__PUBLIC_BASE_URL": "  ",
+            "EDI_MCP_SERVER__INSTRUCTIONS_EXTRA": "null",
+        }
+    )
+    assert cfg.server.allowed_hosts == [] and cfg.server.public_base_url is None
+    assert cfg.server.instructions_extra is None

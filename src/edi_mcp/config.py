@@ -5,7 +5,7 @@ Precedence (highest wins): CLI flag > environment variable > YAML file > default
 Environment variables use the ``EDI_MCP_`` prefix and ``__`` to descend into
 nested sections at any depth: ``EDI_MCP_EDI__RETRIES__MAX_ATTEMPTS`` sets
 ``config.edi.retries.max_attempts``. List fields accept a comma-separated
-string. The EDI API key (``EDI_MCP_EDI__API_KEY``) additionally falls back to
+string; an empty value counts as unset. The EDI API key (``EDI_MCP_EDI__API_KEY``) additionally falls back to
 ``EDI_API_KEY``, the name EDI's own guides and EDIutils use. Look-alike names
 (``EDI_KEY``, ``EDI_TOKEN``, ``EDI_AUTH_TOKEN``) are not read; the loader warns
 when one is set without ``EDI_API_KEY`` (DESIGN.md D5).
@@ -96,6 +96,12 @@ class EdiConfig(_Section):
     user_agent_suffix: str | None = Field(
         None, description="Text appended to the User-Agent header."
     )
+    max_token_slots: int = Field(
+        256,
+        ge=1,
+        description="Most per-caller key/token slots kept in memory (HTTP X-EDI-Key callers; "
+        "least recently used are dropped first).",
+    )
     connect_timeout_s: float = Field(10.0, gt=0, description="TCP/TLS connect timeout.")
     read_timeout_s: float = Field(60.0, gt=0, description="Default read timeout.")
     download_read_timeout_s: float = Field(
@@ -174,13 +180,19 @@ class LimitsConfig(_Section):
         ge=1024,
         description="Largest EML document parsed (larger ones fail with result_too_large).",
     )
+    max_resource_bytes: int = Field(
+        1024 * 1024,
+        ge=1024,
+        description="Largest resource read returned (the raw EML template); larger ones fail "
+        "with result_too_large.",
+    )
     preview_max_bytes: int = Field(
         256 * 1024, ge=1024, description="Most bytes edi_preview_entity reads from an entity."
     )
     tools_list_max_bytes: int = Field(
         60_000,
         ge=1000,
-        description="Conformance bound on the serialized tools/list result; tightened once every tool lands.",
+        description="Conformance bound on the serialized tools/list result (58 KB with all 16 tools).",
     )
 
 
@@ -306,8 +318,8 @@ class Config(BaseModel):
 
 
 def _coerce_env_value(raw: str) -> Any:
-    """Env values stay strings (pydantic coerces them); null-ish become ``None``."""
-    if raw.strip().lower() in {"", "null", "none"}:
+    """Env values stay strings (pydantic coerces them); ``null`` / ``none`` become ``None``."""
+    if raw.strip().lower() in {"null", "none"}:
         return None
     return raw
 
@@ -335,6 +347,8 @@ def _load_env(env: Mapping[str, str]) -> dict[str, Any]:
     for key, raw in env.items():
         if not key.startswith(ENV_PREFIX):
             continue
+        if not raw.strip():
+            continue  # VAR= (as docker compose passes an unset ${VAR:-}) means "not set"
         parts = [p.lower() for p in key[len(ENV_PREFIX) :].split(ENV_DELIM) if p]
         if not parts:
             continue

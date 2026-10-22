@@ -22,17 +22,17 @@ Claude Code and Claude Desktop, and stateless Streamable HTTP at `/mcp` when
 hosted. It is developed by [idss-mesa](https://github.com/idss-mesa){target=_blank}
 at the University of New Mexico and released under the MIT license.
 
-!!! warning "Under construction"
+!!! note "Version 0.1.0"
 
-    edi-mcp is being built in seven steps, one pull request each. All
-    sixteen tools are available (see the [Tool reference](tools/reference.md));
-    the last step adds more resources, prompts, a Docker image and the
-    first release (see the [Roadmap](tools/roadmap.md)). There is no PyPI release yet.
+    Sixteen read-only tools (see the [Tool reference](tools/reference.md)), six
+    guide resources, two package templates and three prompts (see
+    [Resources and prompts](mcp/resources-and-prompts.md)). The PyPI package is
+    **`edi-pasta-mcp`**: `edi-mcp` on PyPI is an unrelated project.
 
 ## Install in one minute
 
 ```bash
-uv tool install git+https://github.com/idss-mesa/edi-mcp
+uv tool install edi-pasta-mcp
 claude mcp add edi -s user -e EDI_API_KEY="$EDI_API_KEY" -- edi-mcp
 ```
 

@@ -131,9 +131,28 @@ operator key.
 
 ## Container image
 
-A `Dockerfile` (Python slim base, non-root user, health check on `/healthz`) is
-planned for the v0.1.0 release and is not in the repository yet. Until then,
-install the package into a virtual environment as above.
+The repository's `Dockerfile` builds a `python:3.13-slim` image that installs
+edi-mcp into `/app/.venv`, runs it as user `edi` (uid 10001) with
+`--transport http --bind-address 0.0.0.0` on port 8080, and checks `/healthz` every
+30 seconds. Nothing is written to disk, so it runs on a read-only root file system:
+
+```bash
+docker build -t edi-mcp .
+docker run -d --name edi-mcp --read-only --tmpfs /tmp \
+  -p 127.0.0.1:8080:8080 \
+  -e EDI_MCP_SERVER__PUBLIC_BASE_URL=https://edi-mcp.example.org \
+  -e EDI_MCP_SERVER__ALLOWED_HOSTS=edi-mcp.example.org \
+  edi-mcp
+```
+
+`docker-compose.yml` does the same, reading `PUBLIC_BASE_URL` and `ALLOWED_HOSTS` from
+the environment (empty values count as unset). Publish the port on `127.0.0.1` only and
+put the TLS proxy in front: callers' `X-EDI-Key` headers are secrets. To lend an
+operator key to every caller, pass `EDI_API_KEY` from the host environment
+(`-e EDI_API_KEY`, never the value on the command line) and set
+`EDI_MCP_SERVER__SHARE_CONFIG_KEY_OVER_HTTP=true`. `scripts/smoke_http.py` checks a
+running instance (`docker exec -i edi-mcp python - --offline < scripts/smoke_http.py`),
+as CI does for every change.
 
 ## Health and readiness
 

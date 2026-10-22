@@ -73,3 +73,25 @@ def test_http_logs_are_json(capsys: pytest.CaptureFixture[str]) -> None:
     record = json.loads(line)
     assert record["event"] == "evt"
     assert record["request_id"] == "r1"
+
+
+def test_secret_registry_is_an_lru_that_never_drops_pinned(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from edi_mcp import logging as edi_logging
+
+    monkeypatch.setattr(edi_logging, "MAX_SECRETS", 3)
+    register_secret("pinned-secret", pinned=True)
+    for i in range(5):
+        register_secret(f"caller-secret-{i}")
+    register_secret("caller-secret-2")  # used again: now the most recent
+    register_secret("caller-secret-5")
+    assert registered_secrets() == {
+        "pinned-secret",
+        "caller-secret-4",
+        "caller-secret-2",
+        "caller-secret-5",
+    }
+    register_secret("pinned-secret")  # an unpinned re-registration keeps the pin
+    edi_logging.forget_secret("pinned-secret")
+    assert "pinned-secret" in registered_secrets()

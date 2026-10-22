@@ -41,7 +41,7 @@ class ApiKey:
     source: Literal["config", "request"]
 
     def __post_init__(self) -> None:
-        register_secret(self.value)
+        register_secret(self.value, pinned=self.source == "config")
 
     def identity(self) -> str:
         """Stable non-reversible key for caches and token slots."""

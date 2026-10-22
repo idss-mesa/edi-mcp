@@ -1,4 +1,4 @@
-"""The MCP adapter: exposes the tool registry and resources over the SDK.
+"""The MCP adapter: exposes the tool registry, resources and prompts over the SDK.
 
 Targets the **MCP 2026-07-28** stateless core via the low-level
 ``mcp.server.Server`` (SDK 2.x constructor callbacks). The registry stays
@@ -53,6 +53,7 @@ if TYPE_CHECKING:
 JSON_SCHEMA_DIALECT = "https://json-schema.org/draft/2020-12/schema"
 TOOLS_LIST_TTL_MS = 300_000
 RESOURCES_LIST_TTL_MS = 3_600_000
+PROMPTS_LIST_TTL_MS = 86_400_000
 RESOURCE_READ_STATIC_TTL_MS = 86_400_000
 RESOURCE_READ_DERIVED_TTL_MS = 3_600_000
 DISCOVER_TTL_MS = 300_000
@@ -333,6 +334,7 @@ class EdiServer:
         from mcp.server.caching import CacheHint
         from mcp.shared.exceptions import MCPError
 
+        from edi_mcp import prompts as prompt_mod
         from edi_mcp import resources as resource_mod
         from edi_mcp.instructions import SERVER_INSTRUCTIONS
 
@@ -407,6 +409,7 @@ class EdiServer:
                     data={
                         "code": exc.code,
                         **{k: v for k, v in exc.details.items() if k in ("didYouMean", "uri")},
+                        **({"hint": exc.hint} if exc.hint else {}),
                     },
                 ) from None
             return t.ReadResourceResult(
@@ -414,8 +417,17 @@ class EdiServer:
                     t.TextResourceContents(uri=uri, text=content.text, mime_type=content.mime_type)
                 ],
                 ttl_ms=content.ttl_ms,
-                cache_scope="public",
+                cache_scope=content.cache_scope,
             )
+
+        async def _on_list_prompts(_ctx: Any, _params: Any = None) -> t.ListPromptsResult:
+            return t.ListPromptsResult(prompts=prompt_mod.list_prompts())
+
+        async def _on_get_prompt(_ctx: Any, params: t.GetPromptRequestParams) -> t.GetPromptResult:
+            try:
+                return prompt_mod.get_prompt(params.name, params.arguments)
+            except ToolError as exc:
+                raise MCPError(t.INVALID_PARAMS, exc.message, data={"code": exc.code}) from None
 
         instructions = SERVER_INSTRUCTIONS
         if self.config.server.instructions_extra:
@@ -434,6 +446,7 @@ class EdiServer:
                 "resources/list": CacheHint(ttl_ms=RESOURCES_LIST_TTL_MS, scope="public"),
                 "resources/templates/list": CacheHint(ttl_ms=RESOURCES_LIST_TTL_MS, scope="public"),
                 "resources/read": CacheHint(ttl_ms=RESOURCE_READ_DERIVED_TTL_MS, scope="public"),
+                "prompts/list": CacheHint(ttl_ms=PROMPTS_LIST_TTL_MS, scope="public"),
                 "server/discover": CacheHint(ttl_ms=DISCOVER_TTL_MS, scope="public"),
             },
             on_list_tools=_on_list_tools,
@@ -441,6 +454,8 @@ class EdiServer:
             on_list_resources=_on_list_resources,
             on_list_resource_templates=_on_list_resource_templates,
             on_read_resource=_on_read_resource,
+            on_list_prompts=_on_list_prompts,
+            on_get_prompt=_on_get_prompt,
         )
 
     async def serve(self) -> None:

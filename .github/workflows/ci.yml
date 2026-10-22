@@ -89,6 +89,30 @@ jobs:
         continue-on-error: true
         run: uv run pytest -q -W error::DeprecationWarning tests/test_spec_conformance_2026_07_28.py
 
+  docker:
+    # Build the deployment image and smoke-test it over HTTP on a read-only root file
+    # system (offline: no upstream call, so an EDI or DataONE outage cannot fail a PR).
+    name: docker image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: docker build -t edi-mcp:ci .
+      - name: Run and wait for the health check
+        run: |
+          docker run -d --name edi-ci --read-only --tmpfs /tmp edi-mcp:ci
+          for _ in $(seq 1 30); do
+            [ "$(docker inspect -f '{{.State.Health.Status}}' edi-ci)" = healthy ] && break
+            sleep 2
+          done
+          docker inspect -f '{{.State.Health.Status}} user={{.Config.User}}' edi-ci
+          [ "$(docker inspect -f '{{.State.Health.Status}}' edi-ci)" = healthy ]
+      - run: docker exec -i edi-ci python - --offline < scripts/smoke_http.py
+      - name: The image holds no secrets or local state
+        run: |
+          docker exec edi-ci sh -c 'test ! -e /app/.env && test ! -e /app/probe.json && test "$(id -u)" = 10001'
+      - if: always()
+        run: docker logs edi-ci 2>&1 | tail -50; docker rm -f edi-ci || true
+
   live:
     # Real PASTA/DataONE calls. DataONE runs anonymously; PASTA tests skip unless the
     # repository secret EDI_API_KEY is set.

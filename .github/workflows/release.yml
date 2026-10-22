@@ -1,0 +1,80 @@
+name: Release
+
+# Push a v* tag (matching src/edi_mcp/__init__.py and server.json) to publish:
+# PyPI (trusted publishing, environment "pypi"), a GitHub release, and the MCP Registry.
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  pypi:
+    name: build and publish to PyPI
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      contents: write   # the GitHub release
+      id-token: write   # PyPI trusted publishing
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.12"
+      - run: uv sync --all-extras
+      - name: Tag, package and server.json versions agree
+        run: |
+          uv run python - <<'PY'
+          import json, os
+          from edi_mcp import __version__
+          tag = os.environ["GITHUB_REF_NAME"].removeprefix("v")
+          server = json.load(open("server.json"))
+          versions = {tag, __version__, server["version"], *(p["version"] for p in server["packages"])}
+          assert versions == {tag}, f"version mismatch: {versions}"
+          print("version", tag)
+          PY
+      - run: uv run pytest -q
+      - run: uv run python scripts/record_fixtures.py check
+      - run: uv build
+      - name: Smoke-test the wheel in a clean environment
+        run: |
+          uv venv /tmp/wheel-env
+          uv pip install --python /tmp/wheel-env dist/*.whl
+          /tmp/wheel-env/bin/edi-mcp --version
+          /tmp/wheel-env/bin/edi-pasta-mcp --version
+          /tmp/wheel-env/bin/edi-mcp --check
+          /tmp/wheel-env/bin/python -c "import edi_mcp.resources as r, pathlib; files = {s.file for s in r.STATIC}; missing = [f for f in files if not (r.STATIC_DIR / f).is_file()]; assert not missing, missing; print(len(files), 'resource files shipped')"
+      - uses: pypa/gh-action-pypi-publish@release/v1
+      - name: Attach the wheel and sdist to the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${GITHUB_REF_NAME}" dist/* --generate-notes --verify-tag
+
+  mcp-registry:
+    name: publish to the MCP Registry
+    needs: pypi
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write   # GitHub OIDC login for the io.github.idss-mesa namespace
+    env:
+      MCP_PUBLISHER_VERSION: v1.8.1
+    steps:
+      - uses: actions/checkout@v7
+      - name: Wait until PyPI serves this version
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          for _ in $(seq 1 30); do
+            curl -sf "https://pypi.org/pypi/edi-pasta-mcp/${version}/json" >/dev/null && exit 0
+            sleep 10
+          done
+          echo "PyPI does not list edi-pasta-mcp ${version} yet" >&2
+          exit 1
+      - name: Install mcp-publisher
+        run: |
+          curl -sSfL "https://github.com/modelcontextprotocol/registry/releases/download/${MCP_PUBLISHER_VERSION}/mcp-publisher_linux_amd64.tar.gz" | tar xz mcp-publisher
+          ./mcp-publisher --version || true
+      - run: ./mcp-publisher login github-oidc
+      - run: ./mcp-publisher publish

@@ -435,7 +435,7 @@ wheels = [
 ]
 
 [[package]]
-name = "edi-mcp"
+name = "edi-pasta-mcp"
 source = { editable = "." }
 dependencies = [
     { name = "anyio" },

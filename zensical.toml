@@ -15,7 +15,7 @@ nav = [
   { "Home" = "index.md" },
   { "Getting started" = [ { "Contents" = "getting-started/index.md" }, "getting-started/install.md", "getting-started/quickstart.md", "getting-started/api-key.md", "getting-started/clients.md", "getting-started/configuration.md" ] },
   { "Tools" = [ { "Contents" = "tools/index.md" }, "tools/reference.md", "tools/discovery.md", "tools/packages.md", "tools/data.md", "tools/citation-and-quality.md", "tools/feeds.md", "tools/identifiers.md", "tools/backends.md", "tools/utilities.md", "tools/roadmap.md" ] },
-  { "MCP protocol" = [ { "Contents" = "mcp/index.md" }, "mcp/spec-2026-07-28.md", "mcp/transports.md" ] },
+  { "MCP protocol" = [ { "Contents" = "mcp/index.md" }, "mcp/spec-2026-07-28.md", "mcp/transports.md", "mcp/resources-and-prompts.md" ] },
   { "Deploy" = [ { "Contents" = "deploy/index.md" }, "deploy/hosted-http.md", "deploy/security.md" ] },
   { "Develop" = [ { "Contents" = "develop/index.md" }, "develop/architecture.md", "develop/adding-tools.md", "develop/testing.md", "develop/contributing.md" ] },
   { "About" = [ { "Contents" = "about/index.md" }, "about/ai-agents.md", "about/citing-edi.md", "about/license.md", { "Changelog" = "log.md" } ] },
